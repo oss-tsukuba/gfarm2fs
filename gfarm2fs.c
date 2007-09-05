@@ -527,7 +527,7 @@ static struct fuse_operations gfarm2fs_oper = {
 int main(int argc, char *argv[])
 {
 	gfarm_error_t e;
-	char **argv_tmp;
+	char **nargv;
 
 	umask(0);
 	e = gfarm_initialize(&argc, &argv);
@@ -538,14 +538,14 @@ int main(int argc, char *argv[])
 
 	/* specify '-s' option to disable multithreaded operations */
 	++argc;
-	argv_tmp = realloc(argv, sizeof(*argv) * (argc + 1));
-	if (argv_tmp == NULL) {
+	nargv = malloc(sizeof(*argv) * (argc + 1));
+	if (nargv == NULL) {
 		fprintf(stderr, "%s: no memory\n", *argv);
 		exit(1);
 	}
-	argv = argv_tmp;
-	argv[argc - 1] = "-s";
-	argv[argc] = "";
+	memcpy(nargv, argv, sizeof(*argv) * (argc - 1));
+	nargv[argc - 1] = "-s";
+	nargv[argc] = "";
 
-	return (fuse_main(argc, argv, &gfarm2fs_oper));
+	return (fuse_main(argc, nargv, &gfarm2fs_oper));
 }
