@@ -535,8 +535,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "%s: %s\n", *argv, gfarm_error_string(e));
 		exit(1);
 	}
+
+	/* specify '-s' option to disable multithreaded operations */
 	++argc;
-	printf("argc = %d, %d\n", argc, sizeof(*argv) * (argc + 1));
 	argv_tmp = realloc(argv, sizeof(*argv) * (argc + 1));
 	if (argv_tmp == NULL) {
 		fprintf(stderr, "%s: no memory\n", *argv);
@@ -545,5 +546,6 @@ int main(int argc, char *argv[])
 	argv = argv_tmp;
 	argv[argc - 1] = "-s";
 	argv[argc] = "";
+
 	return (fuse_main(argc, argv, &gfarm2fs_oper));
 }
