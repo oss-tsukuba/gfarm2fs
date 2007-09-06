@@ -52,7 +52,26 @@ get_nlink(struct gfs_stat *st)
 	return (GFARM_S_ISDIR(st->st_mode) ? 32000 : st->st_nlink);
 }
 
-static int gfarm2fs_getattr(const char *path, struct stat *stbuf)
+static void
+copy_gfs_stat(struct stat *dst, struct gfs_stat *src)
+{
+	memset(dst, 0, sizeof(*dst));
+	dst->st_dev = GFS_DEV;
+	dst->st_ino = src->st_ino;
+	dst->st_mode = src->st_mode;
+	dst->st_nlink = get_nlink(src);
+	dst->st_uid = get_uid(src->st_user);
+	dst->st_gid = get_gid(src->st_group);
+	dst->st_size = src->st_size;
+	dst->st_blksize = GFS_BLKSIZE;
+	dst->st_blocks = (src->st_size + STAT_BLKSIZ - 1) / STAT_BLKSIZ;
+	dst->st_atime = src->st_atimespec.tv_sec;
+	dst->st_mtime = src->st_mtimespec.tv_sec;
+	dst->st_ctime = src->st_ctimespec.tv_sec;
+}
+
+static int
+gfarm2fs_getattr(const char *path, struct stat *stbuf)
 {
 	struct gfs_stat st;
 	gfarm_error_t e;
@@ -61,31 +80,35 @@ static int gfarm2fs_getattr(const char *path, struct stat *stbuf)
 	if (e != GFARM_ERR_NO_ERROR)
 		return (-gfarm_error_to_errno(e));
 
-	memset(stbuf, 0, sizeof(*stbuf));
-	stbuf->st_dev = GFS_DEV;
-	stbuf->st_ino = st.st_ino;
-	stbuf->st_mode = st.st_mode;
-	stbuf->st_nlink = get_nlink(&st);
-	stbuf->st_uid = get_uid(st.st_user);
-	stbuf->st_gid = get_gid(st.st_group);
-	stbuf->st_size = st.st_size;
-	stbuf->st_blksize = GFS_BLKSIZE;
-	stbuf->st_blocks = (st.st_size + STAT_BLKSIZ - 1) / STAT_BLKSIZ;
-	stbuf->st_atime = st.st_atimespec.tv_sec;
-	stbuf->st_mtime = st.st_mtimespec.tv_sec;
-	stbuf->st_ctime = st.st_ctimespec.tv_sec;
+	copy_gfs_stat(stbuf, &st);
 	gfs_stat_free(&st);
-
 	return (0);
 }
 
-static int gfarm2fs_fgetattr(const char *path, struct stat *stbuf,
-                        struct fuse_file_info *fi)
+static inline GFS_File
+get_filep(struct fuse_file_info *fi)
 {
-	return (gfarm2fs_getattr(path, stbuf));
+	return (GFS_File) (uintptr_t) fi->fh;
 }
 
-static int gfarm2fs_access(const char *path, int mask)
+static int
+gfarm2fs_fgetattr(const char *path, struct stat *stbuf,
+	struct fuse_file_info *fi)
+{
+	struct gfs_stat st;
+	gfarm_error_t e;
+
+	e = gfs_pio_stat(get_filep(fi), &st);
+	if (e != GFARM_ERR_NO_ERROR)
+		return (-gfarm_error_to_errno(e));
+
+	copy_gfs_stat(stbuf, &st);
+	gfs_stat_free(&st);
+	return (0);
+}
+
+static int
+gfarm2fs_access(const char *path, int mask)
 {
 	/* XXX FIXME */
 	return (-ENOSYS);
@@ -97,7 +120,8 @@ static int gfarm2fs_access(const char *path, int mask)
 #endif
 }
 
-static int gfarm2fs_readlink(const char *path, char *buf, size_t size)
+static int
+gfarm2fs_readlink(const char *path, char *buf, size_t size)
 {
 	/* XXX FIXME */
 	return (-ENOSYS);
@@ -113,7 +137,8 @@ static int gfarm2fs_readlink(const char *path, char *buf, size_t size)
 #endif
 }
 
-static int gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
+static int
+gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
 	GFS_Dir dp;
@@ -126,7 +151,8 @@ static int gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 	return (0);
 }
 
-static inline GFS_Dir get_dirp(struct fuse_file_info *fi)
+static inline GFS_Dir
+get_dirp(struct fuse_file_info *fi)
 {
 	return (GFS_Dir) (uintptr_t) fi->fh;
 }
@@ -156,7 +182,8 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	return (0);
 }
 
-static int gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
+static int
+gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 {
 	GFS_Dir dp = get_dirp(fi);
 	(void) path;
@@ -164,7 +191,8 @@ static int gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 	return (0);
 }
 
-static int gfarm2fs_mknod(const char *path, mode_t mode, dev_t rdev)
+static int
+gfarm2fs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
 	GFS_File gf;
 	gfarm_error_t e;
@@ -179,7 +207,8 @@ static int gfarm2fs_mknod(const char *path, mode_t mode, dev_t rdev)
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_mkdir(const char *path, mode_t mode)
+static int
+gfarm2fs_mkdir(const char *path, mode_t mode)
 {
 	gfarm_error_t e;
 
@@ -187,7 +216,8 @@ static int gfarm2fs_mkdir(const char *path, mode_t mode)
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_unlink(const char *path)
+static int
+gfarm2fs_unlink(const char *path)
 {
 	gfarm_error_t e;
 
@@ -195,7 +225,8 @@ static int gfarm2fs_unlink(const char *path)
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_rmdir(const char *path)
+static int
+gfarm2fs_rmdir(const char *path)
 {
 	gfarm_error_t e;
 
@@ -203,7 +234,8 @@ static int gfarm2fs_rmdir(const char *path)
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_symlink(const char *from, const char *to)
+static int
+gfarm2fs_symlink(const char *from, const char *to)
 {
 	/* XXX FIXME */
 	return (-ENOSYS);
@@ -218,7 +250,8 @@ static int gfarm2fs_symlink(const char *from, const char *to)
 #endif
 }
 
-static int gfarm2fs_rename(const char *from, const char *to)
+static int
+gfarm2fs_rename(const char *from, const char *to)
 {
 	gfarm_error_t e;
 
@@ -226,7 +259,8 @@ static int gfarm2fs_rename(const char *from, const char *to)
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_link(const char *from, const char *to)
+static int
+gfarm2fs_link(const char *from, const char *to)
 {
 	/* XXX FIXME */
 	return (-ENOSYS);
@@ -241,7 +275,8 @@ static int gfarm2fs_link(const char *from, const char *to)
 #endif
 }
 
-static int gfarm2fs_chmod(const char *path, mode_t mode)
+static int
+gfarm2fs_chmod(const char *path, mode_t mode)
 {
 	gfarm_error_t e;
 
@@ -263,7 +298,8 @@ get_group(uid_t gid)
 	return "group";
 }
 
-static int gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
+static int
+gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 {
 	gfarm_error_t e;
 	char *user, *group;
@@ -275,27 +311,24 @@ static int gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_truncate(const char *path, off_t size)
+static int
+gfarm2fs_truncate(const char *path, off_t size)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res;
+	gfarm_error_t e, e2;
+	GFS_File gf;
 
-	res = truncate(path, size);
-	if (res == -1)
-		return -errno;
+	e = gfs_pio_open(path, GFARM_FILE_WRONLY, &gf);
+	if (e != GFARM_ERR_NO_ERROR)
+		return (-gfarm_error_to_errno(e));
 
-	return 0;
-#endif
+	e = gfs_pio_truncate(gf, size);
+	e2 = gfs_pio_close(gf);
+
+	return (-gfarm_error_to_errno(e != GFARM_ERR_NO_ERROR ? e : e2));
 }
 
-static inline GFS_File get_filep(struct fuse_file_info *fi)
-{
-	return (GFS_File) (uintptr_t) fi->fh;
-}
-
-static int gfarm2fs_ftruncate(const char *path, off_t size,
+static int
+gfarm2fs_ftruncate(const char *path, off_t size,
                          struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
@@ -306,7 +339,8 @@ static int gfarm2fs_ftruncate(const char *path, off_t size,
 	return (-gfarm_error_to_errno(e));
 }
 
-static int gfarm2fs_utime(const char *path, struct utimbuf *buf)
+static int
+gfarm2fs_utime(const char *path, struct utimbuf *buf)
 {
 	struct gfarm_timespec gt[2];
 	gfarm_error_t e;
@@ -352,7 +386,8 @@ gfs_hook_open_flags_gfarmize(int open_flags)
 	return (gfs_flags);
 }
 
-static int gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+static int
+gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
 	GFS_File gf;
@@ -367,7 +402,8 @@ static int gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info 
 	return (0);
 }
 
-static int gfarm2fs_open(const char *path, struct fuse_file_info *fi)
+static int
+gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 {
 	GFS_File gf;
 	int flags;
@@ -382,8 +418,9 @@ static int gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 	return (0);
 }
 
-static int gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
-                    struct fuse_file_info *fi)
+static int
+gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
+	struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
 	gfarm_off_t off;
@@ -399,8 +436,9 @@ static int gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
 	return (rv);
 }
 
-static int gfarm2fs_write(const char *path, const char *buf, size_t size,
-                     off_t offset, struct fuse_file_info *fi)
+static int
+gfarm2fs_write(const char *path, const char *buf, size_t size,
+	off_t offset, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
 	gfarm_off_t off;
@@ -416,7 +454,8 @@ static int gfarm2fs_write(const char *path, const char *buf, size_t size,
 	return (rv);
 }
 
-static int gfarm2fs_statfs(const char *path, struct statvfs *stbuf)
+static int
+gfarm2fs_statfs(const char *path, struct statvfs *stbuf)
 {
 	/* XXX FIXME */
 	return (-ENOSYS);
@@ -431,7 +470,8 @@ static int gfarm2fs_statfs(const char *path, struct statvfs *stbuf)
 #endif
 }
 
-static int gfarm2fs_release(const char *path, struct fuse_file_info *fi)
+static int
+gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 {
 	(void) path;
 	gfs_pio_close(get_filep(fi));
@@ -439,8 +479,8 @@ static int gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	return (0);
 }
 
-static int gfarm2fs_fsync(const char *path, int isdatasync,
-                     struct fuse_file_info *fi)
+static int
+gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
 	(void) path;
@@ -454,38 +494,57 @@ static int gfarm2fs_fsync(const char *path, int isdatasync,
 
 #ifdef HAVE_SETXATTR
 /* xattr operations are optional and can safely be left unimplemented */
-static int gfarm2fs_setxattr(const char *path, const char *name, const char *value,
-                        size_t size, int flags)
+static int
+gfarm2fs_setxattr(const char *path, const char *name, const char *value,
+	size_t size, int flags)
 {
-    int res = lsetxattr(path, name, value, size, flags);
-    if (res == -1)
-        return -errno;
-    return 0;
+	/* XXX FIXME */
+	return (-ENOSYS);
+#if 0
+	int res = lsetxattr(path, name, value, size, flags);
+	if (res == -1)
+		return -errno;
+	return 0;
+#endif
 }
 
-static int gfarm2fs_getxattr(const char *path, const char *name, char *value,
-                    size_t size)
+static int
+gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
-    int res = lgetxattr(path, name, value, size);
-    if (res == -1)
-        return -errno;
-    return res;
+	/* XXX FIXME */
+	return (-ENOSYS);
+#if 0
+	int res = lgetxattr(path, name, value, size);
+	if (res == -1)
+		return -errno;
+	return res;
+#endif
 }
 
-static int gfarm2fs_listxattr(const char *path, char *list, size_t size)
+static int
+gfarm2fs_listxattr(const char *path, char *list, size_t size)
 {
-    int res = llistxattr(path, list, size);
-    if (res == -1)
-        return -errno;
-    return res;
+	/* XXX FIXME */
+	return (-ENOSYS);
+#if 0
+	int res = llistxattr(path, list, size);
+	if (res == -1)
+		return -errno;
+	return res;
+#endif
 }
 
-static int gfarm2fs_removexattr(const char *path, const char *name)
+static int
+gfarm2fs_removexattr(const char *path, const char *name)
 {
-    int res = lremovexattr(path, name);
-    if (res == -1)
-        return -errno;
-    return 0;
+	/* XXX FIXME */
+	return (-ENOSYS);
+#if 0
+	int res = lremovexattr(path, name);
+	if (res == -1)
+		return -errno;
+	return 0;
+#endif
 }
 #endif /* HAVE_SETXATTR */
 
@@ -536,7 +595,10 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/* specify '-s' option to disable multithreaded operations */
+	/*
+	 * specify '-s' option to disable multithreaded operations
+	 * libgfarm is not thread-safe for now
+	 */
 	++argc;
 	nargv = malloc(sizeof(*argv) * (argc + 1));
 	if (nargv == NULL) {
