@@ -4,12 +4,13 @@
  * $Id$
  */
 
-
 #include "config.h"
 
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -31,10 +32,13 @@
 #define GFS_BLKSIZE	8192
 #define STAT_BLKSIZ	512	/* for st_blocks */
 
-static int
+static uid_t
 get_uid(char *user)
 {
-	/* XXX FIXME */
+	if (strcmp(gfarm_get_global_username(), user) == 0)
+		return getuid(); /* my own file */
+
+	/* XXX FIXME - some other's file */
 	return (0);
 }
 
@@ -186,6 +190,7 @@ static int
 gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 {
 	GFS_Dir dp = get_dirp(fi);
+
 	(void) path;
 	gfs_closedir(dp);
 	return (0);
@@ -284,6 +289,7 @@ gfarm2fs_chmod(const char *path, mode_t mode)
 	return (-gfarm_error_to_errno(e));
 }
 
+#if 0
 static char *
 get_user(uid_t uid)
 {
@@ -297,10 +303,14 @@ get_group(uid_t gid)
 	/* XXX FIXME */
 	return "group";
 }
+#endif
 
 static int
 gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 {
+	/* XXX FIXME */
+	return (-ENOSYS);
+#if 0
 	gfarm_error_t e;
 	char *user, *group;
 
@@ -309,6 +319,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 
 	e = gfs_chown(path, user, group);
 	return (-gfarm_error_to_errno(e));
+#endif
 }
 
 static int
@@ -334,7 +345,6 @@ gfarm2fs_ftruncate(const char *path, off_t size,
 	gfarm_error_t e;
 
 	(void) path;
-
 	e = gfs_pio_truncate(get_filep(fi), size);
 	return (-gfarm_error_to_errno(e));
 }
@@ -483,8 +493,8 @@ static int
 gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
-	(void) path;
 
+	(void) path;
 	if (isdatasync)
 		e = gfs_pio_datasync(get_filep(fi));
 	else
