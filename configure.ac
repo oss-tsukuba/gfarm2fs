@@ -12,6 +12,7 @@ AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_LIBTOOL
 
 ### --with-gfarm=gfarm_ROOT
 AC_MSG_CHECKING([Gfarm file system package])
@@ -25,19 +26,10 @@ AC_ARG_WITH([gfarm],
          AC_MSG_RESULT([[/usr]])
          ])
 
-saved_LIBS="$LIBS"
-saved_CFLAGS="$CFLAGS"
-
 if test x$gfarm_prefix != x; then
-   GFARM_CFLAGS="-I$gfarm_prefix/include"
-   GFARM_LDOPTS="-L$gfarm_prefix/lib"
-else 
-  GFARM_CFLAGS=""
-  GFARM_LDOPTS=""
+  CPPFLAGS="$CPPFLAGS -I$gfarm_prefix/include"
+  LDFLAGS="$LDFLAGS -R$gfarm_prefix/lib -L$gfarm_prefix/lib"
 fi
-
-CFLAGS="$CFLAGS $GFARM_CFLAGS" 
-LIBS="$LIBS $GFARM_LDOPTS"
 
 # Checks for header files.
 AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
