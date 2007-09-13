@@ -308,7 +308,20 @@ get_group(uid_t gid)
 static int
 gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 {
+	struct gfs_stat st;
+	gfarm_error_t e;
+
 	/* XXX FIXME */
+	if (uid == getuid()) {
+		e = gfs_stat(path, &st);
+		if (e != GFARM_ERR_NO_ERROR)
+			return (-gfarm_error_to_errno(e));
+		if (strcmp(st.st_user, gfarm_get_global_username()) == 0) {
+			gfs_stat_free(&st);
+			return (0);
+		}
+		gfs_stat_free(&st);
+	}		
 	return (-ENOSYS);
 #if 0
 	gfarm_error_t e;
