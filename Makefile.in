@@ -57,7 +57,6 @@ PROGRAMS = $(bin_PROGRAMS)
 am_gfarm2fs_OBJECTS = gfarm2fs.$(OBJEXT)
 gfarm2fs_OBJECTS = $(am_gfarm2fs_OBJECTS)
 gfarm2fs_LDADD = $(LDADD)
-gfarm2fs_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -186,7 +185,6 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 gfarm2fs_SOURCES = gfarm2fs.c
 AM_CFLAGS = -Wall
-LDADD = -lgfarm -lfuse
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
