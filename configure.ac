@@ -17,14 +17,9 @@ AC_PROG_LIBTOOL
 ### --with-gfarm=gfarm_ROOT
 AC_MSG_CHECKING([Gfarm file system package])
 AC_ARG_WITH([gfarm],
-        AC_HELP_STRING([--with-gfarm=PATH],
-         [path to gfarm file system [[/usr]]]),
-        [gfarm_prefix="$withval"
-         AC_MSG_RESULT([[$gfarm_prefix]])
-         ],
-        [gfarm_prefix=""
-         AC_MSG_RESULT([[/usr]])
-         ])
+  AC_HELP_STRING([--with-gfarm=PATH], [path to gfarm file system [[/usr]]]),
+   [gfarm_prefix="$withval" AC_MSG_RESULT([[$gfarm_prefix]]) ],
+   [gfarm_prefix="" AC_MSG_RESULT([[/usr]]) ])
 
 if test x$gfarm_prefix != x; then
   CPPFLAGS="$CPPFLAGS -I$gfarm_prefix/include"
