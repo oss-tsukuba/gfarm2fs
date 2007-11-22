@@ -18,6 +18,14 @@
 #include <sys/xattr.h>
 #endif
 
+/*
+ * fuse.h requres that _FILE_OFFSET_BITS is defined in any case, but
+ * AC_SYS_LARGEFILE does not define it on a 64bit platform like x86_64
+ * since it is not necessary.  To avoid this problem we define it here.
+ */
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
 #define FUSE_USE_VERSION 25
 #include <fuse.h>
 

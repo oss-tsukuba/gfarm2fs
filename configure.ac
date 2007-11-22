@@ -18,17 +18,23 @@ AC_PROG_LIBTOOL
 AC_MSG_CHECKING([Gfarm file system package])
 AC_ARG_WITH([gfarm],
   AC_HELP_STRING([--with-gfarm=PATH], [path to gfarm file system [[/usr]]]),
-   [gfarm_prefix="$withval" AC_MSG_RESULT([[$gfarm_prefix]]) ],
-   [gfarm_prefix="" AC_MSG_RESULT([[/usr]]) ])
+   [gfarm_prefix=$withval],
+   [gfarm_prefix=no])
 
-if test x$gfarm_prefix != x; then
+if test x"$gfarm_prefix" != xno; then
+  AC_MSG_RESULT([$gfarm_prefix])
   CPPFLAGS="$CPPFLAGS -I$gfarm_prefix/include"
   LDFLAGS="$LDFLAGS -R$gfarm_prefix/lib -L$gfarm_prefix/lib"
+else
+  AC_MSG_RESULT([/usr])
 fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
-AC_CHECK_HEADERS([fuse.h],, [AC_MSG_ERROR([fuse.h not found])])
+# fuse.h requres _FILE_OFFSET_BITS is defined in any case, but
+# AC_SYS_LARGEFILE does not define it on a 64bit platform like x86_64
+# since it is not necessary.  To avoid this problem we just skip the check.
+#AC_CHECK_HEADERS([fuse.h],, [AC_MSG_ERROR([fuse.h not found])])
 
 # Checks for libraries.
 AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])
