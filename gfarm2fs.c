@@ -488,17 +488,26 @@ gfarm2fs_write(const char *path, const char *buf, size_t size,
 static int
 gfarm2fs_statfs(const char *path, struct statvfs *stbuf)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res;
+	gfarm_error_t e;
+	gfarm_off_t used, avail, files;
 
-	res = statvfs(path, stbuf);
-	if (res == -1)
-		return -errno;
-
-	return 0;
-#endif
+	e = gfs_statfs(&used, &avail, &files);
+	if (e != GFARM_ERR_NO_ERROR)
+		return (-gfarm_error_to_errno(e));
+	else {
+		stbuf->f_bsize = 1024;	/* XXX */
+		stbuf->f_frsize = 1024;	/* XXX */
+		stbuf->f_blocks = used + avail;
+		stbuf->f_bfree = avail;
+		stbuf->f_bavail = avail;
+		stbuf->f_files = files;
+		stbuf->f_ffree = -1;	/* XXX */
+		stbuf->f_favail = -1;	/* XXX */
+		stbuf->f_fsid = 298;	/* XXX */
+		stbuf->f_flag = 0;	/* XXX */
+		stbuf->f_namemax = GFS_MAXNAMLEN;
+	}
+	return (0);
 }
 
 static int
