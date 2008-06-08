@@ -227,7 +227,7 @@ gfarm2fs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 	}
 	e2 = gfs_closedir(dp);
 	if (e == GFARM_ERR_NO_ERROR)
-		e2 = e;
+		e = e2;
 
 	return (-gfarm_error_to_errno(e));
 }
