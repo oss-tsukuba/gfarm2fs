@@ -304,17 +304,10 @@ gfarm2fs_rename(const char *from, const char *to)
 static int
 gfarm2fs_link(const char *from, const char *to)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res;
+	gfarm_error_t e;
 
-	res = link(from, to);
-	if (res == -1)
-		return -errno;
-
-	return 0;
-#endif
+	e = gfs_link(from, to);
+	return (-gfarm_error_to_errno(e));
 }
 
 static int
