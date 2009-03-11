@@ -43,6 +43,8 @@
 #define GFS_BLKSIZE	8192
 #define STAT_BLKSIZ	512	/* for st_blocks */
 
+char *program_name = "gfarm2fs";
+
 static uid_t
 get_uid(char *user)
 {
@@ -91,7 +93,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 	struct gfs_stat st;
 	gfarm_error_t e;
 
-	e = gfs_stat(path, &st);
+	e = gfs_stat_cached(path, &st);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (-gfarm_error_to_errno(e));
 
@@ -157,9 +159,9 @@ static int
 gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
-	GFS_Dir dp;
+	GFS_DirCaching dp;
 
-	e = gfs_opendir(path, &dp);
+	e = gfs_opendir_caching(path, &dp);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (-gfarm_error_to_errno(e));
 
@@ -167,25 +169,25 @@ gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 	return (0);
 }
 
-static inline GFS_Dir
+static inline GFS_DirCaching
 get_dirp(struct fuse_file_info *fi)
 {
-	return (GFS_Dir) (uintptr_t) fi->fh;
+	return (GFS_DirCachnig) (uintptr_t) fi->fh;
 }
 
 static int
 gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	off_t offset, struct fuse_file_info *fi)
 {
-	GFS_Dir dp = get_dirp(fi);
+	GFS_DirCaching dp = get_dirp(fi);
 	struct gfs_dirent *de;
 	struct stat st;
 	/* gfarm_off_t off = 0; */
 	gfarm_error_t e;
 
 	(void) path;
-	/* XXX gfs_seekdir(dp, offset); */
-	while ((e = gfs_readdir(dp, &de)) == GFARM_ERR_NO_ERROR &&
+	/* XXX gfs_seekdir_caching(dp, offset); */
+	while ((e = gfs_readdir_caching(dp, &de)) == GFARM_ERR_NO_ERROR &&
 		de != NULL) {
 		memset(&st, 0, sizeof(st));
 		st.st_ino = de->d_fileno;
@@ -201,10 +203,10 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int
 gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 {
-	GFS_Dir dp = get_dirp(fi);
+	GFS_DirCaching dp = get_dirp(fi);
 
 	(void) path;
-	gfs_closedir(dp);
+	gfs_closedir_caching(dp);
 	return (0);
 }
 #else /* USE_GETDIR */
@@ -213,19 +215,19 @@ static int
 gfarm2fs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 {
 	gfarm_error_t e, e2;
-	GFS_Dir dp;
+	GFS_DirCaching dp;
 	struct gfs_dirent *de;
 
-	e = gfs_opendir(path, &dp);
+	e = gfs_opendir_caching(path, &dp);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (-gfarm_error_to_errno(e));
 
-	while ((e = gfs_readdir(dp, &de)) == GFARM_ERR_NO_ERROR &&
+	while ((e = gfs_readdir_caching(dp, &de)) == GFARM_ERR_NO_ERROR &&
 		de != NULL) {
 		if (filler(h, de->d_name, de->d_type << 12, de->d_fileno))
 			break;
 	}
-	e2 = gfs_closedir(dp);
+	e2 = gfs_closedir_caching(dp);
 	if (e == GFARM_ERR_NO_ERROR)
 		e = e2;
 
@@ -343,7 +345,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 
 	/* XXX FIXME */
 	if (uid == getuid()) {
-		e = gfs_stat(path, &st);
+		e = gfs_stat_cached(path, &st);
 		if (e != GFARM_ERR_NO_ERROR)
 			return (-gfarm_error_to_errno(e));
 		if (strcmp(st.st_user, gfarm_get_global_username()) == 0) {
@@ -649,10 +651,270 @@ static struct fuse_operations gfarm2fs_oper = {
 #endif
 };
 
+/***
+ *** for cached mode
+ ***/
+
+static void
+uncache_parent(const char *path)
+{
+	char *p = strdup(path), *b;
+
+	if (p == NULL) /* XXX should report an error */
+		return;
+
+	b = (char *)gfarm_path_dir_skip(p); /* UNCONST */
+	if (b > p && b[-1] == '/') {
+		b[-1] = '\0';
+		gfs_stat_cache_purge(p);
+	}
+	free(p);
+}
+
+static int
+gfarm2fs_mknod_cached(const char *path, mode_t mode, dev_t rdev)
+{
+	int rv = gfarm2fs_mknod(path, mode, rdev);
+
+	if (rv == 0)
+		uncache_parent(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_mkdir_cached(const char *path, mode_t mode)
+{
+	int rv = gfarm2fs_mkdir(path, mode);
+
+	if (rv == 0)
+		uncache_parent(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_unlink_cached(const char *path)
+{
+	int rv = gfarm2fs_unlink(path);
+
+	if (rv == 0) {
+		gfs_stat_cache_purge(path);
+		uncache_parent(path);
+	}
+	return (rv);
+}
+
+static int
+gfarm2fs_rmdir_cached(const char *path)
+{
+	int rv = gfarm2fs_rmdir(path);
+
+	if (rv == 0) {
+		gfs_stat_cache_purge(path);
+		uncache_parent(path);
+	}
+	return (rv);
+}
+
+static int
+gfarm2fs_symlink_cached(const char *from, const char *to)
+{
+	int rv = gfarm2fs_symlink(from, to);
+
+	if (rv == 0)
+		uncache_parent(to);
+	return (rv);
+}
+
+static int
+gfarm2fs_rename_cached(const char *from, const char *to)
+{
+	int rv = gfarm2fs_rename(from, to);
+
+	if (rv == 0) {
+		gfs_stat_cache_purge(from);
+		uncache_parent(from);
+		gfs_stat_cache_purge(to);
+		uncache_parent(to);
+	}
+	return (rv);
+}
+
+static int
+gfarm2fs_link_cached(const char *from, const char *to)
+{
+	int rv = gfarm2fs_link(from, to);
+
+	if (rv == 0)
+		uncache_parent(to);
+	return (rv);
+}
+
+static int
+gfarm2fs_chmod_cached(const char *path, mode_t mode)
+{
+	int rv = gfarm2fs_chmod(path, mode);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_chown_cached(const char *path, uid_t uid, gid_t gid)
+{
+	int rv = gfarm2fs_chown(path, uid, gid);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_truncate_cached(const char *path, off_t size)
+{
+	int rv = gfarm2fs_truncate(path, size);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_ftruncate_cached(const char *path, off_t size,
+                         struct fuse_file_info *fi)
+{
+	int rv = gfarm2fs_ftruncate(path, size, fi);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_utime_cached(const char *path, struct utimbuf *buf)
+{
+	int rv = gfarm2fs_utime(path, buf);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_create_cached(const char *path, mode_t mode, struct fuse_file_info *fi)
+{
+	int rv = gfarm2fs_create(path, mode, fi);
+
+	if (rv == 0)
+		uncache_parent(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_open_cached(const char *path, struct fuse_file_info *fi)
+{
+	int rv = gfarm2fs_open(path, fi);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_write_cached(const char *path, const char *buf, size_t size,
+	off_t offset, struct fuse_file_info *fi)
+{
+	int rv = gfarm2fs_write(path, buf, size, offset, fi);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
+{
+	int rv = gfarm2fs_release(path, fi);
+
+	if (rv == 0 && ((fi->flags & O_ACCMODE) == O_WRONLY ||
+			(fi->flags & O_ACCMODE) == O_RDWR))
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+#ifdef HAVE_SETXATTR
+static int
+gfarm2fs_setxattr_cached(const char *path, const char *name, const char *value,
+	size_t size, int flags)
+{
+	int rv = gfarm2fs_setattr(path, name, value, size, flags);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+static int
+gfarm2fs_removexattr_cached(const char *path, const char *name)
+{
+	int rv = gfarm2fs_removexattr(path, name);
+
+	if (rv == 0)
+		gfs_stat_cache_purge(path);
+	return (rv);
+}
+
+#endif /* HAVE_SETXATTR */
+
+static struct fuse_operations gfarm2fs_cached_oper = {
+    .getattr	= gfarm2fs_getattr,
+    .fgetattr	= gfarm2fs_fgetattr,
+    .access	= gfarm2fs_access,
+    .readlink	= gfarm2fs_readlink,
+#ifndef USE_GETDIR
+    .opendir	= gfarm2fs_opendir,
+    .readdir	= gfarm2fs_readdir,
+    .releasedir	= gfarm2fs_releasedir,
+#else
+    .getdir	= gfarm2fs_getdir,
+#endif
+    .mknod	= gfarm2fs_mknod_cached,
+    .mkdir	= gfarm2fs_mkdir_cached,
+    .symlink	= gfarm2fs_symlink_cached,
+    .unlink	= gfarm2fs_unlink_cached,
+    .rmdir	= gfarm2fs_rmdir_cached,
+    .rename	= gfarm2fs_rename_cached,
+    .link	= gfarm2fs_link_cached,
+    .chmod	= gfarm2fs_chmod_cached,
+    .chown	= gfarm2fs_chown_cached,
+    .truncate	= gfarm2fs_truncate_cached,
+    .ftruncate	= gfarm2fs_ftruncate_cached,
+    .utime	= gfarm2fs_utime_cached,
+    .create	= gfarm2fs_create_cached,
+    .open	= gfarm2fs_open_cached,
+    .read	= gfarm2fs_read,
+    .write	= gfarm2fs_write_cached,
+    .statfs	= gfarm2fs_statfs,
+    .release	= gfarm2fs_release_cached,
+    .fsync	= gfarm2fs_fsync,
+#ifdef HAVE_SETXATTR
+    .setxattr	= gfarm2fs_setxattr_cached,
+    .getxattr	= gfarm2fs_getxattr,
+    .listxattr	= gfarm2fs_listxattr,
+    .removexattr= gfarm2fs_removexattr_cached,
+#endif
+};
+
+/***
+ *** main
+ ***/
+
 int main(int argc, char *argv[])
 {
+	struct fuse_operations *operation_mode = &gfarm2fs_cached_oper;
 	gfarm_error_t e;
-	char **nargv;
+	struct fuse_args args = FUSE_ARGS_INIT(0, NULL);
+	int i;
 
 	umask(0);
 	e = gfarm_initialize(&argc, &argv);
@@ -661,19 +923,49 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (argc > 0)
+		fuse_opt_add_arg(&args, argv[0]);
+
 	/*
 	 * specify '-s' option to disable multithreaded operations
 	 * libgfarm is not thread-safe for now
 	 */
-	++argc;
-	nargv = malloc(sizeof(*argv) * (argc + 1));
-	if (nargv == NULL) {
-		fprintf(stderr, "%s: no memory\n", *argv);
-		exit(1);
-	}
-	memcpy(nargv, argv, sizeof(*argv) * (argc - 1));
-	nargv[argc - 1] = "-s";
-	nargv[argc] = "";
+	fuse_opt_add_arg(&args, "-s");
 
-	return (fuse_main(argc, nargv, &gfarm2fs_oper));
+	for (i = 1; i < argc; i++) {
+		if (argv[i][0] == '-' && argv[i][1] == 'E') {
+			double timeout;
+			char *ep;
+
+			if (i + 1 >= argc) {
+				fprintf(stderr, "%s: -E: missing <seconds>\n",
+				    program_name);
+				exit(EXIT_FAILURE);
+			}
+			errno = 0;
+			timeout = strtod(argv[i + 1], &ep);
+			if (ep == optarg || *ep != '\0') {
+				fprintf(stderr, "%s: -E %s: %s\n",
+				    program_name, argv[i+1],
+				    "invalid argument");
+				exit(EXIT_FAILURE);
+			} else if (errno != 0) {
+				fprintf(stderr, "%s: -E %s: %s\n",
+				    program_name, argv[i+1], strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+			i++;
+
+			if (timeout == 0.0) {
+				gfs_stat_cache_enable(0); /* disable cache */
+				operation_mode = &gfarm2fs_oper;
+			} else {
+				gfs_stat_cache_expiration_set(timeout*1000.0);
+			}
+		} else {
+			fuse_opt_add_arg(&args, argv[i]);
+		}
+	}
+
+	return (fuse_main(args.argc, args.argv, operation_mode));
 }
