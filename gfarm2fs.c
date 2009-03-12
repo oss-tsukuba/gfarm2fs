@@ -93,7 +93,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 	struct gfs_stat st;
 	gfarm_error_t e;
 
-	e = gfs_stat_cached(path, &st);
+	e = gfs_lstat_cached(path, &st);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (-gfarm_error_to_errno(e));
 
@@ -140,18 +140,20 @@ gfarm2fs_access(const char *path, int mask)
 static int
 gfarm2fs_readlink(const char *path, char *buf, size_t size)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res;
+	gfarm_error_t e;
+	char *src;
+	size_t len;
 
-	res = readlink(path, buf, size - 1);
-	if (res == -1)
-		return -errno;
+	e = gfs_readlink(path, &src);
+	if (e != GFARM_ERR_NO_ERROR)
+		return (-gfarm_error_to_errno(e));
 
-	buf[res] = '\0';
-	return 0;
-#endif
+	len = strlen(src);
+	if (len >= size)
+		len = size - 1;
+	memcpy(buf, src, len);
+	buf[len] = '\0';
+	return (0);
 }
 
 #ifndef USE_GETDIR
@@ -281,17 +283,10 @@ gfarm2fs_rmdir(const char *path)
 static int
 gfarm2fs_symlink(const char *from, const char *to)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res;
+	gfarm_error_t e;
 
-	res = symlink(from, to);
-	if (res == -1)
-		return -errno;
-
-	return 0;
-#endif
+	e = gfs_symlink(from, to);
+	return (-gfarm_error_to_errno(e));
 }
 
 static int
@@ -345,7 +340,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 
 	/* XXX FIXME */
 	if (uid == getuid()) {
-		e = gfs_stat_cached(path, &st);
+		e = gfs_lstat_cached(path, &st);
 		if (e != GFARM_ERR_NO_ERROR)
 			return (-gfarm_error_to_errno(e));
 		if (strcmp(st.st_user, gfarm_get_global_username()) == 0) {
