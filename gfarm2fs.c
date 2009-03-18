@@ -161,7 +161,7 @@ static int
 gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
-	GFS_DirCaching dp;
+	GFS_Dir dp;
 
 	e = gfs_opendir_caching(path, &dp);
 	if (e != GFARM_ERR_NO_ERROR)
@@ -171,25 +171,25 @@ gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 	return (0);
 }
 
-static inline GFS_DirCaching
+static inline GFS_Dir
 get_dirp(struct fuse_file_info *fi)
 {
-	return (GFS_DirCachnig) (uintptr_t) fi->fh;
+	return (GFS_Dir) (uintptr_t) fi->fh;
 }
 
 static int
 gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	off_t offset, struct fuse_file_info *fi)
 {
-	GFS_DirCaching dp = get_dirp(fi);
+	GFS_Dir dp = get_dirp(fi);
 	struct gfs_dirent *de;
 	struct stat st;
 	/* gfarm_off_t off = 0; */
 	gfarm_error_t e;
 
 	(void) path;
-	/* XXX gfs_seekdir_caching(dp, offset); */
-	while ((e = gfs_readdir_caching(dp, &de)) == GFARM_ERR_NO_ERROR &&
+	/* XXX gfs_seekdir(dp, offset); */
+	while ((e = gfs_readdir(dp, &de)) == GFARM_ERR_NO_ERROR &&
 		de != NULL) {
 		memset(&st, 0, sizeof(st));
 		st.st_ino = de->d_fileno;
@@ -205,10 +205,10 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int
 gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 {
-	GFS_DirCaching dp = get_dirp(fi);
+	GFS_Dir dp = get_dirp(fi);
 
 	(void) path;
-	gfs_closedir_caching(dp);
+	gfs_closedir(dp);
 	return (0);
 }
 #else /* USE_GETDIR */
@@ -217,19 +217,19 @@ static int
 gfarm2fs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 {
 	gfarm_error_t e, e2;
-	GFS_DirCaching dp;
+	GFS_Dir dp;
 	struct gfs_dirent *de;
 
 	e = gfs_opendir_caching(path, &dp);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (-gfarm_error_to_errno(e));
 
-	while ((e = gfs_readdir_caching(dp, &de)) == GFARM_ERR_NO_ERROR &&
+	while ((e = gfs_readdir(dp, &de)) == GFARM_ERR_NO_ERROR &&
 		de != NULL) {
 		if (filler(h, de->d_name, de->d_type << 12, de->d_fileno))
 			break;
 	}
-	e2 = gfs_closedir_caching(dp);
+	e2 = gfs_closedir(dp);
 	if (e == GFARM_ERR_NO_ERROR)
 		e = e2;
 
