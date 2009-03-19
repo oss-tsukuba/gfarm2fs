@@ -35,6 +35,7 @@ AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
 # AC_SYS_LARGEFILE does not define it on a 64bit platform like x86_64
 # since it is not necessary.  To avoid this problem we just skip the check.
 #AC_CHECK_HEADERS([fuse.h],, [AC_MSG_ERROR([fuse.h not found])])
+AC_CHECK_HEADERS(sys/xattr.h)
 
 # Checks for libraries.
 AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])

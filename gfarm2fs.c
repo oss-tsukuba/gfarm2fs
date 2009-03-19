@@ -14,7 +14,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
-#ifdef HAVE_SETXATTR
+#ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
 
@@ -348,7 +348,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 			return (0);
 		}
 		gfs_stat_free(&st);
-	}		
+	}
 	return (-ENOSYS);
 #if 0
 	gfarm_error_t e;
@@ -551,61 +551,66 @@ gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 	return (-gfarm_error_to_errno(e));
 }
 
-#ifdef HAVE_SETXATTR
-/* xattr operations are optional and can safely be left unimplemented */
+#ifdef HAVE_SYS_XATTR_H
 static int
 gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 	size_t size, int flags)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res = lsetxattr(path, name, value, size, flags);
-	if (res == -1)
-		return -errno;
-	return 0;
-#endif
+	gfarm_error_t e;
+	e = gfs_setxattr(path, name, value, size, flags);
+	return -gfarm_error_to_errno(e);
 }
 
 static int
 gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res = lgetxattr(path, name, value, size);
-	if (res == -1)
-		return -errno;
-	return res;
-#endif
+	gfarm_error_t e;
+	size_t s = size;
+
+	e = gfs_getxattr(path, name, value, &s);
+	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
+		/*
+		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
+		 * but it's not defined in header files.
+		 * We return -ENODATA because "strace ls -l /" is below.
+		 *		open("/", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 3
+		 *		....
+		 *		getxattr("/etc", "system.posix_acl_access"..., 0x0, 0) = -1 ENODATA (No data available)
+		 *		getxattr("/etc", "system.posix_acl_default"..., 0x0, 0) = -1 ENODATA (No data available)
+		 *  	...
+		 */
+		return -ENODATA;
+	}
+	if (e != GFARM_ERR_NO_ERROR)
+		return -gfarm_error_to_errno(e);
+	else
+		return s;
 }
 
 static int
 gfarm2fs_listxattr(const char *path, char *list, size_t size)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res = llistxattr(path, list, size);
-	if (res == -1)
-		return -errno;
-	return res;
-#endif
+	gfarm_error_t e;
+	size_t s = size;
+
+	e = gfs_listxattr(path, list, &s);
+	if (e == GFARM_ERR_NO_ERROR)
+		return s;
+	else
+		return -gfarm_error_to_errno(e);
 }
 
 static int
 gfarm2fs_removexattr(const char *path, const char *name)
 {
-	/* XXX FIXME */
-	return (-ENOSYS);
-#if 0
-	int res = lremovexattr(path, name);
-	if (res == -1)
-		return -errno;
-	return 0;
-#endif
+	gfarm_error_t e;
+	e = gfs_removexattr(path, name);
+	if (e == GFARM_ERR_NO_SUCH_OBJECT)
+		return -ENODATA;
+	else
+		return -gfarm_error_to_errno(e);
 }
-#endif /* HAVE_SETXATTR */
+#endif /* HAVE_SYS_XATTR_H */
 
 static struct fuse_operations gfarm2fs_oper = {
     .getattr	= gfarm2fs_getattr,
@@ -638,7 +643,7 @@ static struct fuse_operations gfarm2fs_oper = {
     .statfs	= gfarm2fs_statfs,
     .release	= gfarm2fs_release,
     .fsync	= gfarm2fs_fsync,
-#ifdef HAVE_SETXATTR
+#ifdef HAVE_SYS_XATTR_H
     .setxattr	= gfarm2fs_setxattr,
     .getxattr	= gfarm2fs_getxattr,
     .listxattr	= gfarm2fs_listxattr,
@@ -837,12 +842,12 @@ gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
 	return (rv);
 }
 
-#ifdef HAVE_SETXATTR
+#ifdef HAVE_SYS_XATTR_H
 static int
 gfarm2fs_setxattr_cached(const char *path, const char *name, const char *value,
 	size_t size, int flags)
 {
-	int rv = gfarm2fs_setattr(path, name, value, size, flags);
+	int rv = gfarm2fs_setxattr(path, name, value, size, flags);
 
 	if (rv == 0)
 		gfs_stat_cache_purge(path);
@@ -892,7 +897,7 @@ static struct fuse_operations gfarm2fs_cached_oper = {
     .statfs	= gfarm2fs_statfs,
     .release	= gfarm2fs_release_cached,
     .fsync	= gfarm2fs_fsync,
-#ifdef HAVE_SETXATTR
+#ifdef HAVE_SYS_XATTR_H
     .setxattr	= gfarm2fs_setxattr_cached,
     .getxattr	= gfarm2fs_getxattr,
     .listxattr	= gfarm2fs_listxattr,
