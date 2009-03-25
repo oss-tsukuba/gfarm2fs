@@ -33,7 +33,7 @@ Release note for Gfarm2fs 1.0.0
 
 The Gfarm2fs is a mount command for the Gfarm v2 distributed file
 system.  FUSE (Filesystem in Userspace) [1] is required to build and
-ues gfarm2fs.
+use gfarm2fs.
 
 [1] http://fuse.sourceforge.net/
 
