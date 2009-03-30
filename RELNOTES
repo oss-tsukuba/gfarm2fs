@@ -1,0 +1,56 @@
+Release note for Gfarm2fs 1.1.0
+===============================
+
+[2009.3.26]
+
+New Feature
+* symbolic link support
+* directory listing speedup by attribute cache
+
+New Command-line Option
+* -E option to specify the expiration period of the attribute cache
+
+Release note for Gfarm2fs 1.0.2
+===============================
+
+[2008.9.27]
+
+New Feature
+* hard link support
+
+Release note for Gfarm2fs 1.0.1
+===============================
+
+[2008.5.28]
+
+New Feature
+* statfs support
+
+Release note for Gfarm2fs 1.0.0
+===============================
+
+[2007.11.28]
+
+The Gfarm2fs is a mount command for the Gfarm v2 distributed file
+system.  FUSE (Filesystem in Userspace) [1] is required to build and
+use gfarm2fs.
+
+[1] http://fuse.sourceforge.net/
+
+GFARM2FS(1)
+
+NAME
+	gfarm2fs - mounts the Gfarm file system
+
+SYNOPSIS
+	gfarm2fs <mount_point> [FUSE options]
+
+DESCRIPTION
+	gfarm2fs mounts the Gfarm file system at the specified mount
+	point.
+
+ENVIRONMENT
+	GFARM_CONFIG_FILE
+		specifies the Gfarm configuration file.
+
+$Id$
