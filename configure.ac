@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([gfarm2fs], [0.9])
+AC_INIT([gfarm2fs], [1.1.1])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([gfarm2fs.c])
@@ -28,6 +28,14 @@ if test x"$gfarm_prefix" != xno; then
 else
   AC_MSG_RESULT([/usr])
 fi
+
+### --enable-xattr
+### by default this is disabled since it slows down the response of 'ls -l'
+AC_ARG_ENABLE(xattr,
+  AS_HELP_STRING([--enable-xattr], [support extended attribute [[default=yes]]]),
+  [if test "x$enable_xattr" != xno; then
+    AC_DEFINE(ENABLE_XATTR, [1], [support extended attribute])
+   fi], [])
 
 # Checks for header files.
 AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
