@@ -135,7 +135,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
-SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -185,6 +184,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 gfarm2fs_SOURCES = gfarm2fs.c
 AM_CFLAGS = -Wall
+EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

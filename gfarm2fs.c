@@ -551,7 +551,7 @@ gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 	return (-gfarm_error_to_errno(e));
 }
 
-#ifdef HAVE_SYS_XATTR_H
+#if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
 static int
 gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 	size_t size, int flags)
@@ -610,7 +610,7 @@ gfarm2fs_removexattr(const char *path, const char *name)
 	else
 		return -gfarm_error_to_errno(e);
 }
-#endif /* HAVE_SYS_XATTR_H */
+#endif /* HAVE_SYS_XATTR_H && ENABLE_XATTR */
 
 static struct fuse_operations gfarm2fs_oper = {
     .getattr	= gfarm2fs_getattr,
@@ -643,7 +643,7 @@ static struct fuse_operations gfarm2fs_oper = {
     .statfs	= gfarm2fs_statfs,
     .release	= gfarm2fs_release,
     .fsync	= gfarm2fs_fsync,
-#ifdef HAVE_SYS_XATTR_H
+#if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
     .setxattr	= gfarm2fs_setxattr,
     .getxattr	= gfarm2fs_getxattr,
     .listxattr	= gfarm2fs_listxattr,
@@ -842,7 +842,7 @@ gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
 	return (rv);
 }
 
-#ifdef HAVE_SYS_XATTR_H
+#if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
 static int
 gfarm2fs_setxattr_cached(const char *path, const char *name, const char *value,
 	size_t size, int flags)
@@ -864,7 +864,7 @@ gfarm2fs_removexattr_cached(const char *path, const char *name)
 	return (rv);
 }
 
-#endif /* HAVE_SETXATTR */
+#endif /* HAVE_SETXATTR && ENABLE_XATTR */
 
 static struct fuse_operations gfarm2fs_cached_oper = {
     .getattr	= gfarm2fs_getattr,
@@ -897,7 +897,7 @@ static struct fuse_operations gfarm2fs_cached_oper = {
     .statfs	= gfarm2fs_statfs,
     .release	= gfarm2fs_release_cached,
     .fsync	= gfarm2fs_fsync,
-#ifdef HAVE_SYS_XATTR_H
+#if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
     .setxattr	= gfarm2fs_setxattr_cached,
     .getxattr	= gfarm2fs_getxattr,
     .listxattr	= gfarm2fs_listxattr,
