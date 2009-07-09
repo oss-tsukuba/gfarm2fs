@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([gfarm2fs], [1.1.1])
+AC_INIT([gfarm2fs], [0.9])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([gfarm2fs.c])
@@ -14,18 +14,20 @@ AC_SYS_LARGEFILE
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
-### --with-gfarm=GFARM_ROOT
-AC_MSG_CHECKING([for Gfarm file system])
+### --with-gfarm=gfarm_ROOT
+AC_MSG_CHECKING([Gfarm file system package])
 AC_ARG_WITH([gfarm],
-  AC_HELP_STRING([--with-gfarm=GFARM_ROOT], [Gfarm root directory [[/usr]]]))
-case x$with_gfarm in
-  x|xyes|xno) with_gfarm=/usr ;;
-esac
-if test x"$with_gfarm" != x/usr; then
-  CPPFLAGS="$CPPFLAGS -I$with_gfarm/include"
-  LDFLAGS="$LDFLAGS -R$with_gfarm/lib -L$with_gfarm/lib"
+  AC_HELP_STRING([--with-gfarm=PATH], [path to gfarm file system [[/usr]]]),
+   [gfarm_prefix=$withval],
+   [gfarm_prefix=no])
+
+if test x"$gfarm_prefix" != xno; then
+  AC_MSG_RESULT([$gfarm_prefix])
+  CPPFLAGS="$CPPFLAGS -I$gfarm_prefix/include"
+  LDFLAGS="$LDFLAGS -R$gfarm_prefix/lib -L$gfarm_prefix/lib"
+else
+  AC_MSG_RESULT([/usr])
 fi
-AC_MSG_RESULT([$with_gfarm])
 
 # Checks for header files.
 AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
