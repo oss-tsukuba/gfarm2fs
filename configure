@@ -1047,7 +1047,7 @@ Optional Packages:
                           both]
   --with-tags[=TAGS]
                           include additional configurations [automatic]
-  --with-gfarm=PATH       path to gfarm file system [/usr]
+  --with-gfarm=GFARM_ROOT Gfarm root directory [/usr]
 
 Some influential environment variables:
   CC          C compiler command
@@ -19829,27 +19829,24 @@ LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 
 
 
-### --with-gfarm=gfarm_ROOT
-echo "$as_me:$LINENO: checking Gfarm file system package" >&5
-echo $ECHO_N "checking Gfarm file system package... $ECHO_C" >&6
+### --with-gfarm=GFARM_ROOT
+echo "$as_me:$LINENO: checking for Gfarm file system" >&5
+echo $ECHO_N "checking for Gfarm file system... $ECHO_C" >&6
 
 # Check whether --with-gfarm or --without-gfarm was given.
 if test "${with_gfarm+set}" = set; then
   withval="$with_gfarm"
-  gfarm_prefix=$withval
-else
-  gfarm_prefix=no
-fi;
 
-if test x"$gfarm_prefix" != xno; then
-  echo "$as_me:$LINENO: result: $gfarm_prefix" >&5
-echo "${ECHO_T}$gfarm_prefix" >&6
-  CPPFLAGS="$CPPFLAGS -I$gfarm_prefix/include"
-  LDFLAGS="$LDFLAGS -R$gfarm_prefix/lib -L$gfarm_prefix/lib"
-else
-  echo "$as_me:$LINENO: result: /usr" >&5
-echo "${ECHO_T}/usr" >&6
+fi;
+case x$with_gfarm in
+  x|xyes|xno) with_gfarm=/usr ;;
+esac
+if test x"$with_gfarm" != x/usr; then
+  CPPFLAGS="$CPPFLAGS -I$with_gfarm/include"
+  LDFLAGS="$LDFLAGS -R$with_gfarm/lib -L$with_gfarm/lib"
 fi
+echo "$as_me:$LINENO: result: $with_gfarm" >&5
+echo "${ECHO_T}$with_gfarm" >&6
 
 ### --enable-xattr
 ### by default this is disabled since it slows down the response of 'ls -l'
