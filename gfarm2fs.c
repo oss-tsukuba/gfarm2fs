@@ -14,6 +14,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <pwd.h>
+#include <grp.h>
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
@@ -48,8 +50,14 @@ char *program_name = "gfarm2fs";
 static uid_t
 get_uid(char *user)
 {
+	struct passwd *pwd;
+
 	if (strcmp(gfarm_get_global_username(), user) == 0)
 		return getuid(); /* my own file */
+
+	/* assumes that the same username exists on the local system */
+	if ((pwd = getpwnam(user)) != NULL)
+		return pwd->pw_uid;
 
 	/* XXX FIXME - some other's file */
 	return (0);
@@ -58,6 +66,12 @@ get_uid(char *user)
 static int
 get_gid(char *group)
 {
+	struct group *grp;
+
+	/* assumes that the same groupname exists on the local system */
+	if ((grp = getgrnam(group)) != NULL)
+		return grp->gr_gid;
+
 	/* XXX FIXME */
 	return (0);
 }
@@ -316,50 +330,51 @@ gfarm2fs_chmod(const char *path, mode_t mode)
 	return (-gfarm_error_to_errno(e));
 }
 
-#if 0
 static char *
 get_user(uid_t uid)
 {
-	/* XXX FIXME */
-	return "user";
+	struct passwd *pwd;
+
+	if (uid == getuid())
+		return gfarm_get_global_username();
+
+	/* assumes that the same username exists on the gfarm filesystem */
+	if ((pwd = getpwuid(uid)) != NULL)
+		return pwd->pw_name;
+
+	return NULL;
 }
 
 static char *
 get_group(uid_t gid)
 {
-	/* XXX FIXME */
-	return "group";
+	struct group *grp;
+
+	/* assumes that the same groupname exists on the gfarm filesystem */
+	if ((grp = getgrgid(gid)) != NULL)
+		return grp->gr_name;
+
+	return NULL;
 }
-#endif
 
 static int
 gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 {
-	struct gfs_stat st;
-	gfarm_error_t e;
-
-	/* XXX FIXME */
-	if (uid == getuid()) {
-		e = gfs_lstat_cached(path, &st);
-		if (e != GFARM_ERR_NO_ERROR)
-			return (-gfarm_error_to_errno(e));
-		if (strcmp(st.st_user, gfarm_get_global_username()) == 0) {
-			gfs_stat_free(&st);
-			return (0);
-		}
-		gfs_stat_free(&st);
-	}
-	return (-ENOSYS);
-#if 0
 	gfarm_error_t e;
 	char *user, *group;
 
-	user = get_user(uid);
-	group = get_group(gid);
+	if (uid == -1)
+		user = NULL;
+	else if ((user = get_user(uid)) == NULL)
+		return EINVAL;
+
+	if (gid == -1)
+		group = NULL;
+	else if ((group = get_group(gid)) == NULL)
+		return EINVAL;
 
 	e = gfs_chown(path, user, group);
 	return (-gfarm_error_to_errno(e));
-#endif
 }
 
 static int
