@@ -9,6 +9,9 @@
 /* Define to 1 if you have the <gfarm/gfarm.h> header file. */
 #undef HAVE_GFARM_GFARM_H
 
+/* Define to 1 if you have the `gfarm_schedule_cache_dump' function. */
+#undef HAVE_GFARM_SCHEDULE_CACHE_DUMP
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
