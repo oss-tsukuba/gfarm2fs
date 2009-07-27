@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
+#include <syslog.h>
 #include <sys/types.h>
 #include <string.h>
 #include <fcntl.h>
@@ -924,6 +926,34 @@ static struct fuse_operations gfarm2fs_cached_oper = {
  *** main
  ***/
 
+
+#ifdef HAVE_GFARM_SCHEDULE_CACHE_DUMP
+void
+debug_handler(int signo)
+{
+	/* XXX this function is not really async-signal-safe */
+	gfarm_schedule_cache_dump();
+}
+#endif
+
+static void
+setup_dumper(void)
+{
+#ifdef HAVE_GFARM_SCHEDULE_CACHE_DUMP
+	struct sigaction sa;
+
+	gflog_set_identifier(program_name);
+	gflog_auth_set_verbose(1);
+	gflog_syslog_open(LOG_PID, GFARM_DEFAULT_FACILITY);
+
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = debug_handler;
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGUSR2, &sa, NULL);
+#endif
+}
+
+
 int main(int argc, char *argv[])
 {
 	struct fuse_operations *operation_mode = &gfarm2fs_cached_oper;
@@ -981,6 +1011,8 @@ int main(int argc, char *argv[])
 			fuse_opt_add_arg(&args, argv[i]);
 		}
 	}
+
+	setup_dumper();
 
 	return (fuse_main(args.argc, args.argv, operation_mode));
 }
