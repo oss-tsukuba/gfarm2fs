@@ -1,12 +1,14 @@
 Release note for Gfarm2fs 1.1.1
 ===============================
 
-[2009.7.7]
+[2009.8.23]
 
 New Feature
 * extended attribute
  (This is disabled by default.  Specify --enable-xattr option in
   configure to enable it.)
+* scheduling cache dump support for debugging purpose when a signal
+  SIGUSR2 caught
 
 Release note for Gfarm2fs 1.1.0
 ===============================
