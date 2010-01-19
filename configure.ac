@@ -30,7 +30,7 @@ AC_MSG_RESULT([$with_gfarm])
 ### --enable-xattr
 ### by default this is disabled since it slows down the response of 'ls -l'
 AC_ARG_ENABLE(xattr,
-  AS_HELP_STRING([--enable-xattr], [support extended attribute [[default=yes]]]),
+  AS_HELP_STRING([--enable-xattr], [support extended attribute [[default=no]]]),
   [if test "x$enable_xattr" != xno; then
     AC_DEFINE(ENABLE_XATTR, [1], [support extended attribute])
    fi], [])
