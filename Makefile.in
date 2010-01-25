@@ -185,6 +185,7 @@ target_alias = @target_alias@
 gfarm2fs_SOURCES = gfarm2fs.c
 AM_CFLAGS = -Wall
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec
+ASSIGNMSGNO = $(top_srcdir)/msgno/assign_msgno.pl
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -584,6 +585,15 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-info-am
 
+
+#
+# gflog message number assignment
+#
+
+msgno: assign_msgno
+
+assign_msgno:
+	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
