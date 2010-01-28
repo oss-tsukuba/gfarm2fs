@@ -39,8 +39,8 @@
 #undef PACKAGE_VERSION
 #include <gfarm/gfarm.h>
 
-/* for better scalability */
-#define USE_GETDIR
+/* for old interface */
+#undef USE_GETDIR
 
 /* XXX FIXME */
 #define GFS_DEV		((dev_t)-1)
