@@ -53,15 +53,23 @@ static uid_t
 get_uid(char *user)
 {
 	struct passwd *pwd;
+	char *luser;
 
 	if (strcmp(gfarm_get_global_username(), user) == 0)
 		return getuid(); /* my own file */
 
-	/* assumes that the same username exists on the local system */
-	if ((pwd = getpwnam(user)) != NULL)
-		return pwd->pw_uid;
-
-	/* XXX FIXME - some other's file */
+	/*
+	 * XXX - this interface will be changed soon to support
+	 * multiple gfmds.
+	 */
+	if (gfarm_global_to_local_username(user, &luser)
+	    == GFARM_ERR_NO_ERROR) {
+		pwd = getpwnam(luser);
+		free(luser);
+		if (pwd != NULL)
+			return pwd->pw_uid;
+	}
+	/* cannot conver to a local account */
 	return (0);
 }
 
