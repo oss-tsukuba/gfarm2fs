@@ -77,12 +77,20 @@ static int
 get_gid(char *group)
 {
 	struct group *grp;
+	char *lgroup;
 
-	/* assumes that the same groupname exists on the local system */
-	if ((grp = getgrnam(group)) != NULL)
-		return grp->gr_gid;
-
-	/* XXX FIXME */
+	/*
+	 * XXX - this interface will be changed soon to support
+	 * multiple gfmds.
+	 */
+	if (gfarm_global_to_local_groupname(group, &lgroup)
+	    == GFARM_ERR_NO_ERROR) {
+		grp = getgrnam(lgroup);
+		free(lgroup);
+		if (grp != NULL)
+			return grp->gr_gid;
+	}
+	/* cannot conver to a local group */
 	return (0);
 }
 
