@@ -32,7 +32,7 @@
 static char *rep = "gfrep";
 static int replicate_ncopy;
 static int replicate_max_concurrency;
-static int replicate_concurrency;
+volatile sig_atomic_t replicate_concurrency = 0;
 static int replicate_disable;
 
 #define XATTR_NCOPY	"ncopy";
