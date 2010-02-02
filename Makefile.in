@@ -54,7 +54,7 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_gfarm2fs_OBJECTS = gfarm2fs.$(OBJEXT)
+am_gfarm2fs_OBJECTS = gfarm2fs.$(OBJEXT) replicate.$(OBJEXT)
 gfarm2fs_OBJECTS = $(am_gfarm2fs_OBJECTS)
 gfarm2fs_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
@@ -182,7 +182,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-gfarm2fs_SOURCES = gfarm2fs.c
+gfarm2fs_SOURCES = gfarm2fs.c replicate.c
 AM_CFLAGS = -Wall
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec
 ASSIGNMSGNO = $(top_srcdir)/msgno/assign_msgno.pl
@@ -280,6 +280,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gfarm2fs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/replicate.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
