@@ -1145,6 +1145,7 @@ setup_dumper(void)
 {
 #ifdef HAVE_GFARM_SCHEDULE_CACHE_DUMP
 	struct sigaction sa;
+
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler = debug_handler;
 	sa.sa_flags = SA_RESTART;
@@ -1184,10 +1185,8 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("-f", KEY_F),
 	FUSE_OPT_KEY("-d", KEY_D),
 	FUSE_OPT_KEY("debug", KEY_D),
-#ifdef ENABLE_VERSION
 	FUSE_OPT_KEY("-V", KEY_VERSION),
 	FUSE_OPT_KEY("--version", KEY_VERSION),
-#endif
 	FUSE_OPT_KEY("-h", KEY_HELP),
 	FUSE_OPT_KEY("--help", KEY_HELP),
 	FUSE_OPT_END
@@ -1202,9 +1201,7 @@ usage(const char *progname)
 "general options:\n"
 "    -o opt,[opt...]         mount options\n"
 "    -h   --help             print help\n"
-#ifdef ENABLE_VERSION
 "    -V   --version          print version\n"
-#endif
 "\n"
 "GFARM2FS options:\n"
 "    -o syslog=facility      syslog facility (default: %s)\n"
@@ -1245,7 +1242,6 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 	case KEY_D:
 		paramsp->debug = 1;
 		return (1); /* through */
-#ifdef ENABLE_VERSION
 	case KEY_VERSION:
 		fprintf(stderr, "GFARM2FS version %s\n", VERSION);
 #if FUSE_VERSION >= 25
@@ -1253,7 +1249,6 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 		gfarm2fs_fuse_main(outargs, NULL);
 #endif
 		exit(0);
-#endif
 	case KEY_HELP:
 		usage(outargs->argv[0]);
 		fuse_opt_add_arg(outargs, "-ho");
