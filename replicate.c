@@ -47,7 +47,8 @@ sigchld_handler(int sig)
 		if (pid == -1 || pid == 0)
 			break;
 		--replicate_concurrency;
-		gflog_info(1, "replicate [%d]: %d", pid, status);
+		gflog_info(GFARM_MSG_UNFIXED, "replicate [%d]: %d",
+		    pid, status);
 	}
 }
 
@@ -119,7 +120,8 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	snprintf(str_ncopy, sizeof(str_ncopy), "%d", ncopy);
 	switch (fork()) {
 	case 0:
-		gflog_info(1, "replicate [%d]: path %s ncopy %s", getpid(),
+		gflog_info(GFARM_MSG_UNFIXED,
+		    "replicate [%d]: path %s ncopy %s", getpid(),
 		    path, str_ncopy);
 		execlp(rep, rep, "-q", "-N", str_ncopy, path, NULL);
 		perror(rep);
