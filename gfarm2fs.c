@@ -39,6 +39,8 @@
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #include <gfarm/gfarm.h>
+#include <gfarm2fs.h>
+#include <replicate.h>
 
 /* for old interface */
 #undef USE_GETDIR
@@ -546,6 +548,7 @@ gfarm2fs_truncate(const char *path, off_t size)
 	e2 = gfs_pio_close(gf);
 	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_TRUNCATE,
 				"gfs_pio_close", path, e2);
+	gfarm2fs_replicate(path, NULL);
 
 	return (-gfarm_error_to_errno(e != GFARM_ERR_NO_ERROR ? e : e2));
 }
@@ -736,6 +739,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	e = gfs_pio_close(get_filep(fi));
 	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RELEASE,
 				"gfs_pio_close", path, e);
+	gfarm2fs_replicate(path, fi);
 
 	return (0);
 }
@@ -771,7 +775,7 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 	return (-gfarm_error_to_errno(e));
 }
 
-static int
+int
 gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
 	gfarm_error_t e;
@@ -1163,16 +1167,6 @@ enum {
 	KEY_HELP,
 };
 
-struct gfarm2fs_param {
-	const char *mount_point;
-	int foreground;
-	int debug;
-	double cache_timeout;
-	int use_syslog;
-	char *facility;
-	char *loglevel;
-};
-
 #define GFARM2FS_OPT(t, p, v) \
 	{ t, offsetof(struct gfarm2fs_param, p), v }
 
@@ -1182,6 +1176,8 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	/* GFARM2FS_OPT("use_stderr", use_syslog, 0), */
 	GFARM2FS_OPT("syslog=%s", facility, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("loglevel=%s", loglevel, KEY_GFARM2FS_OPT),
+	GFARM2FS_OPT("ncopy=%d", ncopy, KEY_GFARM2FS_OPT),
+	GFARM2FS_OPT("copy_limit=%d", copy_limit, KEY_GFARM2FS_OPT),
 	FUSE_OPT_KEY("-f", KEY_F),
 	FUSE_OPT_KEY("-d", KEY_D),
 	FUSE_OPT_KEY("debug", KEY_D),
@@ -1208,6 +1204,9 @@ usage(const char *progname)
 "    -o loglevel=priority    syslog priority level (default: %s)\n"
 "    -E T                    cache timeout for gfs_stat (default: 1.0 sec.)\n"
 "    -o gfs_stat_timeout=T   same -E option\n"
+"    -o ncopy=N              number of copies (default: 0)\n"
+"    -o copy_limit=N         maximum number of concurrent copy creations\n"
+"                            (default: 10)\n"
 		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
 		GFARM2FS_SYSLOG_PRIORITY_DEFAULT);
@@ -1276,7 +1275,9 @@ main(int argc, char *argv[])
 		.cache_timeout = -1.0,
 		.use_syslog = 1,
 		.facility = NULL,
-		.loglevel = NULL
+		.loglevel = NULL,
+		.ncopy = 0,
+		.copy_limit = 10
 	};
 
 	umask(0);
@@ -1345,6 +1346,7 @@ main(int argc, char *argv[])
 		operation_mode = &gfarm2fs_oper;
 	}
 
+	gfarm2fs_replicate_init(&params);
 	setup_dumper();
 
 	ret_fuse_main = gfarm2fs_fuse_main(&args, operation_mode);
