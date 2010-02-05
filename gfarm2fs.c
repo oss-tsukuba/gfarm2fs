@@ -782,8 +782,6 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 	size_t s = size;
 
 	e = gfs_getxattr(path, name, value, &s);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETXATTR,
-			     "gfs_getxattr", path, e);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		/*
 		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
@@ -797,9 +795,11 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 		 */
 		return (-ENODATA);
 	}
-	if (e != GFARM_ERR_NO_ERROR)
+	if (e != GFARM_ERR_NO_ERROR) {
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETXATTR,
+				     "gfs_getxattr", path, e);
 		return (-gfarm_error_to_errno(e));
-	else
+	} else
 		return (s);
 }
 
