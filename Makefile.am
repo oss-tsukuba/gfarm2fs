@@ -1,5 +1,5 @@
 bin_PROGRAMS = gfarm2fs
-gfarm2fs_SOURCES = gfarm2fs.c replicate.c
+gfarm2fs_SOURCES = gfarm2fs.c replicate.c gfarm2fs.h replicate.h
 
 AM_CFLAGS = -Wall
 
