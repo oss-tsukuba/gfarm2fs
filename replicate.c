@@ -105,6 +105,22 @@ gfarm2fs_replicate_ncopy(const char *path)
 	return (ncopy);
 }
 
+static int
+gfarm2fs_replicate_stat_ncopy(const char *path)
+{
+	struct gfs_stat st;
+	gfarm_error_t e;
+	int ncopy;
+
+	e = gfs_lstat_cached(path, &st);
+	if (e == GFARM_ERR_NO_ERROR) {
+		ncopy = st.st_ncopy;
+		gfs_stat_free(&st);
+		return (ncopy);
+	}
+	return (0);
+}
+
 void
 gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 {
@@ -114,10 +130,20 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	if (replicate_disable)
 		return;
 
+	/* if necessary number of copies is less than 2, return */
 	ncopy = gfarm2fs_replicate_ncopy(path);
 	if (ncopy < 2)
 		return;
 
+	/*
+	 * if it is opened in read only mode and it has enough number
+	 * of copies, return
+	 */
+	if (fi != NULL && (fi->flags & O_ACCMODE) == O_RDONLY &&
+	    ncopy <= gfarm2fs_replicate_stat_ncopy(path))
+		return;
+
+	/* if enough number of replication processes are in process, wait */
 	while (replicate_concurrency >= replicate_max_concurrency)
 		sleep(1);
 
