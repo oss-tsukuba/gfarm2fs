@@ -42,15 +42,27 @@ static int replicate_disable;
 static void
 sigchld_handler(int sig)
 {
-	int pid, status;
+	int pid, status, no;
+	char *msg;
 
 	for (;;) {
 		pid = waitpid(-1, &status, WNOHANG);
 		if (pid == -1 || pid == 0)
 			break;
 		--replicate_concurrency;
-		gflog_info(GFARM_MSG_UNFIXED, "replicate [%d]: %d",
-		    pid, status);
+
+		if (WIFEXITED(status)) {
+			msg = "exit";
+			no = WEXITSTATUS(status);
+		} else if (WIFSIGNALED(status)) {
+			msg = "killed by signal";
+			no = WTERMSIG(status);
+		} else {
+			msg = "unknown status";
+			no = status;
+		}
+		gflog_info(GFARM_MSG_UNFIXED, "replicate [%d]: %s %d",
+		    pid, msg, no);
 	}
 }
 
@@ -90,6 +102,7 @@ gfarm2fs_replicate_ncopy(const char *path)
 		size_ncopy = sizeof(s_ncopy);
 		e = gfs_getxattr(p, XATTR_NCOPY, s_ncopy, &size_ncopy);
 		if (e == GFARM_ERR_NO_ERROR) {
+			s_ncopy[size_ncopy] = '\0';
 			nc = strtol(s_ncopy, &ep, 10);
 			if (*ep == '\0') {
 				ncopy = nc;
@@ -154,10 +167,10 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		    "replicate [%d]: path %s ncopy %s", getpid(),
 		    path, str_ncopy);
 		execlp(rep, rep, "-q", "-N", str_ncopy, path, NULL);
-		perror(rep);
+		gflog_error_errno(GFARM_MSG_UNFIXED, "failed to exec %s", rep);
 		_exit(1);
 	case -1:
-		perror("fork");
+		gflog_error_errno(GFARM_MSG_UNFIXED, "fork");
 		break;
 	default:
 		++replicate_concurrency;
