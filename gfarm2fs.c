@@ -775,7 +775,7 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 	return (-gfarm_error_to_errno(e));
 }
 
-int
+static int
 gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
 	gfarm_error_t e;

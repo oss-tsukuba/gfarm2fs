@@ -2,6 +2,8 @@
  * $Id$
  */
 
+#include "config.h"
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -35,7 +37,7 @@ static int replicate_max_concurrency;
 volatile sig_atomic_t replicate_concurrency = 0;
 static int replicate_disable;
 
-#define XATTR_NCOPY	"ncopy";
+#define XATTR_NCOPY	"gfarm.ncopy"
 
 static void
 sigchld_handler(int sig)
@@ -75,7 +77,9 @@ gfarm2fs_replicate_ncopy(const char *path)
 {
 	int ncopy = replicate_ncopy;
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
-	char *p, s_ncopy[GFARM_INT32STRLEN];
+	char *p, *ep, s_ncopy[GFARM_INT32STRLEN];
+	size_t size_ncopy;
+	gfarm_error_t e;
 	int nc;
 
 	p = strdup(path);
@@ -83,10 +87,10 @@ gfarm2fs_replicate_ncopy(const char *path)
 		return (ncopy);
 
 	for (;;) {
-		rv = gfarm2fs_getxattr(p, XATTR_NCOPY,
-		    &s_ncopy, sizeof(s_ncopy));
-		if (rv == 0) {
-			nc = strtol(str_ncopy, &ep, 10);
+		size_ncopy = sizeof(s_ncopy);
+		e = gfs_getxattr(p, XATTR_NCOPY, s_ncopy, &size_ncopy);
+		if (e == GFARM_ERR_NO_ERROR) {
+			nc = strtol(s_ncopy, &ep, 10);
 			if (*ep == '\0') {
 				ncopy = nc;
 				break;
