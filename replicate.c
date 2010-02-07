@@ -84,6 +84,12 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 	sigaction(SIGCHLD, &sa, NULL);
 }
 
+void
+gfarm2fs_replicate_final(void)
+{
+	/* Do nothing */
+}
+
 static int
 gfarm2fs_replicate_ncopy(const char *path)
 {

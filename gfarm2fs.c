@@ -1266,7 +1266,7 @@ main(int argc, char *argv[])
 	int ret_fuse_main;
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 	int syslog_priority;
-	int syslog_facility;
+	int syslog_facility = -1;
 
 	struct gfarm2fs_param params = {
 		.mount_point = NULL,
@@ -1336,7 +1336,6 @@ main(int argc, char *argv[])
 				program_name);
 			exit(1);
 		}
-		gflog_syslog_open(LOG_PID, syslog_facility);
 	}
 
 	if (params.cache_timeout > 0.0) {
@@ -1346,11 +1345,19 @@ main(int argc, char *argv[])
 		operation_mode = &gfarm2fs_oper;
 	}
 
+	/* end of setting params */
+
 	gfarm2fs_replicate_init(&params);
+
 	setup_dumper();
+
+	if (params.use_syslog) /* just before fuse_main */
+		gflog_syslog_open(LOG_PID, syslog_facility);
 
 	ret_fuse_main = gfarm2fs_fuse_main(&args, operation_mode);
 	fuse_opt_free_args(&args);
+
+	gfarm2fs_replicate_final();
 
 	return (ret_fuse_main);
 }
