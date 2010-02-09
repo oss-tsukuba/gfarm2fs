@@ -35,7 +35,7 @@ static char *rep = "gfrep";
 static int replicate_ncopy;
 static int replicate_max_concurrency;
 volatile sig_atomic_t replicate_concurrency = 0;
-static int replicate_disable;
+static int replicate_enabled;
 
 #define XATTR_NCOPY	"gfarm.ncopy"
 
@@ -71,10 +71,10 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 {
 	struct sigaction sa;
 
-	if (param->ncopy == 0) {
-		replicate_disable = 1;
+	if (param->ncopy <= 0 || param->copy_limit <= 0)
 		return;
-	}
+
+	replicate_enabled = 1;
 	replicate_ncopy = param->ncopy;
 	replicate_max_concurrency = param->copy_limit;
 
@@ -146,7 +146,7 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	char str_ncopy[GFARM_INT32STRLEN];
 	int ncopy;
 
-	if (replicate_disable)
+	if (!replicate_enabled)
 		return;
 
 	/* if necessary number of copies is less than 2, return */
