@@ -177,14 +177,16 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 prefix = @prefix@
+private_srcs = @private_srcs@
 program_transform_name = @program_transform_name@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_private_dir = @top_private_dir@
 gfarm2fs_SOURCES = gfarm2fs.c replicate.c gfarm2fs.h replicate.h
 AM_CFLAGS = -Wall
-EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec
+EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(private_srcs)
 ASSIGNMSGNO = $(top_srcdir)/msgno/assign_msgno.pl
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -527,7 +529,7 @@ distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-hdr distclean-libtool distclean-tags
+	distclean-hdr distclean-libtool distclean-local distclean-tags
 
 dvi: dvi-am
 
@@ -575,12 +577,12 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 	clean-binPROGRAMS clean-generic clean-libtool ctags dist \
 	dist-all dist-bzip2 dist-gzip dist-shar dist-tarZ dist-zip \
 	distcheck distclean distclean-compile distclean-generic \
-	distclean-hdr distclean-libtool distclean-tags distcleancheck \
-	distdir distuninstallcheck dvi dvi-am html html-am info \
-	info-am install install-am install-binPROGRAMS install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	distclean-hdr distclean-libtool distclean-local distclean-tags \
+	distcleancheck distdir distuninstallcheck dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-exec install-exec-am \
+	install-info install-info-am install-man install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
@@ -590,11 +592,44 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 #
 # gflog message number assignment
 #
-
 msgno: assign_msgno
 
 assign_msgno:
-	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES)
+	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES) \
+	$(private_srcs)
+
+#
+# private sources
+#
+private-src-link:
+	@if test "x$(top_private_dir)" != "x"; then \
+		for i in $(private_srcs); do \
+			if test ! -r ./$${i} -a \
+			-r $(top_private_dir)/$${i}; then \
+				ln -s $(top_private_dir)/$${i} . ; \
+			fi ; \
+		done ; \
+	fi
+
+private-src-unlink:
+	@if test "x$(top_private_dir)" != "x"; then \
+		for i in $(private_srcs); do \
+			if test -L ./$${i}; then \
+				$(RM) ./$${i} ; \
+			fi ; \
+		done ; \
+	fi
+
+install-private: $(bin_PROGRAMS)
+	if test "x$(top_private_dir)" != "x"; then \
+		for i in $(bin_PROGRAMS); do \
+			$(binPROGRAMS_INSTALL) $$i \
+			$(DESTDIR)$(bindir)/$${i}_private ; \
+		done ; \
+	fi
+
+gfarm2fs.c: private-src-link
+distclean-local: private-src-unlink
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
