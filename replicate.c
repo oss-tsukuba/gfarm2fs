@@ -4,6 +4,10 @@
 
 #include "config.h"
 
+#ifdef HAVE_PRIVATE_SRCS
+#include "replicate_private.c"
+#else
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -183,3 +187,5 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		break;
 	}
 }
+
+#endif /* HAVE_PRIVATE_SRCS */

@@ -27,6 +27,35 @@ if test x"$with_gfarm" != x/usr; then
 fi
 AC_MSG_RESULT([$with_gfarm])
 
+### --with-private-srcdir
+private_srcdir=''
+AC_MSG_CHECKING([use of private source directory])
+AC_ARG_WITH(private_srcdir,
+[  --with-private-srcdir=DIR    private source directory
+],
+[private_srcdir="${withval}"
+],
+[private_srcdir=""
+])
+top_private_dir=''
+if test "x${private_srcdir}" = "x"; then
+  private_srcs=""
+  have_private_srcs=""
+  AC_MSG_RESULT([not use.])
+else
+  if test -d "${private_srcdir}"; then
+    top_private_dir="`(cd ${private_srcdir}; /bin/pwd)`"
+    AC_MSG_RESULT([use ${top_private_dir}])
+    private_srcs="replicate_private.c"
+    AC_DEFINE(HAVE_PRIVATE_SRCS, [], [have private sources])
+  else
+    AC_MSG_RESULT([${private_srcdir} is not a directory.])
+    exit 1
+  fi
+fi
+AC_SUBST(top_private_dir)
+AC_SUBST(private_srcs)
+
 ### --enable-xattr
 ### by default this is disabled since it slows down the response of 'ls -l'
 AC_ARG_ENABLE(xattr,
