@@ -595,8 +595,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 msgno: assign_msgno
 
 assign_msgno:
-	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES) \
-	$(private_srcs)
+	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES)
 
 #
 # private sources
