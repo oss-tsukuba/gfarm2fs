@@ -13,8 +13,7 @@ msgno: assign_msgno
 ASSIGNMSGNO=$(top_srcdir)/msgno/assign_msgno.pl
 
 assign_msgno:
-	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES) \
-	$(private_srcs)
+	GFARM_TOPDIR=$(top_srcdir) $(ASSIGNMSGNO) $(gfarm2fs_SOURCES)
 
 #
 # private sources
