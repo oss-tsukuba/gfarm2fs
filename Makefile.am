@@ -1,9 +1,7 @@
 bin_PROGRAMS = gfarm2fs
 gfarm2fs_SOURCES = gfarm2fs.c replicate.c gfarm2fs.h replicate.h
-
-AM_CFLAGS = -Wall
-
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(private_srcs)
+AM_CFLAGS = -Wall
 
 #
 # gflog message number assignment

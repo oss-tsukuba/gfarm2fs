@@ -5,8 +5,9 @@
 #include "config.h"
 
 #ifdef HAVE_PRIVATE_SRCS
+/* replace replicate.c with replicate_private.c */
 #include "replicate_private.c"
-#else
+#else /* ! HAVE_PRIVATE_SRCS */
 
 #include <unistd.h>
 #include <stdio.h>
