@@ -1048,8 +1048,8 @@ Optional Packages:
   --with-tags[=TAGS]
                           include additional configurations [automatic]
   --with-gfarm=GFARM_ROOT Gfarm root directory [/usr]
-  --with-private-srcdir=DIR    private source directory
-
+  --with-private-srcdir=DIR
+                          private source directory
 
 Some influential environment variables:
   CC          C compiler command
@@ -19851,42 +19851,38 @@ echo "$as_me:$LINENO: result: $with_gfarm" >&5
 echo "${ECHO_T}$with_gfarm" >&6
 
 ### --with-private-srcdir
-private_srcdir=''
-echo "$as_me:$LINENO: checking use of private source directory" >&5
-echo $ECHO_N "checking use of private source directory... $ECHO_C" >&6
+### This is provided to replace some functionalities with your private code.
+echo "$as_me:$LINENO: checking for private source directory" >&5
+echo $ECHO_N "checking for private source directory... $ECHO_C" >&6
 
 # Check whether --with-private_srcdir or --without-private_srcdir was given.
 if test "${with_private_srcdir+set}" = set; then
   withval="$with_private_srcdir"
-  private_srcdir="${withval}"
-
-else
-  private_srcdir=""
 
 fi;
-top_private_dir=''
-if test "x${private_srcdir}" = "x"; then
+case x$with_private_srcdir in
+x|xno)
+  top_private_dir=""
   private_srcs=""
-  have_private_srcs=""
-  echo "$as_me:$LINENO: result: not use." >&5
-echo "${ECHO_T}not use." >&6
-else
-  if test -d "${private_srcdir}"; then
-    top_private_dir="`(cd ${private_srcdir}; /bin/pwd)`"
-    echo "$as_me:$LINENO: result: use ${top_private_dir}" >&5
-echo "${ECHO_T}use ${top_private_dir}" >&6
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6 ;;
+*)
+  if test -d "${with_private_srcdir}"; then
+    top_private_dir="`(cd ${with_private_srcdir}; /bin/pwd)`"
     private_srcs="replicate_private.c"
+    echo "$as_me:$LINENO: result: ${top_private_dir}" >&5
+echo "${ECHO_T}${top_private_dir}" >&6
 
 cat >>confdefs.h <<\_ACEOF
-#define HAVE_PRIVATE_SRCS
+#define HAVE_PRIVATE_SRCS 1
 _ACEOF
 
   else
-    echo "$as_me:$LINENO: result: ${private_srcdir} is not a directory." >&5
-echo "${ECHO_T}${private_srcdir} is not a directory." >&6
-    exit 1
+    { { echo "$as_me:$LINENO: error: ${with_private_srcdir} is not a directory." >&5
+echo "$as_me: error: ${with_private_srcdir} is not a directory." >&2;}
+   { (exit 1); exit 1; }; }
   fi
-fi
+esac
 
 
 

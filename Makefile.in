@@ -185,8 +185,8 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_private_dir = @top_private_dir@
 gfarm2fs_SOURCES = gfarm2fs.c replicate.c gfarm2fs.h replicate.h
-AM_CFLAGS = -Wall
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(private_srcs)
+AM_CFLAGS = -Wall
 ASSIGNMSGNO = $(top_srcdir)/msgno/assign_msgno.pl
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
