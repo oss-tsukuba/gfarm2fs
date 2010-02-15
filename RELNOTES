@@ -1,3 +1,24 @@
+Release note for Gfarm2fs 1.2.0
+===============================
+
+[2010.2.15]
+
+New Feature
+* automatic file replication by -o ncopy=NCOPY option and extended
+  attribute "gfarm.ncopy"
+* error logging
+
+Updated feature
+* -o ncopy=NCOPY to specify the default number of file replicas
+* -o copy_limit=LIMIT to specify the maximum concurrency of file
+  replica creations
+* -o syslog=facility to specify the syslog facility
+* -o loglevel=priority to specify the log message priority
+* -o gfs_stat_timeout to specify the timeout of attribute cache
+* -V and --version to display version
+* use local_user_map and group map file to identify the local users
+  and local groups
+
 Release note for Gfarm2fs 1.1.1
 ===============================
 
