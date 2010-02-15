@@ -59,8 +59,8 @@ static char GFARM2FS_SYSLOG_PRIORITY_DEBUG[] = "debug";
 static const char *mount_point;
 
 #define PATH_LEN_LIMIT 200
-static char *syslog_nomal_fmt = "<%s:%s>[%s]%s: %s";
-static char *syslog_trunc_fmt = "<%s:%s>[%s](...)%s: %s";
+static char *syslog_fmt = "<%s:%s>[%s]%s%s: %s";
+static char *trunc_str = "(...)";
 
 #define gfarm2fs_check_error(msgNo, fuse_opname, gfarm_funcname, \
 			     gfarm_path, gfarm_e) \
@@ -69,25 +69,25 @@ static char *syslog_trunc_fmt = "<%s:%s>[%s](...)%s: %s";
 		int ret_errno    = gfarm_error_to_errno(gfarm_e); \
 		int path_len     = strlen(gfarm_path); \
 		int path_offset  = 0; \
-		char *syslog_fmt = syslog_nomal_fmt; \
+		char *path_prefix = ""; \
 		if (path_len > PATH_LEN_LIMIT) { \
-			path_offset = path_len - PATH_LEN_LIMIT;\
-			syslog_fmt  = syslog_trunc_fmt; \
+			path_offset = path_len - PATH_LEN_LIMIT; \
+			path_prefix = trunc_str; \
 		} \
 		if (ret_errno == EINVAL || fuse_opname == OP_RELEASE) { \
 			gflog_error(msgNo, syslog_fmt, fuse_opname, \
 				gfarm_funcname, mount_point, \
-				gfarm_path + path_offset, \
+				path_prefix, gfarm_path + path_offset, \
 				gfarm_error_string(gfarm_e)); \
 		} else if (ret_errno != ENOENT) { \
 			gflog_info(msgNo, syslog_fmt, fuse_opname, \
 				gfarm_funcname, mount_point, \
-				gfarm_path + path_offset, \
+				path_prefix, gfarm_path + path_offset, \
 				gfarm_error_string(gfarm_e)); \
 		} else { \
 			gflog_debug(msgNo, syslog_fmt, fuse_opname, \
 				gfarm_funcname, mount_point, \
-				gfarm_path + path_offset, \
+				path_prefix, gfarm_path + path_offset, \
 				gfarm_error_string(gfarm_e)); \
 		} \
 	} \
