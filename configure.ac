@@ -40,7 +40,7 @@ x|xno)
 *)
   if test -d "${with_private_srcdir}"; then
     top_private_dir="`(cd ${with_private_srcdir}; /bin/pwd)`"
-    private_srcs="replicate_private.c"
+    private_srcs="replicate_private.c private_gfarm2fs_msg_enums.h"
     AC_MSG_RESULT([${top_private_dir}])
     AC_DEFINE(HAVE_PRIVATE_SRCS, [1], [Define to 1 if you have private sources])
   else
