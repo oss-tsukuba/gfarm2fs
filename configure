@@ -19886,7 +19886,7 @@ echo "${ECHO_T}no" >&6 ;;
 *)
   if test -d "${with_private_srcdir}"; then
     top_private_dir="`(cd ${with_private_srcdir}; /bin/pwd)`"
-    private_srcs="replicate_private.c"
+    private_srcs="replicate_private.c private_gfarm2fs_msg_enums.h"
     echo "$as_me:$LINENO: result: ${top_private_dir}" >&5
 echo "${ECHO_T}${top_private_dir}" >&6
 
