@@ -35,6 +35,7 @@
 #undef PACKAGE_VERSION
 #include <gfarm/gfarm.h>
 #include <gfarm2fs.h>
+#include "gfarm2fs_msg_enums.h"
 
 static char *rep = "gfrep";
 static int replicate_ncopy;
@@ -66,7 +67,7 @@ sigchld_handler(int sig)
 			msg = "unknown status";
 			no = status;
 		}
-		gflog_info(GFARM_MSG_UNFIXED, "replicate [%d]: %s %d",
+		gflog_info(GFARM_MSG_2000041, "replicate [%d]: %s %d",
 		    pid, msg, no);
 	}
 }
@@ -174,14 +175,14 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	snprintf(str_ncopy, sizeof(str_ncopy), "%d", ncopy);
 	switch (fork()) {
 	case 0:
-		gflog_info(GFARM_MSG_UNFIXED,
+		gflog_info(GFARM_MSG_2000042,
 		    "replicate [%d]: path %s ncopy %s", getpid(),
 		    path, str_ncopy);
 		execlp(rep, rep, "-q", "-N", str_ncopy, path, NULL);
-		gflog_error_errno(GFARM_MSG_UNFIXED, "failed to exec %s", rep);
+		gflog_error_errno(GFARM_MSG_2000043, "failed to exec %s", rep);
 		_exit(1);
 	case -1:
-		gflog_error_errno(GFARM_MSG_UNFIXED, "fork");
+		gflog_error_errno(GFARM_MSG_2000044, "fork");
 		break;
 	default:
 		++replicate_concurrency;

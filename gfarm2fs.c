@@ -41,6 +41,7 @@
 #include <gfarm/gfarm.h>
 #include <gfarm2fs.h>
 #include <replicate.h>
+#include "gfarm2fs_msg_enums.h"
 
 /* for old interface */
 #undef USE_GETDIR
@@ -210,7 +211,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 
 	e = gfs_lstat_cached(path, &st);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETATTR,
+		gfarm2fs_check_error(GFARM_MSG_2000001, OP_GETATTR,
 					"gfs_lstat_cached", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -235,7 +236,7 @@ gfarm2fs_fgetattr(const char *path, struct stat *stbuf,
 
 	e = gfs_pio_stat(get_filep(fi), &st);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FGETATTR,
+		gfarm2fs_check_error(GFARM_MSG_2000002, OP_FGETATTR,
 					"gfs_pio_stat", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -254,7 +255,7 @@ gfarm2fs_access(const char *path, int mask)
 	gfarm_error_t e;
 
 	e = gfs_access(path, mask);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_ACCESS,
+	gfarm2fs_check_error(GFARM_MSG_2000003, OP_ACCESS,
 				"gfs_access", path, e);
 	return (-gfarm_error_to_errno(e));
 #endif
@@ -269,7 +270,7 @@ gfarm2fs_readlink(const char *path, char *buf, size_t size)
 
 	e = gfs_readlink(path, &src);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READLINK,
+		gfarm2fs_check_error(GFARM_MSG_2000004, OP_READLINK,
 					"gfs_readlink", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -291,7 +292,7 @@ gfarm2fs_opendir(const char *path, struct fuse_file_info *fi)
 
 	e = gfs_opendir_caching(path, &dp);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_OPENDIR,
+		gfarm2fs_check_error(GFARM_MSG_2000005, OP_OPENDIR,
 					"gfs_opendir_caching", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -327,7 +328,7 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		if (filler(buf, de->d_name, &st, 0))
 			break;
 	}
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READDIR,
+	gfarm2fs_check_error(GFARM_MSG_2000006, OP_READDIR,
 				"gfs_readdir", path, e);
 
 	return (0);
@@ -341,7 +342,7 @@ gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 
 	(void) path;
 	e = gfs_closedir(dp);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RELEASEDIR,
+	gfarm2fs_check_error(GFARM_MSG_2000007, OP_RELEASEDIR,
 				"gfs_closedir", path, e);
 	return (0);
 }
@@ -356,7 +357,7 @@ gfarm2fs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 
 	e = gfs_opendir_caching(path, &dp);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETDIR,
+		gfarm2fs_check_error(GFARM_MSG_2000008, OP_GETDIR,
 					"gfs_opendir_caching", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -366,11 +367,11 @@ gfarm2fs_getdir(const char *path, fuse_dirh_t h, fuse_dirfil_t filler)
 		if (filler(h, de->d_name, de->d_type << 12, de->d_fileno))
 			break;
 	}
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETDIR,
+	gfarm2fs_check_error(GFARM_MSG_2000009, OP_GETDIR,
 				"gfs_readdir", path, e);
 
 	e2 = gfs_closedir(dp);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETDIR,
+	gfarm2fs_check_error(GFARM_MSG_2000010, OP_GETDIR,
 				"gfs_closedir", path, e2);
 
 	if (e == GFARM_ERR_NO_ERROR)
@@ -392,11 +393,11 @@ gfarm2fs_mknod(const char *path, mode_t mode, dev_t rdev)
 	e = gfs_pio_create(path, GFARM_FILE_WRONLY, mode & GFARM_S_ALLPERM,
 		&gf);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_MKNOD,
+		gfarm2fs_check_error(GFARM_MSG_2000011, OP_MKNOD,
 					"gfs_pio_create", path, e);
 	} else {
 		e = gfs_pio_close(gf);
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_MKNOD,
+		gfarm2fs_check_error(GFARM_MSG_2000012, OP_MKNOD,
 					"gfs_pio_close", path, e);
 	}
 
@@ -409,7 +410,7 @@ gfarm2fs_mkdir(const char *path, mode_t mode)
 	gfarm_error_t e;
 
 	e = gfs_mkdir(path, mode & GFARM_S_ALLPERM);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_MKDIR,
+	gfarm2fs_check_error(GFARM_MSG_2000013, OP_MKDIR,
 				"gfs_mkdir", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -420,7 +421,7 @@ gfarm2fs_unlink(const char *path)
 	gfarm_error_t e;
 
 	e = gfs_unlink(path);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UNLINK,
+	gfarm2fs_check_error(GFARM_MSG_2000014, OP_UNLINK,
 				"gfs_unlink", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -431,7 +432,7 @@ gfarm2fs_rmdir(const char *path)
 	gfarm_error_t e;
 
 	e = gfs_rmdir(path);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RMDIR,
+	gfarm2fs_check_error(GFARM_MSG_2000015, OP_RMDIR,
 				"gfs_rmdir", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -442,7 +443,7 @@ gfarm2fs_symlink(const char *from, const char *to)
 	gfarm_error_t e;
 
 	e = gfs_symlink(from, to);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_SYMLINK,
+	gfarm2fs_check_error(GFARM_MSG_2000016, OP_SYMLINK,
 				"gfs_symlink", to, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -453,7 +454,7 @@ gfarm2fs_rename(const char *from, const char *to)
 	gfarm_error_t e;
 
 	e = gfs_rename(from, to);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RENAME,
+	gfarm2fs_check_error(GFARM_MSG_2000017, OP_RENAME,
 				"gfs_rename", from, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -464,7 +465,7 @@ gfarm2fs_link(const char *from, const char *to)
 	gfarm_error_t e;
 
 	e = gfs_link(from, to);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_LINK,
+	gfarm2fs_check_error(GFARM_MSG_2000018, OP_LINK,
 				"gfs_link", to, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -475,7 +476,7 @@ gfarm2fs_chmod(const char *path, mode_t mode)
 	gfarm_error_t e;
 
 	e = gfs_chmod(path, mode & GFARM_S_ALLPERM);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CHMOD,
+	gfarm2fs_check_error(GFARM_MSG_2000019, OP_CHMOD,
 				"gfs_chmod", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -524,7 +525,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 		return EINVAL;
 
 	e = gfs_chown(path, user, group);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CHOWN,
+	gfarm2fs_check_error(GFARM_MSG_2000020, OP_CHOWN,
 				"gfs_chown", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -537,16 +538,16 @@ gfarm2fs_truncate(const char *path, off_t size)
 
 	e = gfs_pio_open(path, GFARM_FILE_WRONLY, &gf);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_TRUNCATE,
+		gfarm2fs_check_error(GFARM_MSG_2000021, OP_TRUNCATE,
 					"gfs_pio_open", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
 
 	e = gfs_pio_truncate(gf, size);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_TRUNCATE,
+	gfarm2fs_check_error(GFARM_MSG_2000022, OP_TRUNCATE,
 				"gfs_pio_truncate", path, e);
 	e2 = gfs_pio_close(gf);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_TRUNCATE,
+	gfarm2fs_check_error(GFARM_MSG_2000023, OP_TRUNCATE,
 				"gfs_pio_close", path, e2);
 	gfarm2fs_replicate(path, NULL);
 
@@ -561,7 +562,7 @@ gfarm2fs_ftruncate(const char *path, off_t size,
 
 	(void) path;
 	e = gfs_pio_truncate(get_filep(fi), size);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FTRUNCATE,
+	gfarm2fs_check_error(GFARM_MSG_2000024, OP_FTRUNCATE,
 				"gfs_pio_ftruncate", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -579,7 +580,7 @@ gfarm2fs_utime(const char *path, struct utimbuf *buf)
 		gt[1].tv_nsec= 0;
 	}
 	e = gfs_utimes(path, gt);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UTIME,
+	gfarm2fs_check_error(GFARM_MSG_2000025, OP_UTIME,
 				"gfs_utime", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -625,7 +626,7 @@ gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	flags = gfs_hook_open_flags_gfarmize(fi->flags);
 	e = gfs_pio_create(path, flags, mode & GFARM_S_ALLPERM, &gf);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CREATE,
+		gfarm2fs_check_error(GFARM_MSG_2000026, OP_CREATE,
 					"gfs_pio_create", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -644,7 +645,7 @@ gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 	flags = gfs_hook_open_flags_gfarmize(fi->flags);
 	e = gfs_pio_open(path, flags, &gf);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_OPEN,
+		gfarm2fs_check_error(GFARM_MSG_2000027, OP_OPEN,
 					"gfs_pio_open", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -664,11 +665,11 @@ gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
 	(void) path;
 	e = gfs_pio_seek(get_filep(fi), offset, GFARM_SEEK_SET, &off);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READ,
+		gfarm2fs_check_error(GFARM_MSG_2000028, OP_READ,
 					"gfs_pio_seek", path, e);
 	} else {
 		e = gfs_pio_read(get_filep(fi), buf, size, &rv);
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READ,
+		gfarm2fs_check_error(GFARM_MSG_2000029, OP_READ,
 					"gfs_pio_read", path, e);
 	}
 
@@ -689,11 +690,11 @@ gfarm2fs_write(const char *path, const char *buf, size_t size,
 	(void) path;
 	e = gfs_pio_seek(get_filep(fi), offset, GFARM_SEEK_SET, &off);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_WRITE,
+		gfarm2fs_check_error(GFARM_MSG_2000030, OP_WRITE,
 					"gfs_pio_seek", path, e);
 	} else {
 		e = gfs_pio_write(get_filep(fi), buf, size, &rv);
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_WRITE,
+		gfarm2fs_check_error(GFARM_MSG_2000031, OP_WRITE,
 					"gfs_pio_write", path, e);
 	}
 
@@ -711,7 +712,7 @@ gfarm2fs_statfs(const char *path, struct statvfs *stbuf)
 
 	e = gfs_statfs(&used, &avail, &files);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_STATFS,
+		gfarm2fs_check_error(GFARM_MSG_2000032, OP_STATFS,
 					"gfs_statfs", path, e);
 		return (-gfarm_error_to_errno(e));
 	} else {
@@ -737,7 +738,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 
 	(void) path;
 	e = gfs_pio_close(get_filep(fi));
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RELEASE,
+	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
 				"gfs_pio_close", path, e);
 	gfarm2fs_replicate(path, fi);
 
@@ -752,11 +753,11 @@ gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 	(void) path;
 	if (isdatasync) {
 		e = gfs_pio_datasync(get_filep(fi));
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FSYNC,
+		gfarm2fs_check_error(GFARM_MSG_2000034, OP_FSYNC,
 					"gfs_pio_datasync", path, e);
 	} else {
 		e = gfs_pio_sync(get_filep(fi));
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FSYNC,
+		gfarm2fs_check_error(GFARM_MSG_2000035, OP_FSYNC,
 					"gfs_pio_sync", path, e);
 	}
 	return (-gfarm_error_to_errno(e));
@@ -770,7 +771,7 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 	gfarm_error_t e;
 
 	e = gfs_setxattr(path, name, value, size, flags);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_SETXATTR,
+	gfarm2fs_check_error(GFARM_MSG_2000036, OP_SETXATTR,
 				"gfs_setxattr", path, e);
 	return (-gfarm_error_to_errno(e));
 }
@@ -796,7 +797,7 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 		return (-ENODATA);
 	}
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETXATTR,
+		gfarm2fs_check_error(GFARM_MSG_2000037, OP_GETXATTR,
 				     "gfs_getxattr", path, e);
 		return (-gfarm_error_to_errno(e));
 	} else
@@ -811,7 +812,7 @@ gfarm2fs_listxattr(const char *path, char *list, size_t size)
 
 	e = gfs_listxattr(path, list, &s);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_LISTXATTR,
+		gfarm2fs_check_error(GFARM_MSG_2000038, OP_LISTXATTR,
 					"gfs_listxattr", path, e);
 		return (-gfarm_error_to_errno(e));
 	} else
@@ -824,7 +825,7 @@ gfarm2fs_removexattr(const char *path, const char *name)
 	gfarm_error_t e;
 
 	e = gfs_removexattr(path, name);
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_REMOVEXATTR,
+	gfarm2fs_check_error(GFARM_MSG_2000039, OP_REMOVEXATTR,
 				"gfs_removexattr", path, e);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT)
 		return (-ENODATA);
@@ -882,7 +883,7 @@ uncache_parent(const char *path)
 	char *p = strdup(path), *b;
 
 	if (p == NULL) {
-		gflog_error(GFARM_MSG_UNFIXED, \
+		gflog_error(GFARM_MSG_2000040, \
 			    "strdup(%s): Cannot uncached parent dir " \
 			    "because not enough memory", \
 			    path);
