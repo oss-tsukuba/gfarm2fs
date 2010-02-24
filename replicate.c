@@ -17,6 +17,7 @@
 #include <libgen.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 /*
  * fuse.h requres that _FILE_OFFSET_BITS is defined in any case, but
