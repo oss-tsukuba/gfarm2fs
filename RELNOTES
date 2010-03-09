@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.0
 ===============================
 
-[2010.2.15]
+[2010.3.9]
 
 New Feature
 * automatic file replication by -o ncopy=NCOPY option and extended
