@@ -46,11 +46,21 @@ static int replicate_enabled;
 
 #define XATTR_NCOPY	"gfarm.ncopy"
 
+/*
+ * #define UNSAFE_DEBUG
+ *
+ * Since gflog_info() is not async-signal-safe,
+ * UNSAFE_DEBUG shouldn't be defined.
+ */
+
 static void
 sigchld_handler(int sig)
 {
-	int pid, status, no;
+	int pid, status;
+#ifdef UNSAFE_DEBUG
+	int no;
 	char *msg;
+#endif
 
 	for (;;) {
 		pid = waitpid(-1, &status, WNOHANG);
@@ -58,6 +68,7 @@ sigchld_handler(int sig)
 			break;
 		--replicate_concurrency;
 
+#ifdef UNSAFE_DEBUG
 		if (WIFEXITED(status)) {
 			msg = "exit";
 			no = WEXITSTATUS(status);
@@ -70,6 +81,7 @@ sigchld_handler(int sig)
 		}
 		gflog_info(GFARM_MSG_2000041, "replicate [%d]: %s %d",
 		    pid, msg, no);
+#endif
 	}
 }
 
