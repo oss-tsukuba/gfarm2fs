@@ -164,6 +164,7 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 {
 	char str_ncopy[GFARM_INT32STRLEN];
 	int ncopy;
+	int wait = 0, max_wait = 10;
 
 	if (!replicate_enabled)
 		return;
@@ -182,15 +183,20 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		return;
 
 	/* if enough number of replication processes are in process, wait */
-	while (replicate_concurrency >= replicate_max_concurrency)
+	while (replicate_concurrency >= replicate_max_concurrency &&
+	    wait++ < max_wait)
 		sleep(1);
+	if (wait >= max_wait) {
+		gflog_error(GFARM_MSG_UNFIXED, "%s: too busy to replicate",
+		    path);
+		return;
+	}
 
 	snprintf(str_ncopy, sizeof(str_ncopy), "%d", ncopy);
 	switch (fork()) {
 	case 0:
 		gflog_info(GFARM_MSG_2000042,
-		    "replicate [%d]: path %s ncopy %s", getpid(),
-		    path, str_ncopy);
+		    "replicate [%d]: %s ncopy %s", getpid(), path, str_ncopy);
 		execlp(rep, rep, "-q", "-N", str_ncopy, path, NULL);
 		gflog_error_errno(GFARM_MSG_2000043, "failed to exec %s", rep);
 		_exit(1);
