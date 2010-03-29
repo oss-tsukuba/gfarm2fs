@@ -481,31 +481,39 @@ gfarm2fs_chmod(const char *path, mode_t mode)
 	return (-gfarm_error_to_errno(e));
 }
 
+/* returned string should be free'ed if it is not NULL */
 static char *
 get_user(uid_t uid)
 {
 	struct passwd *pwd;
+	char *guser;
 
 	if (uid == getuid())
-		return gfarm_get_global_username();
+		return strdup(gfarm_get_global_username());
 
-	/* assumes that the same username exists on the gfarm filesystem */
-	if ((pwd = getpwuid(uid)) != NULL)
-		return pwd->pw_name;
+	/* use the user map file to identify the global user */
+	if ((pwd = getpwuid(uid)) != NULL &&
+	    gfarm_local_to_global_username(pwd->pw_name, &guser)
+	    == GFARM_ERR_NO_ERROR)
+		return (guser);
 
-	return NULL;
+	return (NULL);
 }
 
+/* returned string should be free'ed if it is not NULL */
 static char *
-get_group(uid_t gid)
+get_group(gid_t gid)
 {
 	struct group *grp;
+	char *ggroup;
 
-	/* assumes that the same groupname exists on the gfarm filesystem */
-	if ((grp = getgrgid(gid)) != NULL)
-		return grp->gr_name;
+	/* use the group map file to identify the global group */
+	if ((grp = getgrgid(gid)) != NULL &&
+	    gfarm_local_to_global_groupname(grp->gr_name, &ggroup)
+	    == GFARM_ERR_NO_ERROR)
+		return (ggroup);
 
-	return NULL;
+	return (NULL);
 }
 
 static int
@@ -517,16 +525,22 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	if (uid == -1)
 		user = NULL;
 	else if ((user = get_user(uid)) == NULL)
-		return EINVAL;
+		return (-EPERM);
 
 	if (gid == -1)
 		group = NULL;
-	else if ((group = get_group(gid)) == NULL)
-		return EINVAL;
-
+	else if ((group = get_group(gid)) == NULL) {
+		if (user != NULL)
+			free(user);
+		return (-EPERM);
+	}
 	e = gfs_chown(path, user, group);
 	gfarm2fs_check_error(GFARM_MSG_2000020, OP_CHOWN,
 				"gfs_chown", path, e);
+	if (user != NULL)
+		free(user);
+	if (group != NULL)
+		free(group);
 	return (-gfarm_error_to_errno(e));
 }
 
