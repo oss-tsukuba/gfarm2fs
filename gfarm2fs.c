@@ -140,7 +140,7 @@ get_uid(char *user)
 	char *luser;
 
 	if (strcmp(gfarm_get_global_username(), user) == 0)
-		return getuid(); /* my own file */
+		return (getuid()); /* my own file */
 
 	/*
 	 * XXX - this interface will be changed soon to support
@@ -151,7 +151,7 @@ get_uid(char *user)
 		pwd = getpwnam(luser);
 		free(luser);
 		if (pwd != NULL)
-			return pwd->pw_uid;
+			return (pwd->pw_uid);
 	}
 	/* cannot conver to a local account */
 	return (0);
@@ -172,7 +172,7 @@ get_gid(char *group)
 		grp = getgrnam(lgroup);
 		free(lgroup);
 		if (grp != NULL)
-			return grp->gr_gid;
+			return (grp->gr_gid);
 	}
 	/* cannot conver to a local group */
 	return (0);
@@ -489,7 +489,7 @@ get_user(uid_t uid)
 	char *guser;
 
 	if (uid == getuid())
-		return strdup(gfarm_get_global_username());
+		return (strdup(gfarm_get_global_username()));
 
 	/* use the user map file to identify the global user */
 	if ((pwd = getpwuid(uid)) != NULL &&
@@ -589,9 +589,9 @@ gfarm2fs_utime(const char *path, struct utimbuf *buf)
 
 	if (buf != NULL) {
 		gt[0].tv_sec = buf->actime;
-		gt[0].tv_nsec= 0;
+		gt[0].tv_nsec = 0;
 		gt[1].tv_sec = buf->modtime;
-		gt[1].tv_nsec= 0;
+		gt[1].tv_nsec = 0;
 	}
 	e = gfs_utimes(path, gt);
 	gfarm2fs_check_error(GFARM_MSG_2000025, OP_UTIME,
@@ -605,9 +605,15 @@ gfs_hook_open_flags_gfarmize(int open_flags)
 	int gfs_flags;
 
 	switch (open_flags & O_ACCMODE) {
-	case O_RDONLY:	gfs_flags = GFARM_FILE_RDONLY; break;
-	case O_WRONLY:	gfs_flags = GFARM_FILE_WRONLY; break;
-	case O_RDWR:	gfs_flags = GFARM_FILE_RDWR; break;
+	case O_RDONLY:
+		gfs_flags = GFARM_FILE_RDONLY;
+		break;
+	case O_WRONLY:
+		gfs_flags = GFARM_FILE_WRONLY;
+		break;
+	case O_RDWR:
+		gfs_flags = GFARM_FILE_RDWR;
+		break;
 	default: return (-1);
 	}
 
@@ -802,11 +808,13 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
 		 * but it's not defined in header files.
 		 * We return -ENODATA because "strace ls -l /" is below.
-		 *		open("/", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 3
-		 *		....
-		 *		getxattr("/etc", "system.posix_acl_access"..., 0x0, 0) = -1 ENODATA (No data available)
-		 *		getxattr("/etc", "system.posix_acl_default"..., 0x0, 0) = -1 ENODATA (No data available)
-		 *  	...
+		 *   open("/", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 3
+		 *   ....
+		 *   getxattr("/etc", "system.posix_acl_access"..., 0x0, 0)
+		 *     = -1 ENODATA (No data available)
+		 *   getxattr("/etc", "system.posix_acl_default"..., 0x0, 0)
+		 *     = -1 ENODATA (No data available)
+		 *   ...
 		 */
 		return (-ENODATA);
 	}
@@ -883,7 +891,7 @@ static struct fuse_operations gfarm2fs_oper = {
     .setxattr	= gfarm2fs_setxattr,
     .getxattr	= gfarm2fs_getxattr,
     .listxattr	= gfarm2fs_listxattr,
-    .removexattr= gfarm2fs_removexattr,
+    .removexattr = gfarm2fs_removexattr,
 #endif
 };
 
@@ -1142,7 +1150,7 @@ static struct fuse_operations gfarm2fs_cached_oper = {
     .setxattr	= gfarm2fs_setxattr_cached,
     .getxattr	= gfarm2fs_getxattr,
     .listxattr	= gfarm2fs_listxattr,
-    .removexattr= gfarm2fs_removexattr_cached,
+    .removexattr = gfarm2fs_removexattr_cached,
 #endif
 };
 
@@ -1231,9 +1239,9 @@ static int
 gfarm2fs_fuse_main(struct fuse_args *args, struct fuse_operations *fo)
 {
 #if FUSE_VERSION >= 26
-	return fuse_main(args->argc, args->argv, fo, NULL);
+	return (fuse_main(args->argc, args->argv, fo, NULL));
 #else
-	return fuse_main(args->argc, args->argv, fo);
+	return (fuse_main(args->argc, args->argv, fo));
 #endif
 }
 
