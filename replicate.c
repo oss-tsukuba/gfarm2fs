@@ -187,7 +187,7 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	    wait++ < max_wait)
 		sleep(1);
 	if (wait >= max_wait) {
-		gflog_error(GFARM_MSG_UNFIXED, "%s: too busy to replicate",
+		gflog_error(GFARM_MSG_2000045, "%s: too busy to replicate",
 		    path);
 		return;
 	}
