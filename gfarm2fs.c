@@ -280,6 +280,7 @@ gfarm2fs_readlink(const char *path, char *buf, size_t size)
 		len = size - 1;
 	memcpy(buf, src, len);
 	buf[len] = '\0';
+	free(src);
 	return (0);
 }
 
