@@ -41,6 +41,7 @@
 #include <gfarm/gfarm.h>
 #include <gfarm2fs.h>
 #include <replicate.h>
+#include <open_file.h>
 #include "gfarm2fs_msg_enums.h"
 
 /* for old interface */
@@ -207,6 +208,7 @@ static int
 gfarm2fs_getattr(const char *path, struct stat *stbuf)
 {
 	struct gfs_stat st;
+	GFS_File gf;
 	gfarm_error_t e;
 
 	e = gfs_lstat_cached(path, &st);
@@ -215,7 +217,15 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 					"gfs_lstat_cached", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-
+	if ((gf = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
+		gfs_stat_free(&st);
+		e = gfs_pio_stat(gf, &st);
+		if (e != GFARM_ERR_NO_ERROR) {
+			gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETATTR,
+				"gfs_pio_stat", path, e);
+			return (-gfarm_error_to_errno(e));
+		}
+	}
 	copy_gfs_stat(stbuf, &st);
 	gfs_stat_free(&st);
 	return (0);
@@ -653,6 +663,7 @@ gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 
 	fi->fh = (unsigned long) gf;
+	gfarm2fs_open_file_enter(gf);
 	return (0);
 }
 
@@ -672,6 +683,7 @@ gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 	}
 
 	fi->fh = (unsigned long) gf;
+	gfarm2fs_open_file_enter(gf);
 	return (0);
 }
 
@@ -758,6 +770,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	gfarm_error_t e;
 
 	(void) path;
+	gfarm2fs_open_file_remove(get_filep(fi));
 	e = gfs_pio_close(get_filep(fi));
 	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
 				"gfs_pio_close", path, e);
@@ -1372,6 +1385,7 @@ main(int argc, char *argv[])
 	/* end of setting params */
 
 	gfarm2fs_replicate_init(&params);
+	gfarm2fs_open_file_init();
 
 	setup_dumper();
 
