@@ -92,12 +92,13 @@ gfarm2fs_open_file_enter(GFS_File gf)
 	if (entry == NULL) {
 		gflog_debug(GFARM_MSG_UNFIXED,
 		    "inode %lld cannot be inserted to the open file table",
-		    ino);
+		    (unsigned long long)ino);
 		return;
 	}
 	if (!created) {
 		gflog_debug(GFARM_MSG_UNFIXED,
-		    "inode %lld already exists in the open file table", ino);
+		    "inode %lld already exists in the open file table",
+		    (unsigned long long)ino);
 		return;
 	}
 	*(GFS_File *)gfarm_hash_entry_data(entry) = gf;
