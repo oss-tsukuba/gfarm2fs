@@ -663,7 +663,7 @@ gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 
 	fi->fh = (unsigned long) gf;
-	gfarm2fs_open_file_enter(gf);
+	gfarm2fs_open_file_enter(gf, fi->flags|O_CREAT);
 	return (0);
 }
 
@@ -683,7 +683,7 @@ gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 	}
 
 	fi->fh = (unsigned long) gf;
-	gfarm2fs_open_file_enter(gf);
+	gfarm2fs_open_file_enter(gf, fi->flags);
 	return (0);
 }
 

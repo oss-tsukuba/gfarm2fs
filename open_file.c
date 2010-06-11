@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <gfarm/gfarm.h>
 
 /* hash.h in libgfarm */
@@ -21,6 +22,17 @@ int gfarm_hash_purge(struct gfarm_hash_table *,
 void *gfarm_hash_entry_data(struct gfarm_hash_entry *);
 
 #include "gfarm2fs.h"
+
+struct opening {
+	struct opening *next;
+	GFS_File gf;
+	int writing;
+};
+
+struct inode_openings {
+	struct opening *openings;
+	GFS_File gf_cached;
+};
 
 static struct gfarm_hash_table *open_file_table;
 #define OPEN_FILE_TABLE_SIZE	256
@@ -54,10 +66,23 @@ GFS_File
 gfarm2fs_open_file_lookup(gfarm_ino_t ino)
 {
 	struct gfarm_hash_entry *entry;
+	struct inode_openings *ios;
+	struct opening *o;
 
-	entry = gfarm_hash_lookup(open_file_table, &ino, sizeof(gfarm_ino_t));
-	return (entry == NULL ? NULL :
-	    *(GFS_File *)gfarm_hash_entry_data(entry));
+	entry = gfarm_hash_lookup(open_file_table, &ino, sizeof(ino));
+	if (entry == NULL)
+		return (NULL);
+	ios = gfarm_hash_entry_data(entry);
+	if (ios->gf_cached != NULL)
+		return (ios->gf_cached);
+	for (o = ios->openings; o != NULL; o = o->next) {
+		if (o->writing) {
+			ios->gf_cached = o->gf;
+			return (ios->gf_cached);
+		}
+	}
+	ios->gf_cached = ios->openings->gf;
+	return (ios->gf_cached);
 }
 
 static int
@@ -76,10 +101,12 @@ get_ino(GFS_File gf, gfarm_ino_t *ino)
 }
 
 void
-gfarm2fs_open_file_enter(GFS_File gf)
+gfarm2fs_open_file_enter(GFS_File gf, int flags)
 {
 	gfarm_ino_t ino;
 	struct gfarm_hash_entry *entry;
+	struct inode_openings *ios;
+	struct opening *o;
 	int created;
 
 	if (get_ino(gf, &ino) != 0) {
@@ -87,33 +114,72 @@ gfarm2fs_open_file_enter(GFS_File gf)
 		    "file %p does not exist in the open file table", gf);
 		return;
 	}
-	entry = gfarm_hash_enter(open_file_table, &ino, sizeof(gfarm_ino_t),
-	    sizeof(GFS_File), &created);
+	o = malloc(sizeof(*o));
+	if (o == NULL) {
+		gflog_error(GFARM_MSG_UNFIXED,
+		    "no memory to cache an opening for inode %lld",
+		    (unsigned long long)ino);
+		return;
+	}
+	entry = gfarm_hash_enter(open_file_table, &ino, sizeof(ino),
+	    sizeof(*ios), &created);
 	if (entry == NULL) {
-		gflog_debug(GFARM_MSG_UNFIXED,
-		    "inode %lld cannot be inserted to the open file table",
+		gflog_error(GFARM_MSG_UNFIXED,
+		    "no memory to insert inode %lld to the open file table",
 		    (unsigned long long)ino);
 		return;
 	}
+	o->gf = gf;
+	o->writing =
+	    ((flags & O_TRUNC) != 0 || (flags & O_ACCMODE) != O_RDONLY);
+
+	ios = gfarm_hash_entry_data(entry);
 	if (!created) {
-		gflog_debug(GFARM_MSG_UNFIXED,
-		    "inode %lld already exists in the open file table",
-		    (unsigned long long)ino);
-		return;
+		o->next = ios->openings;
+	} else {
+		o->next = NULL;
+		ios->gf_cached = NULL;
 	}
-	*(GFS_File *)gfarm_hash_entry_data(entry) = gf;
+	ios->openings = o;
+	if (o->writing)
+		ios->gf_cached = gf;
 }
 
 void
 gfarm2fs_open_file_remove(GFS_File gf)
 {
 	gfarm_ino_t ino;
+	struct gfarm_hash_entry *entry;
+	struct inode_openings *ios;
+	struct opening *o, **prev;
 
 	if (get_ino(gf, &ino) != 0) {
 		gflog_debug(GFARM_MSG_UNFIXED,
 		    "file %p does not exist in the open file table", gf);
 		return;
 	}
-	(void)gfarm_hash_purge(open_file_table, &ino, sizeof(gfarm_ino_t));
+	entry = gfarm_hash_lookup(open_file_table, &ino, sizeof(ino));
+	if (entry == NULL) {
+		gflog_info(GFARM_MSG_UNFIXED,
+		    "inode %lld is not found in the open file table",
+		    (unsigned long long)ino);
+		return;
+	}
+	ios = gfarm_hash_entry_data(entry);
+	for (prev = &ios->openings; (o = *prev) != NULL; prev = &o->next) {
+		if (o->gf == gf)
+			break;
+	}
+	if (o == NULL) {
+		gflog_info(GFARM_MSG_UNFIXED,
+		    "a GFS_File is not found in the inode %lld openings",
+		    (unsigned long long)ino);
+	} else {
+		*prev = o->next;
+		free(o);
+	}
+	if (ios->gf_cached == gf)
+		ios->gf_cached = NULL;
+	if (ios->openings == NULL)
+		(void)gfarm_hash_purge(open_file_table, &ino, sizeof(ino));
 }
-
