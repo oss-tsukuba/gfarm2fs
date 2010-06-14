@@ -467,6 +467,8 @@ gfarm2fs_rename(const char *from, const char *to)
 	e = gfs_rename(from, to);
 	gfarm2fs_check_error(GFARM_MSG_2000017, OP_RENAME,
 				"gfs_rename", from, e);
+	/* try to replicate the destination file just in case */
+	gfarm2fs_replicate(to, NULL);
 	return (-gfarm_error_to_errno(e));
 }
 
