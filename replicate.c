@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <sys/time.h>
 
 /*
  * fuse.h requres that _FILE_OFFSET_BITS is defined in any case, but
@@ -38,7 +39,10 @@
 #include <gfarm2fs.h>
 #include "gfarm2fs_msg_enums.h"
 
-static char *rep = "gfrep";
+#ifndef HAVE_GFS_REPLICATE_FILE_TO
+#define gfs_replicate_file_to gfs_replicate_to
+#endif
+
 static int replicate_ncopy;
 static int replicate_max_concurrency;
 volatile sig_atomic_t replicate_concurrency = 0;
@@ -85,15 +89,48 @@ sigchld_handler(int sig)
 	}
 }
 
+static int available_nhosts;
+static struct gfarm_host_sched_info *available_hosts;
+static struct timeval available_host_cache_time;
+static const char *schedule_path = GFARM_PATH_ROOT;
+
+static int
+is_expired(int expiration)
+{
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+	return (now.tv_sec > available_host_cache_time.tv_sec + expiration);
+}
+
+static gfarm_error_t
+update_schedule_info(const char *domain)
+{
+	gfarm_error_t e;
+
+	if (available_hosts != NULL)
+		gfarm_host_sched_info_free(available_nhosts, available_hosts);
+	available_hosts = NULL;
+	e = gfarm_schedule_hosts_domain_all(schedule_path, domain,
+	    &available_nhosts, &available_hosts);
+	gettimeofday(&available_host_cache_time, NULL);
+	return (e);
+}
+
 void
 gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 {
 	struct sigaction sa;
+	char *domain = "";
+	gfarm_error_t e;
 
 	if (param->ncopy <= 0 || param->copy_limit <= 0)
 		return;
 
-	replicate_enabled = 1;
+	e = update_schedule_info(domain);
+	if (e != GFARM_ERR_NO_ERROR)
+		return;
+
 	replicate_ncopy = param->ncopy;
 	replicate_max_concurrency = param->copy_limit;
 
@@ -101,16 +138,19 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_NOCLDSTOP;
 	sigaction(SIGCHLD, &sa, NULL);
+
+	replicate_enabled = 1;
 }
 
 void
 gfarm2fs_replicate_final(void)
 {
-	/* Do nothing */
+	if (available_hosts != NULL)
+		gfarm_host_sched_info_free(available_nhosts, available_hosts);
 }
 
 static int
-gfarm2fs_replicate_ncopy(const char *path)
+get_required_ncopy(const char *path)
 {
 	int ncopy = replicate_ncopy;
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
@@ -144,7 +184,7 @@ gfarm2fs_replicate_ncopy(const char *path)
 }
 
 static int
-gfarm2fs_replicate_stat_ncopy(const char *path)
+stat_ncopy(const char *path)
 {
 	struct gfs_stat st;
 	gfarm_error_t e;
@@ -159,27 +199,77 @@ gfarm2fs_replicate_stat_ncopy(const char *path)
 	return (0);
 }
 
+static gfarm_error_t
+select_nhosts(int *nhosts, char ***hostsp, int **portsp)
+{
+	char **hosts, *domain = "";
+	int *ports, expiration = 60; /* 60 sec */
+	gfarm_error_t e;
+
+	if (is_expired(expiration)) {
+		e = update_schedule_info(domain);
+		if (e != GFARM_ERR_NO_ERROR)
+			return (e);
+	}
+	GFARM_MALLOC_ARRAY(hosts, *nhosts);
+	if (hosts == NULL)
+		return (GFARM_ERR_NO_MEMORY);
+	GFARM_MALLOC_ARRAY(ports, *nhosts);
+	if (ports == NULL) {
+		free(hosts);
+		return (GFARM_ERR_NO_MEMORY);
+	}
+	e = gfarm_schedule_hosts_acyclic_to_write(schedule_path,
+	    available_nhosts, available_hosts, nhosts, hosts, ports);
+	if (e != GFARM_ERR_NO_ERROR) {
+		free(hosts);
+		free(ports);
+	} else {
+		*hostsp = hosts;
+		*portsp = ports;
+	}
+	return (e);
+}
+
+static gfarm_error_t
+replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
+{
+	int i, n = 0;
+	gfarm_error_t e = GFARM_ERR_NO_ERROR;
+
+	for (i = 0; i < ndsts || n < ncopy; ++i) {
+		e = gfs_replicate_file_to(path, dsts[i], ports[i]);
+		if (e == GFARM_ERR_NO_ERROR)
+			++n;
+		else if (e == GFARM_ERR_ALREADY_EXISTS)
+			/* skip */;
+		else
+			gflog_error(GFARM_MSG_UNFIXED,
+			    "%s: file replicataion to %s:%d fails: %s",
+			    path, dsts[i], ports[i], gfarm_error_string(e));
+	}
+	return (e);
+}
+
 void
 gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 {
-	char str_ncopy[GFARM_INT32STRLEN];
-	int ncopy;
+	int ncopy, cur_ncopy, n, pid, *ports;
 	int wait = 0, max_wait = 10;
+	char **dsts;
+	gfarm_error_t e;
 
 	if (!replicate_enabled)
 		return;
 
 	/* if necessary number of copies is less than 2, return */
-	ncopy = gfarm2fs_replicate_ncopy(path);
+	ncopy = get_required_ncopy(path);
 	if (ncopy < 2)
 		return;
 
-	/*
-	 * if it is opened in read only mode and it has enough number
-	 * of copies, return
-	 */
-	if (fi != NULL && (fi->flags & O_ACCMODE) == O_RDONLY &&
-	    ncopy <= gfarm2fs_replicate_stat_ncopy(path))
+	/* if it has enough number of copies, return */
+	cur_ncopy = stat_ncopy(path);
+	if (ncopy <= cur_ncopy)
 		return;
 
 	/* if enough number of replication processes are in process, wait */
@@ -192,21 +282,41 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		return;
 	}
 
-	snprintf(str_ncopy, sizeof(str_ncopy), "%d", ncopy);
-	switch (fork()) {
+	/* at most ncopy hosts required */
+	n = ncopy;
+	e = select_nhosts(&n, &dsts, &ports);
+	if (e != GFARM_ERR_NO_ERROR) {
+		gflog_error(GFARM_MSG_UNFIXED, "%s: failed to schedule hosts",
+		    path);
+		return;
+	}
+
+	/* create 'ncopy - cur_ncopy' copies */
+	switch ((pid = fork())) {
 	case 0:
-		gflog_info(GFARM_MSG_2000042,
-		    "replicate [%d]: %s ncopy %s", getpid(), path, str_ncopy);
-		execlp(rep, rep, "-q", "-N", str_ncopy, path, NULL);
-		gflog_error_errno(GFARM_MSG_2000043, "failed to exec %s", rep);
-		_exit(1);
+		e = gfarm_terminate();
+		if (e == GFARM_ERR_NO_ERROR)
+			e = gfarm_initialize(NULL, NULL);
+		if (e != GFARM_ERR_NO_ERROR) {
+			gflog_error(GFARM_MSG_UNFIXED,
+			    "%s: failed to initialize: %s",
+			    path, gfarm_error_string(e));
+			_exit(1);
+		}
+		e = replicate_file(path, ncopy - cur_ncopy, n, dsts, ports);
+		(void)gfarm_terminate();
+		_exit(e == GFARM_ERR_NO_ERROR ? 0 : 1);
 	case -1:
 		gflog_error_errno(GFARM_MSG_2000044, "fork");
 		break;
 	default:
+		gflog_info(GFARM_MSG_2000042,
+		    "replicate [%d]: %s ncopy %d", pid, path, ncopy);
 		++replicate_concurrency;
 		break;
 	}
+	free(dsts);
+	free(ports);
 }
 
 #endif /* HAVE_PRIVATE_SRCS */
