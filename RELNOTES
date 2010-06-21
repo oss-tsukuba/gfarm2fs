@@ -1,3 +1,16 @@
+Release note for Gfarm2fs 1.2.1
+===============================
+
+[2010.6.19]
+
+Updated feature
+* improve performance and scheduling of automatic file replication
+* stat() returns correct file size even when some process is editing
+  the file
+
+Bug fix
+* fix #106 - memory leak in gfarm2fs about symbolic link handling
+
 Release note for Gfarm2fs 1.2.0.1
 =================================
 
