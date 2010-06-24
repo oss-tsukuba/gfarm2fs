@@ -124,7 +124,7 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 	char *domain = "";
 	gfarm_error_t e;
 
-	if (param->ncopy <= 0 || param->copy_limit < 0)
+	if (param->ncopy < 2 || param->copy_limit < 0)
 		return;
 
 	e = update_schedule_info(domain);
@@ -251,7 +251,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 			break;
 		}
 	}
-	return (n == ncopy ? GFARM_ERR_NO_ERROR : e);
+	return (e);
 }
 
 void
