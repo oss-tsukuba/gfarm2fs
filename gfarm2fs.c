@@ -1250,9 +1250,9 @@ usage(const char *progname)
 "    -o loglevel=priority    syslog priority level (default: %s)\n"
 "    -E T                    cache timeout for gfs_stat (default: 1.0 sec.)\n"
 "    -o gfs_stat_timeout=T   same -E option\n"
-"    -o ncopy=N              number of copies (default: 0)\n"
+"    -o ncopy=N              number of copies (default: 1)\n"
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
-"                            (default: 10)\n"
+"                            (default: 0)\n"
 		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
 		GFARM2FS_SYSLOG_PRIORITY_DEFAULT);
@@ -1322,8 +1322,8 @@ main(int argc, char *argv[])
 		.use_syslog = 1,
 		.facility = NULL,
 		.loglevel = NULL,
-		.ncopy = 0,
-		.copy_limit = 10
+		.ncopy = 1,
+		.copy_limit = 0
 	};
 
 	umask(0);
