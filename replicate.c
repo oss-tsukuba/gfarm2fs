@@ -295,7 +295,7 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	}
 
 	/* create 'ncopy - cur_ncopy' copies */
-	if (replicate_max_concurrency == 1) {
+	if (replicate_max_concurrency == 0) {
 		gflog_info(GFARM_MSG_UNFIXED,
 		    "replicate: %s ncopy %d", path, ncopy);
 		e = replicate_file(path, ncopy - cur_ncopy, n, dsts, ports);
