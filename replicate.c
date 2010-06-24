@@ -237,7 +237,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 	int i, n = 0;
 	gfarm_error_t e = GFARM_ERR_NO_ERROR;
 
-	for (i = 0; i < ndsts || n < ncopy; ++i) {
+	for (i = 0; i < ndsts && n < ncopy; ++i) {
 		e = gfs_replicate_file_to(path, dsts[i], ports[i]);
 		if (e == GFARM_ERR_NO_ERROR)
 			++n;
