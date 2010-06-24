@@ -124,7 +124,7 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 	char *domain = "";
 	gfarm_error_t e;
 
-	if (param->ncopy <= 0 || param->copy_limit <= 0)
+	if (param->ncopy <= 0 || param->copy_limit < 0)
 		return;
 
 	e = update_schedule_info(domain);
@@ -241,14 +241,17 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 		e = gfs_replicate_file_to(path, dsts[i], ports[i]);
 		if (e == GFARM_ERR_NO_ERROR)
 			++n;
-		else if (e == GFARM_ERR_ALREADY_EXISTS)
+		else if (e == GFARM_ERR_ALREADY_EXISTS ||
+			 e == GFARM_ERR_OPERATION_NOW_IN_PROGRESS)
 			/* skip */;
-		else
+		else {
 			gflog_error(GFARM_MSG_UNFIXED,
 			    "%s: file replicataion to %s:%d fails: %s",
 			    path, dsts[i], ports[i], gfarm_error_string(e));
+			break;
+		}
 	}
-	return (e);
+	return (n == ncopy ? GFARM_ERR_NO_ERROR : e);
 }
 
 void
@@ -292,6 +295,17 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	}
 
 	/* create 'ncopy - cur_ncopy' copies */
+	if (replicate_max_concurrency == 1) {
+		gflog_info(GFARM_MSG_UNFIXED,
+		    "replicate: %s ncopy %d", path, ncopy);
+		e = replicate_file(path, ncopy - cur_ncopy, n, dsts, ports);
+		if (e != GFARM_ERR_NO_ERROR)
+			gflog_warning(GFARM_MSG_UNFIXED,
+			    "replicate: %s", gfarm_error_string(e));
+		free(dsts);
+		free(ports);
+		return;
+	}
 	switch ((pid = fork())) {
 	case 0:
 		e = gfarm_terminate();
