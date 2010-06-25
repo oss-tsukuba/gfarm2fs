@@ -1252,7 +1252,11 @@ usage(const char *progname)
 "    -o gfs_stat_timeout=T   same -E option\n"
 "    -o ncopy=N              number of copies (default: 1)\n"
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
+#ifdef HAVE_GFS_REPLICATE_FILE_TO
+"                            (default: 10)\n"
+#else /* version 2.3.X */
 "                            (default: 0)\n"
+#endif
 		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
 		GFARM2FS_SYSLOG_PRIORITY_DEFAULT);
@@ -1323,7 +1327,11 @@ main(int argc, char *argv[])
 		.facility = NULL,
 		.loglevel = NULL,
 		.ncopy = 1,
+#ifdef HAVE_GFS_REPLICATE_FILE_TO
+		.copy_limit = 10
+#else /* version 2.3.X */
 		.copy_limit = 0
+#endif
 	};
 
 	umask(0);
