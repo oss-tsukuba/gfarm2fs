@@ -239,10 +239,10 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 
 	for (i = 0; i < ndsts && n < ncopy; ++i) {
 		e = gfs_replicate_file_to(path, dsts[i], ports[i]);
-		if (e == GFARM_ERR_NO_ERROR)
+		if (e == GFARM_ERR_NO_ERROR ||
+		    e == GFARM_ERR_OPERATION_NOW_IN_PROGRESS)
 			++n;
-		else if (e == GFARM_ERR_ALREADY_EXISTS ||
-			 e == GFARM_ERR_OPERATION_NOW_IN_PROGRESS)
+		else if (e == GFARM_ERR_ALREADY_EXISTS)
 			/* skip */;
 		else {
 			gflog_error(GFARM_MSG_UNFIXED,
@@ -251,7 +251,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 			break;
 		}
 	}
-	return (e);
+	return (n == ncopy ? GFARM_ERR_NO_ERROR : e);
 }
 
 void
