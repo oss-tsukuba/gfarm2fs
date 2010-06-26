@@ -246,7 +246,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 			/* skip */;
 		else {
 			gflog_error(GFARM_MSG_UNFIXED,
-			    "%s: file replicataion to %s:%d fails: %s",
+			    "%s: replicataion to %s:%d fails: %s",
 			    path, dsts[i], ports[i], gfarm_error_string(e));
 			break;
 		}
@@ -276,7 +276,8 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		return;
 
 	/* if enough number of replication processes are in process, wait */
-	while (replicate_concurrency >= replicate_max_concurrency &&
+	while (replicate_max_concurrency > 0 &&
+	    replicate_concurrency >= replicate_max_concurrency &&
 	    wait++ < max_wait)
 		sleep(1);
 	if (wait >= max_wait) {
@@ -297,11 +298,8 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	/* create 'ncopy - cur_ncopy' copies */
 	if (replicate_max_concurrency == 0) {
 		gflog_info(GFARM_MSG_UNFIXED,
-		    "replicate: %s ncopy %d", path, ncopy);
+		    "replicate: %s ncopy %d (required %d)", path, n, ncopy);
 		e = replicate_file(path, ncopy - cur_ncopy, n, dsts, ports);
-		if (e != GFARM_ERR_NO_ERROR)
-			gflog_warning(GFARM_MSG_UNFIXED,
-			    "replicate: %s", gfarm_error_string(e));
 		free(dsts);
 		free(ports);
 		return;
@@ -325,7 +323,8 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		break;
 	default:
 		gflog_info(GFARM_MSG_2000042,
-		    "replicate [%d]: %s ncopy %d", pid, path, ncopy);
+		    "replicate [%d]: %s ncopy %d (required %d)",
+		    pid, path, n, ncopy);
 		++replicate_concurrency;
 		break;
 	}
