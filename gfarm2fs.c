@@ -462,20 +462,11 @@ gfarm2fs_symlink(const char *from, const char *to)
 static int
 gfarm2fs_rename(const char *from, const char *to)
 {
-	struct gfs_stat st;
 	gfarm_error_t e;
 
 	e = gfs_rename(from, to);
 	gfarm2fs_check_error(GFARM_MSG_2000017, OP_RENAME,
 				"gfs_rename", from, e);
-	/* try to replicate the destination file just in case */
-	if (e == GFARM_ERR_NO_ERROR) {
-		if (gfs_lstat_cached(to, &st) == GFARM_ERR_NO_ERROR) {
-			if (GFARM_S_ISREG(st.st_mode))
-				gfarm2fs_replicate(to, NULL);
-			gfs_stat_free(&st);
-		}
-	}
 	return (-gfarm_error_to_errno(e));
 }
 
@@ -583,7 +574,6 @@ gfarm2fs_truncate(const char *path, off_t size)
 	e2 = gfs_pio_close(gf);
 	gfarm2fs_check_error(GFARM_MSG_2000023, OP_TRUNCATE,
 				"gfs_pio_close", path, e2);
-	gfarm2fs_replicate(path, NULL);
 
 	return (-gfarm_error_to_errno(e != GFARM_ERR_NO_ERROR ? e : e2));
 }
@@ -783,8 +773,6 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	e = gfs_pio_close(get_filep(fi));
 	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
 				"gfs_pio_close", path, e);
-	gfarm2fs_replicate(path, fi);
-
 	return (0);
 }
 
@@ -1001,12 +989,20 @@ static int
 gfarm2fs_rename_cached(const char *from, const char *to)
 {
 	int rv = gfarm2fs_rename(from, to);
+	struct gfs_stat st;
 
 	if (rv == 0) {
 		gfs_stat_cache_purge(from);
 		uncache_parent(from);
 		gfs_stat_cache_purge(to);
 		uncache_parent(to);
+
+		/* try to replicate the destination file just in case */
+		if (gfs_lstat_cached(to, &st) == GFARM_ERR_NO_ERROR) {
+			if (GFARM_S_ISREG(st.st_mode))
+				gfarm2fs_replicate(to, NULL);
+			gfs_stat_free(&st);
+		}
 	}
 	return (rv);
 }
@@ -1048,6 +1044,7 @@ gfarm2fs_truncate_cached(const char *path, off_t size)
 
 	if (rv == 0)
 		gfs_stat_cache_purge(path);
+	gfarm2fs_replicate(path, NULL);
 	return (rv);
 }
 
@@ -1111,6 +1108,7 @@ gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
 	if (rv == 0 && ((fi->flags & O_ACCMODE) == O_WRONLY ||
 			(fi->flags & O_ACCMODE) == O_RDWR))
 		gfs_stat_cache_purge(path);
+	gfarm2fs_replicate(path, fi);
 	return (rv);
 }
 
