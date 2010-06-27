@@ -341,8 +341,7 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	}
 	gfarm2fs_check_error(GFARM_MSG_2000006, OP_READDIR,
 				"gfs_readdir", path, e);
-
-	return (0);
+	return (-gfarm_error_to_errno(e));
 }
 
 static int
@@ -355,7 +354,7 @@ gfarm2fs_releasedir(const char *path, struct fuse_file_info *fi)
 	e = gfs_closedir(dp);
 	gfarm2fs_check_error(GFARM_MSG_2000007, OP_RELEASEDIR,
 				"gfs_closedir", path, e);
-	return (0);
+	return (-gfarm_error_to_errno(e));
 }
 #else /* USE_GETDIR */
 
@@ -747,19 +746,18 @@ gfarm2fs_statfs(const char *path, struct statvfs *stbuf)
 		gfarm2fs_check_error(GFARM_MSG_2000032, OP_STATFS,
 					"gfs_statfs", path, e);
 		return (-gfarm_error_to_errno(e));
-	} else {
-		stbuf->f_bsize = 1024;	/* XXX */
-		stbuf->f_frsize = 1024;	/* XXX */
-		stbuf->f_blocks = used + avail;
-		stbuf->f_bfree = avail;
-		stbuf->f_bavail = avail;
-		stbuf->f_files = files;
-		stbuf->f_ffree = -1;	/* XXX */
-		stbuf->f_favail = -1;	/* XXX */
-		stbuf->f_fsid = 298;	/* XXX */
-		stbuf->f_flag = 0;	/* XXX */
-		stbuf->f_namemax = GFS_MAXNAMLEN;
 	}
+	stbuf->f_bsize = 1024;	/* XXX */
+	stbuf->f_frsize = 1024;	/* XXX */
+	stbuf->f_blocks = used + avail;
+	stbuf->f_bfree = avail;
+	stbuf->f_bavail = avail;
+	stbuf->f_files = files;
+	stbuf->f_ffree = -1;	/* XXX */
+	stbuf->f_favail = -1;	/* XXX */
+	stbuf->f_fsid = 298;	/* XXX */
+	stbuf->f_flag = 0;	/* XXX */
+	stbuf->f_namemax = GFS_MAXNAMLEN;
 	return (0);
 }
 
@@ -773,7 +771,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	e = gfs_pio_close(get_filep(fi));
 	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
 				"gfs_pio_close", path, e);
-	return (0);
+	return (-gfarm_error_to_errno(e));
 }
 
 static int
