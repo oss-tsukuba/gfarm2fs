@@ -221,7 +221,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 		gfs_stat_free(&st);
 		e = gfs_pio_stat(gf, &st);
 		if (e != GFARM_ERR_NO_ERROR) {
-			gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETATTR,
+			gfarm2fs_check_error(GFARM_MSG_2000046, OP_GETATTR,
 				"gfs_pio_stat", path, e);
 			return (-gfarm_error_to_errno(e));
 		}

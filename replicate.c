@@ -245,7 +245,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 		else if (e == GFARM_ERR_ALREADY_EXISTS)
 			/* skip */;
 		else {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000047,
 			    "%s: replicataion to %s:%d fails: %s",
 			    path, dsts[i], ports[i], gfarm_error_string(e));
 			break;
@@ -290,14 +290,14 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 	n = ncopy;
 	e = select_nhosts(&n, &dsts, &ports);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_error(GFARM_MSG_UNFIXED, "%s: failed to schedule hosts",
+		gflog_error(GFARM_MSG_2000048, "%s: failed to schedule hosts",
 		    path);
 		return;
 	}
 
 	/* create 'ncopy - cur_ncopy' copies */
 	if (replicate_max_concurrency == 0) {
-		gflog_info(GFARM_MSG_UNFIXED,
+		gflog_info(GFARM_MSG_2000049,
 		    "replicate: %s ncopy %d (required %d)", path, n, ncopy);
 		e = replicate_file(path, ncopy - cur_ncopy, n, dsts, ports);
 		free(dsts);
@@ -310,7 +310,7 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 		if (e == GFARM_ERR_NO_ERROR)
 			e = gfarm_initialize(NULL, NULL);
 		if (e != GFARM_ERR_NO_ERROR) {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000050,
 			    "%s: failed to initialize: %s",
 			    path, gfarm_error_string(e));
 			_exit(1);

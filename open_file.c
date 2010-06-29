@@ -72,7 +72,7 @@ gfarm2fs_open_file_init()
 	open_file_table = gfarm_hash_table_alloc(
 		OPEN_FILE_TABLE_SIZE, open_file_hash, open_file_hash_equal);
 	if (open_file_table == NULL)
-		gflog_fatal(GFARM_MSG_UNFIXED, "no memory");
+		gflog_fatal(GFARM_MSG_2000051, "no memory");
 }
 
 GFS_File
@@ -123,13 +123,13 @@ gfarm2fs_open_file_enter(GFS_File gf, int flags)
 	int created;
 
 	if (get_ino(gf, &ino) != 0) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000052,
 		    "file %p does not exist", gf);
 		return;
 	}
 	o = malloc(sizeof(*o));
 	if (o == NULL) {
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000053,
 		    "no memory to cache an opening for inode %lld",
 		    (unsigned long long)ino);
 		return;
@@ -137,7 +137,7 @@ gfarm2fs_open_file_enter(GFS_File gf, int flags)
 	entry = gfarm_hash_enter(open_file_table, &ino, sizeof(ino),
 	    sizeof(*ios), &created);
 	if (entry == NULL) {
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000054,
 		    "no memory to insert inode %lld to open file table",
 		    (unsigned long long)ino);
 		return;
@@ -209,7 +209,7 @@ gfarm2fs_open_file_remove(GFS_File gf)
 	if (get_ino(gf, &ino) != 0) {
 		if (get_ino_and_remove_opening_from_open_table(gf, &ino, &ios)
 		    != 0) {
-			gflog_warning(GFARM_MSG_UNFIXED,
+			gflog_warning(GFARM_MSG_2000055,
 			    "file %p does not exist in open file table", gf);
 			return;
 		}
@@ -217,14 +217,14 @@ gfarm2fs_open_file_remove(GFS_File gf)
 	} else {
 		entry = gfarm_hash_lookup(open_file_table, &ino, sizeof(ino));
 		if (entry == NULL) {
-			gflog_warning(GFARM_MSG_UNFIXED,
+			gflog_warning(GFARM_MSG_2000056,
 			    "inode %lld is not found in open file table",
 			    (unsigned long long)ino);
 			return;
 		}
 		ios = gfarm_hash_entry_data(entry);
 		if (open_file_remove_opening(ios, gf) != 0)
-			gflog_warning(GFARM_MSG_UNFIXED,
+			gflog_warning(GFARM_MSG_2000057,
 			    "file %p is not found in the inode %lld openings",
 			    gf, (unsigned long long)ino);
 	}
