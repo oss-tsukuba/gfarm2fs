@@ -39,8 +39,9 @@
 #include <gfarm2fs.h>
 #include "gfarm2fs_msg_enums.h"
 
-#ifndef HAVE_GFS_REPLICATE_FILE_TO
-#define gfs_replicate_file_to gfs_replicate_to
+#ifdef HAVE_GFS_REPLICATE_FILE_TO
+#define gfs_replicate_to(file, dsthost, dstport) \
+	gfs_replicate_file_to(file, dsthost, 0)
 #endif
 
 static int replicate_ncopy;
@@ -238,7 +239,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 	gfarm_error_t e = GFARM_ERR_NO_ERROR;
 
 	for (i = 0; i < ndsts && n < ncopy; ++i) {
-		e = gfs_replicate_file_to(path, dsts[i], ports[i]);
+		e = gfs_replicate_to(path, dsts[i], ports[i]);
 		if (e == GFARM_ERR_NO_ERROR ||
 		    e == GFARM_ERR_OPERATION_NOW_IN_PROGRESS)
 			++n;
