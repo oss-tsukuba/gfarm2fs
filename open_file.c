@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <gfarm/gfarm.h>
 
+#include "gfarm2fs_msg_enums.h"
+
 /* hash.h in libgfarm */
 struct gfarm_hash_table;
 struct gfarm_hash_table *gfarm_hash_table_alloc(int,
