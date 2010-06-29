@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.1
 ===============================
 
-[2010.6.19]
+[2010.6.29]
 
 Updated feature
 * improve performance and scheduling of automatic file replication
@@ -10,6 +10,7 @@ Updated feature
 
 Bug fix
 * fix #106 - memory leak in gfarm2fs about symbolic link handling
+* release() does not return error
 
 Release note for Gfarm2fs 1.2.0.1
 =================================
