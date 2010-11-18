@@ -20374,7 +20374,8 @@ fi
 # Checks for library functions.
 
 
-for ac_func in gfs_replicate_file_to gfarm_schedule_cache_dump
+
+for ac_func in gfs_replicate_file_to gfarm_schedule_cache_dump gfarm_xattr_caching
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
