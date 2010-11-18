@@ -9,3 +9,11 @@ struct gfarm2fs_param {
 	int ncopy;
 	int copy_limit;
 };
+
+struct gfarmized_path {
+	int alloced;
+	char *path;
+};
+
+gfarm_error_t gfarmize_path(const char *, struct gfarmized_path *);
+void free_gfarmized_path(struct gfarmized_path *);
