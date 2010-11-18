@@ -134,6 +134,11 @@ static char OP_LISTXATTR[] = "LISTXATTR";
 static char OP_REMOVEXATTR[] = "REMOVEXATTR";
 #endif /* HAVE_SYS_XATTR_H && ENABLE_XATTR */
 
+static const char ACL_ACCESS[] = "system.posix_acl_access";
+static const char ACL_DEFAULT[] = "system.posix_acl_default";
+
+static int gfarm2fs_fake_no_acl;
+
 static uid_t
 get_uid(char *user)
 {
@@ -811,6 +816,12 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 	gfarm_error_t e;
 	size_t s = size;
 
+	if (gfarm2fs_fake_no_acl &&
+	    (strcmp(name, ACL_ACCESS) == 0 ||
+	     strcmp(name, ACL_DEFAULT) == 0)) {
+		return (-ENODATA);
+	}
+
 	e = gfs_getxattr(path, name, value, &s);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		/*
@@ -1177,6 +1188,23 @@ static struct fuse_operations gfarm2fs_cached_oper = {
  *** main
  ***/
 
+#ifdef HAVE_GFARM_XATTR_CACHING
+/*
+ * We don't call gfarm_xattr_caching_pattern_add() here,
+ * because gfmd-side caching is also desired, but there is no way to
+ * add the gfmd-side caching remotely.
+ */
+int
+gfarm_acl_is_cached(void)
+{
+	return (
+	    gfarm_xattr_caching(ACL_ACCESS) &&
+	    gfarm_xattr_caching(ACL_DEFAULT));
+}
+#else
+#define gfarm_acl_is_cached()	0
+#endif
+
 #ifdef HAVE_GFARM_SCHEDULE_CACHE_DUMP
 void
 debug_handler(int signo)
@@ -1399,6 +1427,7 @@ main(int argc, char *argv[])
 
 	gfarm2fs_replicate_init(&params);
 	gfarm2fs_open_file_init();
+	gfarm2fs_fake_no_acl = !gfarm_acl_is_cached();
 
 	setup_dumper();
 
