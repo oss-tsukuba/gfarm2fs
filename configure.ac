@@ -52,7 +52,7 @@ AC_SUBST(private_srcs)
 
 ### --disable-xattr
 AC_ARG_ENABLE(xattr,
-  AS_HELP_STRING([--disable-xattr], [disable extended attribute [[default=yes]]]), [], [enable_xattr=yes])
+  AS_HELP_STRING([--disable-xattr], [disable extended attribute]), [], [enable_xattr=yes])
 if test "x$enable_xattr" != xno; then
   AC_DEFINE(ENABLE_XATTR, [1], [support extended attribute])
 fi
