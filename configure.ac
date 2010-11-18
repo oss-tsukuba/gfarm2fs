@@ -50,13 +50,12 @@ esac
 AC_SUBST(top_private_dir)
 AC_SUBST(private_srcs)
 
-### --enable-xattr
-### by default this is disabled since it slows down the response of 'ls -l'
+### --disable-xattr
 AC_ARG_ENABLE(xattr,
-  AS_HELP_STRING([--enable-xattr], [support extended attribute [[default=no]]]),
-  [if test "x$enable_xattr" != xno; then
-    AC_DEFINE(ENABLE_XATTR, [1], [support extended attribute])
-   fi], [])
+  AS_HELP_STRING([--disable-xattr], [disable extended attribute [[default=yes]]]), [], [enable_xattr=yes])
+if test "x$enable_xattr" != xno; then
+  AC_DEFINE(ENABLE_XATTR, [1], [support extended attribute])
+fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
