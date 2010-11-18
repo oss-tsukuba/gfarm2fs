@@ -74,6 +74,6 @@ AC_CHECK_LIB([fuse], [fuse_main],, [AC_MSG_ERROR([libfuse not found])])
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
-AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfarm_xattr_caching)
+AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump)
 
 AC_OUTPUT
