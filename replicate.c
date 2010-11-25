@@ -101,6 +101,16 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 	replicate_ncopy = param->ncopy;
 	replicate_max_concurrency = param->copy_limit;
 
+#if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR) && \
+	defined(HAVE_GFARM_XATTR_CACHING) && \
+	defined(HAVE_GFARM_XATTR_CACHING_PATTERN_ADD)
+
+	if (!gfarm_xattr_caching(XATTR_NCOPY)) {
+		gfarm_xattr_caching_pattern_add(XATTR_NCOPY);
+		gfs_stat_cache_clear();
+	}
+#endif
+
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_NOCLDSTOP;
