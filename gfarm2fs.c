@@ -1206,7 +1206,7 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_getxattr(gfarmized.path, name, value, &s);
+	e = gfs_getxattr_cached(gfarmized.path, name, value, &s);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		/*
 		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
@@ -1225,7 +1225,7 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000037, OP_GETXATTR,
-				     "gfs_getxattr", gfarmized.path, e);
+				     "gfs_getxattr_cached", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}

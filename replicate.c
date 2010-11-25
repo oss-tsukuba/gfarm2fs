@@ -131,7 +131,7 @@ get_required_ncopy(const char *path)
 
 	for (;;) {
 		size_ncopy = sizeof(s_ncopy);
-		e = gfs_getxattr(p, XATTR_NCOPY, s_ncopy, &size_ncopy);
+		e = gfs_getxattr_cached(p, XATTR_NCOPY, s_ncopy, &size_ncopy);
 		if (e == GFARM_ERR_NO_ERROR) {
 			s_ncopy[size_ncopy] = '\0';
 			nc = strtol(s_ncopy, &ep, 10);
