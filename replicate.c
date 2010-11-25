@@ -95,7 +95,7 @@ gfarm2fs_replicate_init(struct gfarm2fs_param *param)
 {
 	struct sigaction sa;
 
-	if (param->ncopy < 2 || param->copy_limit < 0)
+	if (param->ncopy < 1 || param->copy_limit < 0)
 		return;
 
 	replicate_ncopy = param->ncopy;

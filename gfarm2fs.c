@@ -1688,7 +1688,7 @@ usage(const char *progname)
 "    -o loglevel=priority    syslog priority level (default: %s)\n"
 "    -E T                    cache timeout for gfs_stat (default: 1.0 sec.)\n"
 "    -o gfs_stat_timeout=T   same -E option\n"
-"    -o ncopy=N              number of copies (default: 1)\n"
+"    -o ncopy=N              number of copies (default: 0 - disable replication)\n"
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
 #ifdef HAVE_GFS_REPLICATE_FILE_TO
 "                            (default: 10)\n"
@@ -1764,7 +1764,7 @@ main(int argc, char *argv[])
 		.use_syslog = 1,
 		.facility = NULL,
 		.loglevel = NULL,
-		.ncopy = 1,
+		.ncopy = 0,
 #ifdef HAVE_GFS_REPLICATE_FILE_TO
 		.copy_limit = 10
 #else /* version 2.3.X */
