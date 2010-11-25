@@ -1,3 +1,7 @@
+#ifndef HAVE_GFS_GETXATTR_CACHED
+#define	gfs_getxattr_cached	gfs_getxattr
+#endif
+
 struct gfarm2fs_param {
 	const char *mount_point;
 	int foreground;
