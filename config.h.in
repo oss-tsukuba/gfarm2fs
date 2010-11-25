@@ -15,6 +15,9 @@
 /* Define to 1 if you have the `gfarm_xattr_caching' function. */
 #undef HAVE_GFARM_XATTR_CACHING
 
+/* Define to 1 if you have the `gfarm_xattr_caching_pattern_add' function. */
+#undef HAVE_GFARM_XATTR_CACHING_PATTERN_ADD
+
 /* Define to 1 if you have the `gfs_getxattr_cached' function. */
 #undef HAVE_GFS_GETXATTR_CACHED
 
