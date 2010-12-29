@@ -1173,6 +1173,7 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 {
 	gfarm_error_t e;
 	struct gfarmized_path gfarmized;
+	int gflags;
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
@@ -1180,7 +1181,25 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_setxattr(gfarmized.path, name, value, size, flags);
+	switch (flags) {
+	case 0:
+		gflags = 0;
+		break;
+#ifdef GFS_XATTR_CREATE
+	case XATTR_CREATE:
+		gflags = GFS_XATTR_CREATE;
+		break;
+#endif
+#ifdef GFS_XATTR_REPLACE
+	case XATTR_REPLACE:
+		gflags = GFS_XATTR_REPLACE;
+		break;
+#endif
+	default:
+		gflags = flags; /* XXX FIXME */
+		break;
+	}
+	e = gfs_setxattr(gfarmized.path, name, value, size, gflags);
 	gfarm2fs_check_error(GFARM_MSG_2000036, OP_SETXATTR,
 			     "gfs_setxattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
