@@ -24,12 +24,6 @@ Options for the configure:
   Specifies a destination directory for installation.  The default is
   /usr/local directory.  This is optional.
 
-
-  --enable-xattr
-
-  Enables extended attribute.
-  This is optional.
-
 When you need to specify a compiler program explicitly, use the
 environment variable, CC.  This is an example using gcc.
 
