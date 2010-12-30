@@ -1,0 +1,32 @@
+==========================
+Gfarm2fs Installation Note
+==========================
+
+This distribution is fully tested on Linux.  To build the Gfarm2fs,
+the Gfarm version 2 is required to be installed.
+
+The following is the installation procedure for the Gfarm2fs.
+
+	% ./configure [options]
+	% make
+	% sudo make install
+
+Options for the configure:
+
+  --with-gfarm=directory
+
+  Specifies an installation directory for the Gfarm version 2.  When
+  this option is not specified, /usr is assumed.
+
+
+  --prefix=directory
+
+  Specifies a destination directory for installation.  The default is
+  /usr/local directory.  This is optional.
+
+When you need to specify a compiler program explicitly, use the
+environment variable, CC.  This is an example using gcc.
+
+	% env CC=gcc ./configure [options]
+
+$Id$

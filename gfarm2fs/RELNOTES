@@ -1,0 +1,129 @@
+Release note for Gfarm2fs 1.2.2
+===============================
+
+[2010.12.30]
+
+New Feature
+* support multiple metadata servers.  When a symlink targets to
+  another Gfarm file system via a Gfarm URL
+  (gfarm://metaserver:port/dir/), gfarm2fs transparently accesses it.
+
+Performance improvement
+* extended attribute - it is enabled by default
+
+Note
+* -o ncopy=NCOPY option is not necessary for automatic file
+  replication in case of Gfarm 2.4.1 or later.  use gfarm.ncopy
+  extended attribute instead.
+
+Release note for Gfarm2fs 1.2.1
+===============================
+
+[2010.6.29]
+
+Updated feature
+* improve performance and scheduling of automatic file replication
+* stat() returns correct file size even when some process is editing
+  the file
+
+Bug fix
+* fix #106 - memory leak in gfarm2fs about symbolic link handling
+* release() does not return error
+
+Release note for Gfarm2fs 1.2.0.1
+=================================
+
+[2010.4.5]
+
+Updated feature
+* assign a log message number
+
+Release note for Gfarm2fs 1.2.0
+===============================
+
+[2010.3.29]
+
+New Feature
+* automatic file replication by -o ncopy=NCOPY option and extended
+  attribute "gfarm.ncopy"
+* error logging
+
+Updated feature
+* -o ncopy=NCOPY to specify the default number of file replicas
+* -o copy_limit=LIMIT to specify the maximum concurrency of file
+  replica creations
+* -o syslog=facility to specify the syslog facility
+* -o loglevel=priority to specify the log message priority
+* -o gfs_stat_timeout to specify the timeout of attribute cache
+* -V and --version to display version
+* use local_user_map and local_group_map to identify the local users
+  and local groups
+
+Release note for Gfarm2fs 1.1.1
+===============================
+
+[2009.8.23]
+
+New Feature
+* extended attribute
+ (This is disabled by default.  Specify --enable-xattr option in
+  configure to enable it.)
+* scheduling cache dump support for debugging purpose when a signal
+  SIGUSR2 caught
+
+Release note for Gfarm2fs 1.1.0
+===============================
+
+[2009.3.26]
+
+New Feature
+* symbolic link support
+* directory listing speedup by attribute cache
+
+New Command-line Option
+* -E option to specify the expiration period of the attribute cache
+
+Release note for Gfarm2fs 1.0.2
+===============================
+
+[2008.9.27]
+
+New Feature
+* hard link support
+
+Release note for Gfarm2fs 1.0.1
+===============================
+
+[2008.5.28]
+
+New Feature
+* statfs support
+
+Release note for Gfarm2fs 1.0.0
+===============================
+
+[2007.11.28]
+
+The Gfarm2fs is a mount command for the Gfarm v2 distributed file
+system.  FUSE (Filesystem in Userspace) [1] is required to build and
+use gfarm2fs.
+
+[1] http://fuse.sourceforge.net/
+
+GFARM2FS(1)
+
+NAME
+	gfarm2fs - mounts the Gfarm file system
+
+SYNOPSIS
+	gfarm2fs <mount_point> [FUSE options]
+
+DESCRIPTION
+	gfarm2fs mounts the Gfarm file system at the specified mount
+	point.
+
+ENVIRONMENT
+	GFARM_CONFIG_FILE
+		specifies the Gfarm configuration file.
+
+$Id$
