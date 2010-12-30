@@ -268,7 +268,7 @@ gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_error(GFARM_MSG_UNFIXED, "gfarmize_path(%s): %s",
+		gflog_error(GFARM_MSG_2000088, "gfarmize_path(%s): %s",
 		    path, gfarm_error_string(e));
 		return;
 	}
