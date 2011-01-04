@@ -312,19 +312,23 @@ gfarmize_symlink_old(const char *old, const char *new,
 }
 
 static uid_t
-get_uid(char *user)
+get_uid(const char *gpath, char *user)
 {
 	struct passwd *pwd;
-	char *luser;
+	char *luser, *guser;
+	gfarm_error_t e;
 
-	if (strcmp(gfarm_get_global_username(), user) == 0)
+	if ((e = gfarm_get_global_username_by_url(gpath, &guser))
+	    != GFARM_ERR_NO_ERROR) {
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETATTR,
+		    "gfarm_get_global_username_by_url", gpath, e);
+		return (0);
+	}
+	if (strcmp(guser, user) == 0) {
+		free(guser);
 		return (getuid()); /* my own file */
-
-	/*
-	 * XXX - this interface will be changed soon to support
-	 * multiple gfmds.
-	 */
-	if (gfarm_global_to_local_username(user, &luser)
+	}
+	if (gfarm_global_to_local_username_by_url(gpath, user, &luser)
 	    == GFARM_ERR_NO_ERROR) {
 		pwd = getpwnam(luser);
 		free(luser);
@@ -336,17 +340,14 @@ get_uid(char *user)
 }
 
 static int
-get_gid(char *group)
+get_gid(const char *gpath, char *group)
 {
 	struct group *grp;
 	char *lgroup;
+	gfarm_error_t e;
 
-	/*
-	 * XXX - this interface will be changed soon to support
-	 * multiple gfmds.
-	 */
-	if (gfarm_global_to_local_groupname(group, &lgroup)
-	    == GFARM_ERR_NO_ERROR) {
+	if ((e = gfarm_global_to_local_groupname_by_url(gpath, group,
+	    &lgroup)) == GFARM_ERR_NO_ERROR) {
 		grp = getgrnam(lgroup);
 		free(lgroup);
 		if (grp != NULL)
@@ -364,15 +365,15 @@ get_nlink(struct gfs_stat *st)
 }
 
 static void
-copy_gfs_stat(struct stat *dst, struct gfs_stat *src)
+copy_gfs_stat(const char *gpath, struct stat *dst, struct gfs_stat *src)
 {
 	memset(dst, 0, sizeof(*dst));
 	dst->st_dev = GFS_DEV;
 	dst->st_ino = src->st_ino;
 	dst->st_mode = src->st_mode;
 	dst->st_nlink = get_nlink(src);
-	dst->st_uid = get_uid(src->st_user);
-	dst->st_gid = get_gid(src->st_group);
+	dst->st_uid = get_uid(gpath, src->st_user);
+	dst->st_gid = get_gid(gpath, src->st_group);
 	dst->st_size = src->st_size;
 	dst->st_blksize = GFS_BLKSIZE;
 	dst->st_blocks = (src->st_size + STAT_BLKSIZ - 1) / STAT_BLKSIZ;
@@ -429,7 +430,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 			return (-gfarm_error_to_errno(e));
 		}
 	}
-	copy_gfs_stat(stbuf, &st);
+	copy_gfs_stat(gfarmized.path, stbuf, &st);
 	gfs_stat_free(&st);
 	free_gfarmized_path(&gfarmized);
 	return (0);
@@ -446,16 +447,25 @@ gfarm2fs_fgetattr(const char *path, struct stat *stbuf,
 	struct fuse_file_info *fi)
 {
 	struct gfs_stat st;
+	struct gfarmized_path gfarmized;
 	gfarm_error_t e;
 
+	e = gfarmize_path(path, &gfarmized);
+	if (e != GFARM_ERR_NO_ERROR) {
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FGETATTR,
+					"gfarmize_path", path, e);
+		return (-gfarm_error_to_errno(e));
+	}
 	e = gfs_pio_stat(get_filep(fi), &st);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000002, OP_FGETATTR,
 					"gfs_pio_stat", path, e);
+		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
 
-	copy_gfs_stat(stbuf, &st);
+	copy_gfs_stat(path, stbuf, &st);
+	free_gfarmized_path(&gfarmized);
 	gfs_stat_free(&st);
 	return (0);
 }
@@ -823,17 +833,20 @@ gfarm2fs_chmod(const char *path, mode_t mode)
 
 /* returned string should be free'ed if it is not NULL */
 static char *
-get_user(uid_t uid)
+get_user(const char *gpath, uid_t uid)
 {
 	struct passwd *pwd;
 	char *guser;
 
-	if (uid == getuid())
-		return (strdup(gfarm_get_global_username()));
-
+	if (uid == getuid()) {
+		if (gfarm_get_global_username_by_url(gpath, &guser)
+		    == GFARM_ERR_NO_ERROR)
+			return (guser);
+		return (NULL);
+	}
 	/* use the user map file to identify the global user */
 	if ((pwd = getpwuid(uid)) != NULL &&
-	    gfarm_local_to_global_username(pwd->pw_name, &guser)
+	    gfarm_local_to_global_username_by_url(gpath, pwd->pw_name, &guser)
 	    == GFARM_ERR_NO_ERROR)
 		return (guser);
 
@@ -842,15 +855,15 @@ get_user(uid_t uid)
 
 /* returned string should be free'ed if it is not NULL */
 static char *
-get_group(gid_t gid)
+get_group(const char *gpath, gid_t gid)
 {
 	struct group *grp;
 	char *ggroup;
 
 	/* use the group map file to identify the global group */
 	if ((grp = getgrgid(gid)) != NULL &&
-	    gfarm_local_to_global_groupname(grp->gr_name, &ggroup)
-	    == GFARM_ERR_NO_ERROR)
+	    gfarm_local_to_global_groupname_by_url(gpath, grp->gr_name,
+	    &ggroup) == GFARM_ERR_NO_ERROR)
 		return (ggroup);
 
 	return (NULL);
@@ -859,37 +872,41 @@ get_group(gid_t gid)
 static int
 gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 {
+	int r;
 	gfarm_error_t e;
 	char *user, *group;
 	struct gfarmized_path gfarmized;
 
-	if (uid == -1)
-		user = NULL;
-	else if ((user = get_user(uid)) == NULL)
-		return (-EPERM);
-
-	if (gid == -1)
-		group = NULL;
-	else if ((group = get_group(gid)) == NULL) {
-		if (user != NULL)
-			free(user);
-		return (-EPERM);
-	}
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000077, OP_CHOWN,
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
+	if (uid == -1)
+		user = NULL;
+	else if ((user = get_user(gfarmized.path, uid)) == NULL) {
+		r = -EPERM;
+		goto end;
+	}
+
+	if (gid == -1)
+		group = NULL;
+	else if ((group = get_group(gfarmized.path, gid)) == NULL) {
+		r = -EPERM;
+		goto end;
+	}
 	e = gfs_chown(gfarmized.path, user, group);
 	gfarm2fs_check_error(GFARM_MSG_2000020, OP_CHOWN,
 			     "gfs_chown", gfarmized.path, e);
+	r = -gfarm_error_to_errno(e);
+end:
 	free_gfarmized_path(&gfarmized);
 	if (user != NULL)
 		free(user);
 	if (group != NULL)
 		free(group);
-	return (-gfarm_error_to_errno(e));
+	return (r);
 }
 
 static int
@@ -1199,9 +1216,9 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 		gflags = flags; /* XXX FIXME */
 		break;
 	}
-	e = gfs_setxattr(gfarmized.path, name, value, size, gflags);
+	e = gfs_lsetxattr(gfarmized.path, name, value, size, flags);
 	gfarm2fs_check_error(GFARM_MSG_2000036, OP_SETXATTR,
-			     "gfs_setxattr", gfarmized.path, e);
+			     "gfs_lsetxattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
 	return (-gfarm_error_to_errno(e));
 }
@@ -1225,7 +1242,7 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_getxattr_cached(gfarmized.path, name, value, &s);
+	e = gfs_lgetxattr_cached(gfarmized.path, name, value, &s);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		/*
 		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
@@ -1244,7 +1261,7 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000037, OP_GETXATTR,
-				     "gfs_getxattr_cached", gfarmized.path, e);
+				     "gfs_lgetxattr_cached", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -1265,10 +1282,10 @@ gfarm2fs_listxattr(const char *path, char *list, size_t size)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_listxattr(gfarmized.path, list, &s);
+	e = gfs_llistxattr(gfarmized.path, list, &s);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000038, OP_LISTXATTR,
-				     "gfs_listxattr", gfarmized.path, e);
+				     "gfs_llistxattr", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -1288,9 +1305,9 @@ gfarm2fs_removexattr(const char *path, const char *name)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_removexattr(gfarmized.path, name);
+	e = gfs_lremovexattr(gfarmized.path, name);
 	gfarm2fs_check_error(GFARM_MSG_2000039, OP_REMOVEXATTR,
-			     "gfs_removexattr", gfarmized.path, e);
+			     "gfs_lremovexattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT)
 		return (-ENODATA);
