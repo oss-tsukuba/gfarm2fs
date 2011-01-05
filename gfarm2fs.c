@@ -887,6 +887,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 		user = NULL;
 	else if ((user = get_user(gfarmized.path, uid)) == NULL) {
 		r = -EPERM;
+		group = NULL;
 		goto end;
 	}
 
@@ -902,9 +903,9 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	r = -gfarm_error_to_errno(e);
 end:
 	free_gfarmized_path(&gfarmized);
-	if (user != NULL)
+	if (user)
 		free(user);
-	if (group != NULL)
+	if (group)
 		free(group);
 	return (r);
 }
