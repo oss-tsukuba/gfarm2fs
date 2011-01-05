@@ -328,6 +328,7 @@ get_uid(const char *gpath, char *user)
 		free(guser);
 		return (getuid()); /* my own file */
 	}
+	free(guser);
 	if (gfarm_global_to_local_username_by_url(gpath, user, &luser)
 	    == GFARM_ERR_NO_ERROR) {
 		pwd = getpwnam(luser);
