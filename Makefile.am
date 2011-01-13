@@ -1,6 +1,7 @@
 bin_PROGRAMS = gfarm2fs
-gfarm2fs_SOURCES = gfarm2fs.c replicate.c open_file.c \
-	gfarm2fs.h replicate.h open_file.h gfarm2fs_msg_enums.h
+gfarm2fs_SOURCES = gfarm2fs.c acl.c id.c replicate.c open_file.c \
+	gfarm2fs.h acl.h id.h replicate.h open_file.h gfarm2fs_msg_enums.h \
+	hash.h
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(private_srcs)
 AM_CFLAGS = -Wall
 

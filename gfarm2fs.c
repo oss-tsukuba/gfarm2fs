@@ -12,13 +12,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include <syslog.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <pwd.h>
-#include <grp.h>
 #include <stddef.h>
 #include <limits.h>
 #ifdef HAVE_SYS_XATTR_H
@@ -44,6 +41,8 @@
 #include <gfarm2fs.h>
 #include <replicate.h>
 #include <open_file.h>
+#include "acl.h"
+#include "id.h"
 #include "gfarm2fs_msg_enums.h"
 
 /* for old interface */
@@ -136,9 +135,6 @@ static char OP_LISTXATTR[] = "LISTXATTR";
 static char OP_REMOVEXATTR[] = "REMOVEXATTR";
 #endif /* HAVE_SYS_XATTR_H && ENABLE_XATTR */
 
-static const char ACL_ACCESS[] = "system.posix_acl_access";
-static const char ACL_DEFAULT[] = "system.posix_acl_default";
-
 #define GFARM_DIR	".gfarm"
 
 static const char gfarm_path_prefix[] = GFARM_DIR "/";
@@ -146,7 +142,6 @@ static const char gfarm_path_prefix[] = GFARM_DIR "/";
 
 static char *gfarm2fs_path_prefix, *gfarm2fs_realpath_prefix;
 static size_t gfarm2fs_path_prefix_len, gfarm2fs_realpath_prefix_len;
-static int gfarm2fs_fake_no_acl;
 
 static void
 gfarm2fs_record_mount_point(const char *mpoint)
@@ -210,7 +205,6 @@ gfarmize_path(const char *path, struct gfarmized_path *gfarmized)
 	gfarmized->alloced = 0;
 	gfarmized->path = (char *)path; /* UNCONST */
 	return (GFARM_ERR_NO_ERROR);
-		
 }
 
 void
@@ -314,48 +308,33 @@ gfarmize_symlink_old(const char *old, const char *new,
 static uid_t
 get_uid(const char *gpath, char *user)
 {
-	struct passwd *pwd;
-	char *luser, *guser;
 	gfarm_error_t e;
+	uid_t uid;
 
-	if ((e = gfarm_get_global_username_by_url(gpath, &guser))
-	    != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_GETATTR,
-		    "gfarm_get_global_username_by_url", gpath, e);
-		return (0);
+	e = gfarm2fs_get_uid(gpath, user, &uid);
+	if (e != GFARM_ERR_NO_ERROR) {
+		gflog_warning(GFARM_MSG_UNFIXED,
+			      "get_uid(%s) failed: %s",
+			      user, gfarm_error_string(e));
+		return (gfarm2fs_get_nobody_uid());
 	}
-	if (strcmp(guser, user) == 0) {
-		free(guser);
-		return (getuid()); /* my own file */
-	}
-	free(guser);
-	if (gfarm_global_to_local_username_by_url(gpath, user, &luser)
-	    == GFARM_ERR_NO_ERROR) {
-		pwd = getpwnam(luser);
-		free(luser);
-		if (pwd != NULL)
-			return (pwd->pw_uid);
-	}
-	/* cannot conver to a local account */
-	return (0);
+	return (uid);
 }
 
 static int
 get_gid(const char *gpath, char *group)
 {
-	struct group *grp;
-	char *lgroup;
 	gfarm_error_t e;
+	gid_t gid;
 
-	if ((e = gfarm_global_to_local_groupname_by_url(gpath, group,
-	    &lgroup)) == GFARM_ERR_NO_ERROR) {
-		grp = getgrnam(lgroup);
-		free(lgroup);
-		if (grp != NULL)
-			return (grp->gr_gid);
+	e = gfarm2fs_get_gid(gpath, group, &gid);
+	if (e != GFARM_ERR_NO_ERROR) {
+		gflog_warning(GFARM_MSG_UNFIXED,
+			      "get_gid(%s) failed: %s",
+			      group, gfarm_error_string(e));
+		return (gfarm2fs_get_nogroup_gid());
 	}
-	/* cannot conver to a local group */
-	return (0);
+	return (gid);
 }
 
 static int
@@ -832,50 +811,11 @@ gfarm2fs_chmod(const char *path, mode_t mode)
 	return (-gfarm_error_to_errno(e));
 }
 
-/* returned string should be free'ed if it is not NULL */
-static char *
-get_user(const char *gpath, uid_t uid)
-{
-	struct passwd *pwd;
-	char *guser;
-
-	if (uid == getuid()) {
-		if (gfarm_get_global_username_by_url(gpath, &guser)
-		    == GFARM_ERR_NO_ERROR)
-			return (guser);
-		return (NULL);
-	}
-	/* use the user map file to identify the global user */
-	if ((pwd = getpwuid(uid)) != NULL &&
-	    gfarm_local_to_global_username_by_url(gpath, pwd->pw_name, &guser)
-	    == GFARM_ERR_NO_ERROR)
-		return (guser);
-
-	return (NULL);
-}
-
-/* returned string should be free'ed if it is not NULL */
-static char *
-get_group(const char *gpath, gid_t gid)
-{
-	struct group *grp;
-	char *ggroup;
-
-	/* use the group map file to identify the global group */
-	if ((grp = getgrgid(gid)) != NULL &&
-	    gfarm_local_to_global_groupname_by_url(gpath, grp->gr_name,
-	    &ggroup) == GFARM_ERR_NO_ERROR)
-		return (ggroup);
-
-	return (NULL);
-}
-
 static int
 gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 {
-	int r;
 	gfarm_error_t e;
-	char *user, *group;
+	char *user = NULL, *group = NULL;
 	struct gfarmized_path gfarmized;
 
 	e = gfarmize_path(path, &gfarmized);
@@ -884,31 +824,29 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	if (uid == -1)
-		user = NULL;
-	else if ((user = get_user(gfarmized.path, uid)) == NULL) {
-		r = -EPERM;
-		group = NULL;
+	if (uid != -1 &&
+	    ((e = gfarm2fs_get_user(gfarmized.path, uid, &user))
+	     != GFARM_ERR_NO_ERROR)) {
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CHOWN,
+				     "gfarm2fs_get_user", path, e);
 		goto end;
 	}
 
-	if (gid == -1)
-		group = NULL;
-	else if ((group = get_group(gfarmized.path, gid)) == NULL) {
-		r = -EPERM;
+	if (gid != -1 &&
+	    ((e = gfarm2fs_get_group(gfarmized.path, gid, &group))
+	     != GFARM_ERR_NO_ERROR)) {
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CHOWN,
+				     "gfarm2fs_get_group", path, e);
 		goto end;
 	}
 	e = gfs_chown(gfarmized.path, user, group);
 	gfarm2fs_check_error(GFARM_MSG_2000020, OP_CHOWN,
 			     "gfs_chown", gfarmized.path, e);
-	r = -gfarm_error_to_errno(e);
 end:
 	free_gfarmized_path(&gfarmized);
-	if (user)
-		free(user);
-	if (group)
-		free(group);
-	return (r);
+	free(user);
+	free(group);
+	return (-gfarm_error_to_errno(e));
 }
 
 static int
@@ -1218,7 +1156,8 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 		gflags = flags; /* XXX FIXME */
 		break;
 	}
-	e = gfs_lsetxattr(gfarmized.path, name, value, size, flags);
+	/* include gfs_lsetxattr() */
+	e = gfarm2fs_acl_setxattr(gfarmized.path, name, value, size, gflags);
 	gfarm2fs_check_error(GFARM_MSG_2000036, OP_SETXATTR,
 			     "gfs_lsetxattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
@@ -1232,11 +1171,8 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 	struct gfarmized_path gfarmized;
 	size_t s = size;
 
-	if (gfarm2fs_fake_no_acl &&
-	    (strcmp(name, ACL_ACCESS) == 0 ||
-	     strcmp(name, ACL_DEFAULT) == 0)) {
-		return (-ENODATA);
-	}
+	if (strcmp(name, "security.selinux") == 0)
+		return (-ENODATA); /* ignore */
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
@@ -1244,7 +1180,8 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_lgetxattr_cached(gfarmized.path, name, value, &s);
+	/* include gfs_lgetxattr_cached() */
+	e = gfarm2fs_acl_getxattr(gfarmized.path, name, value, &s);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		/*
 		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
@@ -1307,7 +1244,8 @@ gfarm2fs_removexattr(const char *path, const char *name)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_lremovexattr(gfarmized.path, name);
+	/* include gfs_lremovexattr() */
+	e = gfarm2fs_acl_removexattr(gfarmized.path, name);
 	gfarm2fs_check_error(GFARM_MSG_2000039, OP_REMOVEXATTR,
 			     "gfs_lremovexattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
@@ -1640,23 +1578,6 @@ static struct fuse_operations gfarm2fs_cached_oper = {
  *** main
  ***/
 
-#ifdef HAVE_GFARM_XATTR_CACHING
-/*
- * We don't call gfarm_xattr_caching_pattern_add() here,
- * because gfmd-side caching is also desired, but there is no way to
- * add the gfmd-side caching remotely.
- */
-int
-gfarm_acl_is_cached(void)
-{
-	return (
-	    gfarm_xattr_caching(ACL_ACCESS) &&
-	    gfarm_xattr_caching(ACL_DEFAULT));
-}
-#else
-#define gfarm_acl_is_cached()	0
-#endif
-
 #ifdef HAVE_GFARM_SCHEDULE_CACHE_DUMP
 void
 debug_handler(int signo)
@@ -1687,6 +1608,8 @@ enum {
 	KEY_D,
 	KEY_VERSION,
 	KEY_HELP,
+	KEY_DISABLE_ACL,
+	KEY_ENABLE_CACHED_ID,
 };
 
 #define GFARM2FS_OPT(t, p, v) \
@@ -1707,11 +1630,17 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("--version", KEY_VERSION),
 	FUSE_OPT_KEY("-h", KEY_HELP),
 	FUSE_OPT_KEY("--help", KEY_HELP),
+	FUSE_OPT_KEY("disable_acl", KEY_DISABLE_ACL), /* for debug */
+	FUSE_OPT_KEY("enable_cached_id", KEY_ENABLE_CACHED_ID), /* for debug */
+	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
+	GFARM2FS_OPT("auto_uid_max=%d", auto_uid_max, KEY_GFARM2FS_OPT),
+	GFARM2FS_OPT("auto_gid_min=%d", auto_gid_min, KEY_GFARM2FS_OPT),
+	GFARM2FS_OPT("auto_gid_max=%d", auto_gid_max, KEY_GFARM2FS_OPT),
 	FUSE_OPT_END
 };
 
 static void
-usage(const char *progname)
+usage(const char *progname, struct gfarm2fs_param *paramsp)
 {
 	fprintf(stderr,
 "usage: %s mountpoint [options]\n"
@@ -1726,16 +1655,22 @@ usage(const char *progname)
 "    -o loglevel=priority    syslog priority level (default: %s)\n"
 "    -E T                    cache timeout for gfs_stat (default: 1.0 sec.)\n"
 "    -o gfs_stat_timeout=T   same -E option\n"
-"    -o ncopy=N              number of copies (default: 0 - disable replication)\n"
+"    -o ncopy=N              number of copies\n"
+"                            (default: 0 - disable replication)\n"
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
-#ifdef HAVE_GFS_REPLICATE_FILE_TO
-"                            (default: 10)\n"
-#else /* version 2.3.X */
-"                            (default: 0)\n"
-#endif
+"                            (default: %d)\n"
+"    -o auto_uid_min=N       minimum number of auto uid (default: %d)\n"
+"    -o auto_uid_max=N       maximum number of auto uid (default: %d)\n"
+"    -o auto_gid_min=N       minimum number of auto gid (default: %d)\n"
+"    -o auto_gid_max=N       maximum number of auto gid (default: %d)\n"
 		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
-		GFARM2FS_SYSLOG_PRIORITY_DEFAULT);
+		GFARM2FS_SYSLOG_PRIORITY_DEFAULT,
+		paramsp->copy_limit,
+		paramsp->auto_uid_min,
+		paramsp->auto_uid_max,
+		paramsp->auto_gid_min,
+		paramsp->auto_gid_max);
 }
 
 static int
@@ -1775,10 +1710,12 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 #endif
 		exit(0);
 	case KEY_HELP:
-		usage(outargs->argv[0]);
+		usage(outargs->argv[0], paramsp);
 		fuse_opt_add_arg(outargs, "-ho");
 		gfarm2fs_fuse_main(outargs, NULL);
 		exit(1);
+	case KEY_DISABLE_ACL:
+		paramsp->disable_acl = 1;
 	default:
 		return (0);
 	}
@@ -1803,6 +1740,12 @@ main(int argc, char *argv[])
 		.facility = NULL,
 		.loglevel = NULL,
 		.ncopy = 0,
+		.disable_acl = 0,      /* for debug */
+		.enable_cached_id = 0, /* for debug */
+		.auto_uid_min = 5000,
+		.auto_uid_max = 65535,
+		.auto_gid_min = 5000,
+		.auto_gid_max = 65535,
 #ifdef HAVE_GFS_REPLICATE_FILE_TO
 		.copy_limit = 10
 #else /* version 2.3.X */
@@ -1875,12 +1818,12 @@ main(int argc, char *argv[])
 		gfs_stat_cache_enable(0); /* disable cache */
 		operation_mode = &gfarm2fs_oper;
 	}
-
 	/* end of setting params */
 
 	gfarm2fs_replicate_init(&params);
 	gfarm2fs_open_file_init();
-	gfarm2fs_fake_no_acl = !gfarm_acl_is_cached();
+	gfarm2fs_acl_init(&params);
+	gfarm2fs_id_init(&params);
 
 	setup_dumper();
 

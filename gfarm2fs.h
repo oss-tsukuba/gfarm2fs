@@ -12,6 +12,12 @@ struct gfarm2fs_param {
 	char *loglevel;
 	int ncopy;
 	int copy_limit;
+	int disable_acl;
+	int enable_cached_id;
+	int auto_uid_min;
+	int auto_uid_max;
+	int auto_gid_min;
+	int auto_gid_max;
 };
 
 struct gfarmized_path {

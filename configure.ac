@@ -64,6 +64,7 @@ AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
 # since it is not necessary.  To avoid this problem we just skip the check.
 #AC_CHECK_HEADERS([fuse.h],, [AC_MSG_ERROR([fuse.h not found])])
 AC_CHECK_HEADERS(sys/xattr.h)
+AC_CHECK_HEADERS(sys/acl.h)
 
 # Checks for libraries.
 AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])
