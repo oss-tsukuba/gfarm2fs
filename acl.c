@@ -28,7 +28,7 @@ static int enable_acl;
 
 #define ADD_BUF(src, size) \
 	do { \
-		while (nowlen + size > bufsize) { \
+		if (nowlen + size > bufsize) { \
 			/* unexpected */ \
 			gflog_error(GFARM_MSG_UNFIXED, \
 				    "unexpected acl entries size"); \

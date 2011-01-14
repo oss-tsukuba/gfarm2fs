@@ -45,10 +45,7 @@ id_hash_index(const void *k, int l)
 static int
 id_hash_equal(const void *k1, int k1len, const void *k2, int k2len)
 {
-	gfarm_uint32_t h1 = *(gfarm_uint32_t *)k1;
-	gfarm_uint32_t h2 = *(gfarm_uint32_t *)k2;
-
-	return (h1 == h2);
+	return (*(gfarm_uint32_t *)k1 == *(gfarm_uint32_t *)k2);
 }
 
 void
@@ -442,7 +439,7 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 	e = auto_id_to_name(hash_gid_to_group, (gfarm_uint32_t)gid, groupp);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		gflog_debug(GFARM_MSG_UNFIXED,
-			    "cannot convert gid(%d) to gfarm username", gid);
+			    "cannot convert gid(%d) to gfarm groupname", gid);
 		return (GFARM_ERR_OPERATION_NOT_PERMITTED); /* EPERM */
 	} else
 		return (e);
