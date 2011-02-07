@@ -280,7 +280,7 @@ gfarm2fs_acl_getxattr(const char *path, const char *name,
 	if (enable_acl == 0)
 		return (GFARM_ERR_NO_SUCH_OBJECT);
 
-	e = gfs_acl_get_file(path, type, &acl);
+	e = gfs_acl_get_file_cached(path, type, &acl);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (e);
 
