@@ -34,8 +34,6 @@ static gid_t auto_gid_max;
 
 static int enable_cached_id = 0; /* for debug */
 
-#define ID_HASH_SIZE 199  /* prime number */
-
 static int
 id_hash_index(const void *k, int l)
 {
@@ -48,9 +46,37 @@ id_hash_equal(const void *k1, int k1len, const void *k2, int k2len)
 	return (*(gfarm_uint32_t *)k1 == *(gfarm_uint32_t *)k2);
 }
 
+static int
+is_prime(int n)
+{
+	int i;
+
+	if (n < 2)
+		return (0);
+	else if (n == 2)
+		return (1);
+	else if (n % 2 == 0)
+		return (0);
+	for (i = 3; i * i <= n; i += 2)
+		if (n % i == 0)
+			return (0);
+	return (1);
+}
+
+static int
+next_prime(int n)
+{
+	while (!is_prime(n))
+		n++;
+
+	return (n);
+}
+
 void
 gfarm2fs_id_init(struct gfarm2fs_param *params)
 {
+	int auto_uid_hash_size, auto_gid_hash_size;
+
 	enable_cached_id = params->enable_cached_id; /* for debug */
 
 	auto_uid_min = params->auto_uid_min;
@@ -72,14 +98,19 @@ gfarm2fs_id_init(struct gfarm2fs_param *params)
 			    auto_gid_min, auto_gid_max);
 		exit(1);
 	}
+	auto_uid_hash_size = next_prime((auto_uid_max - auto_uid_min) / 8);
+	auto_gid_hash_size = next_prime((auto_gid_max - auto_gid_min) / 8);
+
 	hash_uid_to_user = gfarm_hash_table_alloc(
-		ID_HASH_SIZE, id_hash_index, id_hash_equal);
+		auto_uid_hash_size, id_hash_index, id_hash_equal);
 	hash_gid_to_group = gfarm_hash_table_alloc(
-		ID_HASH_SIZE, id_hash_index, id_hash_equal);
+		auto_gid_hash_size, id_hash_index, id_hash_equal);
 	hash_user_to_uid = gfarm_hash_table_alloc(
-		ID_HASH_SIZE, gfarm_hash_strptr, gfarm_hash_key_equal_strptr);
+		auto_uid_hash_size, gfarm_hash_strptr,
+		gfarm_hash_key_equal_strptr);
 	hash_group_to_gid = gfarm_hash_table_alloc(
-		ID_HASH_SIZE, gfarm_hash_strptr, gfarm_hash_key_equal_strptr);
+		auto_gid_hash_size, gfarm_hash_strptr,
+		gfarm_hash_key_equal_strptr);
 	if (hash_uid_to_user == NULL || hash_gid_to_group == NULL ||
 	    hash_user_to_uid == NULL || hash_group_to_gid == NULL)
 		gflog_fatal(GFARM_MSG_UNFIXED, "no memory for id hashtab");
