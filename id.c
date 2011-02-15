@@ -46,30 +46,33 @@ id_hash_equal(const void *k1, int k1len, const void *k2, int k2len)
 	return (*(gfarm_uint32_t *)k1 == *(gfarm_uint32_t *)k2);
 }
 
-static int
-is_prime(int n)
-{
-	int i;
-
-	if (n < 2)
-		return (0);
-	else if (n == 2)
-		return (1);
-	else if (n % 2 == 0)
-		return (0);
-	for (i = 3; i * i <= n; i += 2)
-		if (n % i == 0)
-			return (0);
-	return (1);
-}
+static int primes[] = {
+	5,
+	11,
+	19,
+	37,
+	67,
+	131,
+	257,
+	521,
+	1031,
+	2053,
+	4099,
+	8209,
+	16411,
+	32771
+};
 
 static int
 next_prime(int n)
 {
-	while (!is_prime(n))
-		n++;
+	int i, nprimes = sizeof(primes) / sizeof(int);
 
-	return (n);
+	for (i = 0; i < nprimes; i++)
+		if (primes[i] > n)
+			return (primes[i]);
+
+	return (primes[nprimes - 1]);
 }
 
 void
