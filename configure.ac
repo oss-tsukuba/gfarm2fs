@@ -68,12 +68,40 @@ AC_CHECK_HEADERS(sys/acl.h)
 
 # Checks for libraries.
 AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])
-AC_CHECK_LIB([fuse], [fuse_main],, [AC_MSG_ERROR([libfuse not found])])
+AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse],, [AC_MSG_ERROR([libfuse not found])])
 
 
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
 AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add)
+
+AC_TRY_RUN([
+#  include <fuse.h>
+
+  void *data_save;
+
+  int opt_proc(void *data, const char *arg, int key, struct fuse_args *outargs)
+  {
+	  data_save = data;
+  }
+
+  int
+  main(int argc, char **argv)
+  {
+	  struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+	  int data;
+	  fuse_opt_parse(&args, &data, NULL, opt_proc);
+	  if (data_save == &data)
+		  return 1;
+	  return 0; /* have a bug on NetBSD */
+  }
+  ], [AC_DEFINE(HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD)], []
+)
+
+AH_BOTTOM([
+/* fuse_opt_parse() doesn't correctly pass 2nd arg on NetBSD-5.1 and before */
+#undef HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD
+])
 
 AC_OUTPUT

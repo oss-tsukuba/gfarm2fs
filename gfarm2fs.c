@@ -22,6 +22,14 @@
 #include <sys/xattr.h>
 #endif
 
+#if !defined(S_IFDIR) && defined(__S_IFDIR)
+/*
+ * XXX Is this really necessary?
+ * At least CentOS 5.0 and all NetBSD releases don't need this #define.
+ */
+#define S_IFDIR	__S_IFDIR
+#endif
+
 /*
  * fuse.h requres that _FILE_OFFSET_BITS is defined in any case, but
  * AC_SYS_LARGEFILE does not define it on a 64bit platform like x86_64
@@ -30,7 +38,13 @@
 #ifndef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
 #endif
+
+#ifdef __NetBSD__ /*  FUSE_USE_VERSION is not reflected in FUSE_VERSION */
+#define FUSE_USE_VERSION 26
+#else
 #define FUSE_USE_VERSION 25
+#endif
+
 #include <fuse.h>
 
 #undef PACKAGE_NAME
@@ -382,7 +396,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 			memset(stbuf, 0, sizeof(*stbuf));
 			stbuf->st_dev = GFS_DEV;
 			stbuf->st_ino = 1;
-			stbuf->st_mode = __S_IFDIR | 0111;
+			stbuf->st_mode = S_IFDIR | 0111;
 			stbuf->st_nlink = 1;
 			stbuf->st_uid = 0;
 			stbuf->st_gid = 0;
@@ -1683,11 +1697,17 @@ gfarm2fs_fuse_main(struct fuse_args *args, struct fuse_operations *fo)
 #endif
 }
 
+#ifdef HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD /* NetBSD-5.1 and before */
+struct gfarm2fs_param *paramsp;
+#endif
+
 static int
 gfarm2fs_opt_proc(void *data, const char *arg, int key,
 			struct fuse_args *outargs)
 {
+#ifndef HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD
 	struct gfarm2fs_param *paramsp = data;
+#endif
 
 	switch (key) {
 	case FUSE_OPT_KEY_OPT: /* -?, -o opt, --opt */
@@ -1752,6 +1772,9 @@ main(int argc, char *argv[])
 		.copy_limit = 0
 #endif
 	};
+#ifdef HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD
+	paramsp = &params;
+#endif
 
 	umask(0);
 	e = gfarm_initialize(&argc, &argv);
