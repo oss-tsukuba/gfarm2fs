@@ -27,9 +27,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `fuse' library (-lfuse). */
-#undef HAVE_LIBFUSE
-
 /* Define to 1 if you have the `gfarm' library (-lgfarm). */
 #undef HAVE_LIBGFARM
 
@@ -95,3 +92,8 @@
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
+
+
+/* fuse_opt_parse() doesn't correctly pass 2nd arg on NetBSD-5.1 and before */
+#undef HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD
+
