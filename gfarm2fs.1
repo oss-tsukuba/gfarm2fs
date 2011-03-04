@@ -44,8 +44,30 @@ disabling automatic replication mechanism.
 specify the maximum number of concurrent copy
 creations.  this is effective if automatic replication
 is enabled.  default is 0.
+.TP
+\fB-o auto_uid_min=\fIN\fB\fR
+specify the minimum number of UIDs generated automatically.
+.TP
+\fB-o auto_uid_max=\fIN\fB\fR
+specify the maximum number of UIDs generated automatically.
+.TP
+\fB-o auto_gid_min=\fIN\fB\fR
+specify the minimum number of GIDs generated automatically.
+.TP
+\fB-o auto_gid_max=\fIN\fB\fR
+specify the maximum number of GIDs generated automatically.
 
 .SH "ENVIRONMENT VARIABLE"
 .TP
-\fBGFARM_CONFIG_FILE/fR
+\fBGFARM_CONFIG_FILE\fR
 specifies the Gfarm configuration file.
+
+.SH "NOTES"
+.PP
+When a Gfarm global user's name (or group's name) is not registered in
+the local account with the same name, the user's UID (or the group's
+GID) is generated automatically on gfarm2fs.
+
+If UIDs/GIDs are generated automatically over the
+\fBauto_{uid,gid}_max\fR number, the setfacl command might fail
+(\fBEPERM\fR).
