@@ -1,48 +1,51 @@
-GFARM2FS(1)						GFARM2FS(1)
+.TH "GFARM2FS" "1" "4 March 2011" "Gfarm" ""
 
-NAME
-	gfarm2fs - mount a Gfarm file system
+.SH NAME
+gfarm2fs \- mount a Gfarm file system
 
-SYNOPSIS
-	gfarm2fs <mount_point> [FUSE options]
+.SH SYNOPSIS
+\fBgfarm2fs\fR \fBmount_point\fR [ \fBFUSE options\fR ]
 
-DESCRIPTION
-	gfarm2fs mounts the Gfarm file system at the specified mount
-	point.
+.SH "DESCRIPTION"
+.PP
+gfarm2fs mounts the Gfarm file system at the specified mount point.
 
-GENERAL OPTIONS
-	-h	display a list of command options.
+.SH "GENERAL OPTIONS"
+.TP
+\fB-h\fR
+display a list of command options.
+.TP
+\fB-V\fR
+display version.
+.TP
+\fB-o \fIopt,[opt...]\fB\fR
+specify mount options.
 
-	-V	display version.
+.SH "GFARM2FS OPTIONS"
+.TP
+\fB-o syslog=\fIfacility\fB\fR
+specify syslog facility.  default is local0.
+.TP
+\fB-o loglevel=\fIpriority\fB\fR
+specify syslog priority level.  default is notice.
+.TP
+\fB-E \fIT\fB\fR
+specify the timeout of attribute cache.  default is 1.0 seconds.
+.TP
+\fB-o gfs_stat_timeout=\fIT\fB\fR
+same as -E option
+.TP
+\fB-o ncopy=\fIN\fB\fR
+specify the number of copies automatically created
+when a file is created.  default is 0, which means
+disabling automatic replication mechanism.
+.TP
+\fB-o copy_limit=\fIN\fB\fR
+specify the maximum number of concurrent copy
+creations.  this is effective if automatic replication
+is enabled.  default is 0.
 
-	-o opt,[opt...]
-		specify mount options.
-
-GFARM2FS OPTIONS
-	-o syslog=facility
-		specify syslog facility.  default is local0.
-
-	-o loglevel=priority
-		specify syslog priority level.  default is notice.
-
-	-E T	specify the timeout of attribute cache.  default is
-		1.0 seconds.
-
-	-o gfs_stat_timeout=T
-		same -E option
-
-	-o ncopy=N
-		specify the number of copies automatically created
-		when a file is created.  default is 0, which means
-		disabling automatic replication mechanism.
-
-	-o copy_limit=N
-		specify the maximum number of concurrent copy
-		creations.  this is effective if automatic replication
-		is enabled.  default is 0.
-
-ENVIRONMENT VARIABLE
-	GFARM_CONFIG_FILE
-		specifies the Gfarm configuration file.
-
-Gfarm			2 February 2011			GFARM2FS(1)
+.SH "ENVIRONMENT VARIABLE"
+.TP
+\fBGFARM_CONFIG_FILE/fR
+specifies the Gfarm configuration file.
