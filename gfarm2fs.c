@@ -1762,10 +1762,10 @@ main(int argc, char *argv[])
 		.ncopy = 0,
 		.disable_acl = 0,      /* for debug */
 		.enable_cached_id = 0, /* for debug */
-		.auto_uid_min = 5000,
-		.auto_uid_max = 65535,
-		.auto_gid_min = 5000,
-		.auto_gid_max = 65535,
+		.auto_uid_min = 70000,
+		.auto_uid_max = 79999,
+		.auto_gid_min = 70000,
+		.auto_gid_max = 79999,
 #ifdef HAVE_GFS_REPLICATE_FILE_TO
 		.copy_limit = 10
 #else /* version 2.3.X */
