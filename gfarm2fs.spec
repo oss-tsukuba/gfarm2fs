@@ -1,7 +1,7 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
 Version: 1.2.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: BSD
 Group: Applications/Internet
 URL: http://sourceforge.net/projects/gfarm/
@@ -18,7 +18,7 @@ FUSE (http://fuse.sourceforge.net/).
 %setup -q
 
 %build
-%configure
+%configure ${GFARM2FS_CONFIGURE_OPTION}
 make
 
 %install
@@ -37,5 +37,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Mar  4 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.2-2
+- configure option can be specified by GFARM2FS_CONFIGURE_OPTION
+
 * Wed Nov 28 2007 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.0.0-1
 - Initial build.
