@@ -34,11 +34,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}
 %doc RELNOTES
 %doc LICENSE
-
+%doc %{_mandir}
 
 %changelog
 * Fri Mar  4 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.2-2
 - configure option can be specified by GFARM2FS_CONFIGURE_OPTION
+- install manual page
 
 * Wed Nov 28 2007 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.0.0-1
 - Initial build.
