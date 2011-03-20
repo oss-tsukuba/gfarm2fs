@@ -8,6 +8,7 @@ AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([gfarm2fs.c])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_MACRO_DIR([m4])
 AC_SYS_LARGEFILE
 
 # Checks for programs.
@@ -68,6 +69,7 @@ AC_CHECK_HEADERS(sys/acl.h)
 
 # Checks for libraries.
 AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])
+AC_CHECK_LIB([gfarm], [gfarm_get_global_username_by_url],, [AC_MSG_ERROR([Gfarm-2.4.1 or later is required])])
 AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse],, [AC_MSG_ERROR([libfuse not found])])
 
 

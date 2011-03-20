@@ -5,6 +5,7 @@ gfarm2fs_SOURCES = gfarm2fs.c acl.c id.c replicate.c open_file.c \
 man_MANS = gfarm2fs.1
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(man_MANS) $(private_srcs)
 AM_CFLAGS = -Wall
+ACLOCAL_AMFLAGS = -I m4
 
 #
 # gflog message number assignment
