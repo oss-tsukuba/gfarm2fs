@@ -15,3 +15,11 @@ gfarm_error_t gfarm2fs_acl_setxattr(const char *, const char *,
 gfarm_error_t gfarm2fs_acl_getxattr(const char *, const char *,
 				    void *, size_t *);
 gfarm_error_t gfarm2fs_acl_removexattr(const char *, const char *);
+
+static const char ACL_EA_ACCESS[] = "system.posix_acl_access";
+static const char ACL_EA_DEFAULT[] = "system.posix_acl_default";
+
+#define ACL_EA_VERSION  (0x0002) /* Linux ACL Version */
+
+static const char FIX_ACL_ACCESS[] = "gfarm2fs.fix_acl_access";
+static const char FIX_ACL_DEFAULT[] = "gfarm2fs.fix_acl_default";

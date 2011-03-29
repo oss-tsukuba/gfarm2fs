@@ -12,6 +12,7 @@ struct gfarm2fs_param {
 	char *loglevel;
 	int ncopy;
 	int copy_limit;
+	int fix_acl;
 	int disable_acl;
 	int enable_cached_id;
 	int auto_uid_min;

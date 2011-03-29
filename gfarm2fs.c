@@ -1622,6 +1622,7 @@ enum {
 	KEY_D,
 	KEY_VERSION,
 	KEY_HELP,
+	KEY_FIX_ACL,
 	KEY_DISABLE_ACL,
 	KEY_ENABLE_CACHED_ID,
 };
@@ -1644,6 +1645,7 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("--version", KEY_VERSION),
 	FUSE_OPT_KEY("-h", KEY_HELP),
 	FUSE_OPT_KEY("--help", KEY_HELP),
+	FUSE_OPT_KEY("fix_acl", KEY_FIX_ACL),
 	FUSE_OPT_KEY("disable_acl", KEY_DISABLE_ACL), /* for debug */
 	FUSE_OPT_KEY("enable_cached_id", KEY_ENABLE_CACHED_ID), /* for debug */
 	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
@@ -1722,6 +1724,15 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 	case KEY_D:
 		paramsp->debug = 1;
 		return (1); /* through */
+	case KEY_FIX_ACL:
+		paramsp->fix_acl = 1;
+		return (0);
+	case KEY_DISABLE_ACL:
+		paramsp->disable_acl = 1;
+		return (0);
+	case KEY_ENABLE_CACHED_ID:
+		paramsp->enable_cached_id = 1;
+		return (0);
 	case KEY_VERSION:
 		fprintf(stderr, "GFARM2FS version %s\n", VERSION);
 #if FUSE_VERSION >= 25
@@ -1734,8 +1745,6 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 		fuse_opt_add_arg(outargs, "-ho");
 		gfarm2fs_fuse_main(outargs, NULL);
 		exit(1);
-	case KEY_DISABLE_ACL:
-		paramsp->disable_acl = 1;
 	default:
 		return (0);
 	}
@@ -1762,6 +1771,7 @@ main(int argc, char *argv[])
 		.ncopy = 0,
 		.disable_acl = 0,      /* for debug */
 		.enable_cached_id = 0, /* for debug */
+		.fix_acl = 0,
 		.auto_uid_min = 70000,
 		.auto_uid_max = 79999,
 		.auto_gid_min = 70000,

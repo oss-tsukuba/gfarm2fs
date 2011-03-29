@@ -16,15 +16,8 @@
 #include "id.h"
 #include "acl.h"
 
-static const char ACL_EA_ACCESS[] = "system.posix_acl_access";
-static const char ACL_EA_DEFAULT[] = "system.posix_acl_default";
-
 #ifdef ENABLE_GFARM_ACL  /* with HAVE_SYS_ACL_H */
 #include <sys/acl.h>
-
-#define ACL_EA_VERSION  (0x0002) /* Linux ACL Version */
-
-static int enable_acl;
 
 #define ADD_BUF(src, size) \
 	do { \
@@ -44,9 +37,9 @@ static int enable_acl;
 
 /* to get ACL */
 static gfarm_error_t
-gfarm2fs_gfarm_acl_to_posix_acl_xattr(const char *url, const gfarm_acl_t acl,
-				      void **posix_xattr_value_p,
-				      size_t *sizep)
+gfarm2fs_gfarm_acl_to_posix_acl_xattr(
+	const char *url, const gfarm_acl_t acl,
+	void **posix_xattr_value_p, size_t *sizep)
 {
 	gfarm_error_t e;
 	void *buf;
@@ -144,9 +137,9 @@ gfarm2fs_gfarm_acl_to_posix_acl_xattr(const char *url, const gfarm_acl_t acl,
 
 /* to set ACL */
 static gfarm_error_t
-gfarm2fs_gfarm_acl_from_posix_acl_xattr(const char *url,
-					const void *posix_xattr_value,
-					size_t size, gfarm_acl_t *acl_p)
+gfarm2fs_gfarm_acl_from_posix_acl_xattr(
+	const char *url, const void *posix_xattr_value,
+	size_t size, gfarm_acl_t *acl_p)
 {
 	gfarm_error_t e;
 	gfarm_acl_t acl;
@@ -185,6 +178,7 @@ gfarm2fs_gfarm_acl_from_posix_acl_xattr(const char *url,
 		tag2 = gfarm_ltoh_16(tag);
 		/* posix_acl_tag to gfarm_acl_tag */
 		gfs_acl_set_tag_type(ent, tag2);
+
 		gfs_acl_get_permset(ent, &pset);
 		/* posix_acl_perm to gfarm_acl_perm */
 		gfs_acl_add_perm(pset, gfarm_ltoh_16(perm));
@@ -224,23 +218,14 @@ fail:
 	return (e);
 }
 
-gfarm_error_t
-gfarm2fs_acl_setxattr(const char *path, const char *name,
-		      const void *value, size_t size, int flags)
+/* ------------------------------- */
+
+static gfarm_error_t
+__acl_setxattr(const char *path, gfarm_acl_type_t type,
+	       const void *value, size_t size)
 {
 	gfarm_error_t e;
 	gfarm_acl_t acl;
-	gfarm_acl_type_t type;
-
-	if (strcmp(name, ACL_EA_ACCESS) == 0)
-		type = GFARM_ACL_TYPE_ACCESS;
-	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		type = GFARM_ACL_TYPE_DEFAULT;
-	else
-		return (gfs_lsetxattr(path, name, value, size, flags));
-
-	if (enable_acl == 0)
-		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
 
 	e = gfarm2fs_gfarm_acl_from_posix_acl_xattr(path, value, size, &acl);
 	if (e != GFARM_ERR_NO_ERROR) {
@@ -260,25 +245,14 @@ gfarm2fs_acl_setxattr(const char *path, const char *name,
 	return (e);
 }
 
-gfarm_error_t
-gfarm2fs_acl_getxattr(const char *path, const char *name,
-		 void *value, size_t *sizep)
+static gfarm_error_t
+__acl_getxattr(const char *path, gfarm_acl_type_t type,
+	       void *value, size_t *sizep)
 {
 	gfarm_error_t e;
 	gfarm_acl_t acl;
 	size_t size;
 	void *posix;
-	gfarm_acl_type_t type;
-
-	if (strcmp(name, ACL_EA_ACCESS) == 0)
-		type = GFARM_ACL_TYPE_ACCESS;
-	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		type = GFARM_ACL_TYPE_DEFAULT;
-	else
-		return (gfs_lgetxattr_cached(path, name, value, sizep));
-
-	if (enable_acl == 0)
-		return (GFARM_ERR_NO_SUCH_OBJECT);
 
 	e = gfs_acl_get_file_cached(path, type, &acl);
 	if (e != GFARM_ERR_NO_ERROR)
@@ -313,40 +287,110 @@ free_acl:
 	return (e);
 }
 
-gfarm_error_t
-gfarm2fs_acl_removexattr(const char *path, const char *name)
-{
-	const char *type;
+/* ------------------------------- */
 
+static gfarm_error_t
+normal_acl_setxattr(const char *path, const char *name,
+		    const void *value, size_t size, int flags)
+{
 	if (strcmp(name, ACL_EA_ACCESS) == 0)
-		type = GFARM_ACL_EA_ACCESS;
+		return (__acl_setxattr(path, GFARM_ACL_TYPE_ACCESS,
+				       value, size));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		type = GFARM_ACL_EA_DEFAULT;
+		return (__acl_setxattr(path, GFARM_ACL_TYPE_DEFAULT,
+				       value, size));
+	else
+		return (gfs_lsetxattr(path, name, value, size, flags));
+}
+
+static gfarm_error_t
+normal_acl_getxattr(const char *path, const char *name,
+		    void *value, size_t *sizep)
+{
+	if (strcmp(name, ACL_EA_ACCESS) == 0)
+		return (__acl_getxattr(path, GFARM_ACL_TYPE_ACCESS,
+				       value, sizep));
+	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
+		return (__acl_getxattr(path, GFARM_ACL_TYPE_DEFAULT,
+				       value, sizep));
+	else
+		return (gfs_lgetxattr_cached(path, name, value, sizep));
+}
+
+static gfarm_error_t
+normal_acl_removexattr(const char *path, const char *name)
+{
+	if (strcmp(name, ACL_EA_ACCESS) == 0)
+		return (gfs_lremovexattr(path, GFARM_ACL_EA_ACCESS));
+	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
+		return (gfs_lremovexattr(path, GFARM_ACL_EA_DEFAULT));
 	else
 		return (gfs_lremovexattr(path, name));
-
-	if (enable_acl == 0)
-		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
-
-	return (gfs_lremovexattr(path, type));
 }
 
-void
-gfarm2fs_acl_init(struct gfarm2fs_param *params)
-{
-	enable_acl = !params->disable_acl;
+/* ------------------------------- */
 
-	if (enable_acl) {
-		gfarm_xattr_caching_pattern_add(GFARM_ACL_EA_ACCESS);
-		gfarm_xattr_caching_pattern_add(GFARM_ACL_EA_DEFAULT);
-	}
-}
+/* for gfarm2fs_fix_acl command */
 
-#else /* ENABLE_GFARM_ACL */
-/* ----- disable ACL ----------------------------------------------- */
 gfarm_error_t
-gfarm2fs_acl_setxattr(const char *path, const char *name,
-		      const void *value, size_t size, int flags)
+fix_acl_setxattr(const char *path, const char *name,
+		       const void *value, size_t size, int flags)
+{
+	if (strcmp(name, FIX_ACL_ACCESS) == 0 ||
+	    strcmp(name, FIX_ACL_DEFAULT) == 0)
+		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
+	else if (strcmp(name, ACL_EA_ACCESS) == 0)
+		return (__acl_setxattr(path, GFARM_ACL_TYPE_ACCESS,
+				       value, size));
+	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
+		return (__acl_setxattr(path, GFARM_ACL_TYPE_DEFAULT,
+				       value, size));
+	else
+		return (gfs_lsetxattr(path, name, value, size, flags));
+}
+
+gfarm_error_t
+fix_acl_getxattr(const char *path, const char *name,
+		       void *value, size_t *sizep)
+{
+	if (strcmp(name, FIX_ACL_ACCESS) == 0)
+		return (gfs_lgetxattr_cached(path, ACL_EA_ACCESS,
+					     value, sizep));
+        else if (strcmp(name, FIX_ACL_DEFAULT) == 0)
+		return (gfs_lgetxattr_cached(path, ACL_EA_DEFAULT,
+					     value, sizep));
+	else if (strcmp(name, ACL_EA_ACCESS) == 0)
+		return (__acl_getxattr(path, GFARM_ACL_TYPE_ACCESS,
+				       value, sizep));
+	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
+		return (__acl_getxattr(path, GFARM_ACL_TYPE_DEFAULT,
+				       value, sizep));
+	else
+		return (gfs_lgetxattr_cached(path, name, value, sizep));
+}
+
+gfarm_error_t
+fix_acl_removexattr(const char *path, const char *name)
+{
+	if (strcmp(name, FIX_ACL_ACCESS) == 0)
+		return (gfs_lremovexattr(path, ACL_EA_ACCESS));
+	else if (strcmp(name, FIX_ACL_DEFAULT) == 0)
+		return (gfs_lremovexattr(path, ACL_EA_DEFAULT));
+	else if (strcmp(name, ACL_EA_ACCESS) == 0)
+		return (gfs_lremovexattr(path, GFARM_ACL_EA_ACCESS));
+	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
+		return (gfs_lremovexattr(path, GFARM_ACL_EA_DEFAULT));
+	else
+		return (gfs_lremovexattr(path, name));
+}
+
+#endif /* ENABLE_GFARM_ACL */
+
+/* ------------------------------- */
+
+static gfarm_error_t
+disable_acl_setxattr(const char *path, const char *name,
+		     const void *value, size_t size, int flags)
 {
 	if (strcmp(name, ACL_EA_ACCESS) == 0 ||
 	    strcmp(name, ACL_EA_DEFAULT) == 0)
@@ -355,9 +399,9 @@ gfarm2fs_acl_setxattr(const char *path, const char *name,
 		return (gfs_lsetxattr(path, name, value, size, flags));
 }
 
-gfarm_error_t
-gfarm2fs_acl_getxattr(const char *path, const char *name,
-		 void *value, size_t *sizep)
+static gfarm_error_t
+disable_acl_getxattr(const char *path, const char *name,
+		     void *value, size_t *sizep)
 {
 	if (strcmp(name, ACL_EA_ACCESS) == 0 ||
 	    strcmp(name, ACL_EA_DEFAULT) == 0)
@@ -366,16 +410,77 @@ gfarm2fs_acl_getxattr(const char *path, const char *name,
 		return (gfs_lgetxattr_cached(path, name, value, sizep));
 }
 
+static gfarm_error_t
+disable_acl_removexattr(const char *path, const char *name)
+{
+	return (gfs_lremovexattr(path, name));
+}
+
+/* ------------------------------- */
+
+struct gfarm2fs_acl_sw {
+	gfarm_error_t (*set)(const char *path, const char *name,
+			     const void *value, size_t size, int flags);
+	gfarm_error_t (*get)(const char *path, const char *name,
+			     void *value, size_t *sizep);
+	gfarm_error_t (*remove)(const char *path, const char *name);
+
+};
+
+#ifdef ENABLE_GFARM_ACL
+static struct gfarm2fs_acl_sw sw_normal = {
+	normal_acl_setxattr,
+	normal_acl_getxattr,
+	normal_acl_removexattr,
+};
+
+static struct gfarm2fs_acl_sw sw_fix_xattr = {
+	fix_acl_setxattr,
+	fix_acl_getxattr,
+	fix_acl_removexattr,
+};
+#endif /* ENABLE_GFARM_ACL */
+
+static struct gfarm2fs_acl_sw sw_disable = {
+	disable_acl_setxattr,
+	disable_acl_getxattr,
+	disable_acl_removexattr,
+};
+
+static struct gfarm2fs_acl_sw *funcs = &sw_disable;
+
+gfarm_error_t
+gfarm2fs_acl_setxattr(const char *path, const char *name,
+		      const void *value, size_t size, int flags)
+{
+	return ((*funcs->set)(path, name, value, size, flags));
+}
+
+gfarm_error_t
+gfarm2fs_acl_getxattr(const char *path, const char *name,
+		 void *value, size_t *sizep)
+{
+	return ((*funcs->get)(path, name, value, sizep));
+}
+
 gfarm_error_t
 gfarm2fs_acl_removexattr(const char *path, const char *name)
 {
-	return (gfs_lremovexattr(path, name));
+	return ((*funcs->remove)(path, name));
 }
 
 void
 gfarm2fs_acl_init(struct gfarm2fs_param *params)
 {
-	/* do nothing */
+#ifdef ENABLE_GFARM_ACL
+	if (params->disable_acl)
+		funcs = &sw_disable;
+	else if (params->fix_acl)
+		funcs = &sw_fix_xattr;
+	else {
+		funcs = &sw_normal;
+		gfarm_xattr_caching_pattern_add(GFARM_ACL_EA_ACCESS);
+		gfarm_xattr_caching_pattern_add(GFARM_ACL_EA_DEFAULT);
+	}
+#endif
 }
-
-#endif /* ENABLE_GFARM_ACL */
