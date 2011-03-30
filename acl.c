@@ -221,8 +221,8 @@ fail:
 /* ------------------------------- */
 
 static gfarm_error_t
-__acl_setxattr(const char *path, gfarm_acl_type_t type,
-	       const void *value, size_t size)
+acl_setxattr_internal(const char *path, gfarm_acl_type_t type,
+		      const void *value, size_t size)
 {
 	gfarm_error_t e;
 	gfarm_acl_t acl;
@@ -246,8 +246,8 @@ __acl_setxattr(const char *path, gfarm_acl_type_t type,
 }
 
 static gfarm_error_t
-__acl_getxattr(const char *path, gfarm_acl_type_t type,
-	       void *value, size_t *sizep)
+acl_getxattr_internal(const char *path, gfarm_acl_type_t type,
+		      void *value, size_t *sizep)
 {
 	gfarm_error_t e;
 	gfarm_acl_t acl;
@@ -294,11 +294,11 @@ normal_acl_setxattr(const char *path, const char *name,
 		    const void *value, size_t size, int flags)
 {
 	if (strcmp(name, ACL_EA_ACCESS) == 0)
-		return (__acl_setxattr(path, GFARM_ACL_TYPE_ACCESS,
-				       value, size));
+		return (acl_setxattr_internal(path, GFARM_ACL_TYPE_ACCESS,
+					      value, size));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		return (__acl_setxattr(path, GFARM_ACL_TYPE_DEFAULT,
-				       value, size));
+		return (acl_setxattr_internal(path, GFARM_ACL_TYPE_DEFAULT,
+					      value, size));
 	else
 		return (gfs_lsetxattr(path, name, value, size, flags));
 }
@@ -308,11 +308,11 @@ normal_acl_getxattr(const char *path, const char *name,
 		    void *value, size_t *sizep)
 {
 	if (strcmp(name, ACL_EA_ACCESS) == 0)
-		return (__acl_getxattr(path, GFARM_ACL_TYPE_ACCESS,
-				       value, sizep));
+		return (acl_getxattr_internal(path, GFARM_ACL_TYPE_ACCESS,
+					      value, sizep));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		return (__acl_getxattr(path, GFARM_ACL_TYPE_DEFAULT,
-				       value, sizep));
+		return (acl_getxattr_internal(path, GFARM_ACL_TYPE_DEFAULT,
+					      value, sizep));
 	else
 		return (gfs_lgetxattr_cached(path, name, value, sizep));
 }
@@ -340,11 +340,11 @@ fix_acl_setxattr(const char *path, const char *name,
 	    strcmp(name, FIX_ACL_DEFAULT) == 0)
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
 	else if (strcmp(name, ACL_EA_ACCESS) == 0)
-		return (__acl_setxattr(path, GFARM_ACL_TYPE_ACCESS,
-				       value, size));
+		return (acl_setxattr_internal(path, GFARM_ACL_TYPE_ACCESS,
+					      value, size));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		return (__acl_setxattr(path, GFARM_ACL_TYPE_DEFAULT,
-				       value, size));
+		return (acl_setxattr_internal(path, GFARM_ACL_TYPE_DEFAULT,
+					      value, size));
 	else
 		return (gfs_lsetxattr(path, name, value, size, flags));
 }
@@ -360,11 +360,11 @@ fix_acl_getxattr(const char *path, const char *name,
 		return (gfs_lgetxattr_cached(path, ACL_EA_DEFAULT,
 					     value, sizep));
 	else if (strcmp(name, ACL_EA_ACCESS) == 0)
-		return (__acl_getxattr(path, GFARM_ACL_TYPE_ACCESS,
-				       value, sizep));
+		return (acl_getxattr_internal(path, GFARM_ACL_TYPE_ACCESS,
+					      value, sizep));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
-		return (__acl_getxattr(path, GFARM_ACL_TYPE_DEFAULT,
-				       value, sizep));
+		return (acl_getxattr_internal(path, GFARM_ACL_TYPE_DEFAULT,
+					      value, sizep));
 	else
 		return (gfs_lgetxattr_cached(path, name, value, sizep));
 }
