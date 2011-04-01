@@ -87,17 +87,17 @@ gfarm2fs_id_init(struct gfarm2fs_param *params)
 	auto_gid_min = params->auto_gid_min;
 	auto_gid_max = params->auto_gid_max;
 
-	if (auto_uid_min > auto_uid_max) {
+	if (auto_uid_min >= auto_uid_max) {
 		gflog_error(GFARM_MSG_UNFIXED,
 			    "illegal parameter: "
-			    "auto_uid_min(%d) > auto_uid_max(%d)",
+			    "auto_uid_min(%d) >= auto_uid_max(%d)",
 			    auto_uid_min, auto_uid_max);
 		exit(1);
 	}
-	if (auto_gid_min > auto_gid_max) {
+	if (auto_gid_min >= auto_gid_max) {
 		gflog_error(GFARM_MSG_UNFIXED,
 			    "illegal parameter: "
-			    "auto_gid_min(%d) > auto_gid_max(%d)",
+			    "auto_gid_min(%d) >= auto_gid_max(%d)",
 			    auto_gid_min, auto_gid_max);
 		exit(1);
 	}
@@ -370,7 +370,7 @@ global_name_to_local_id(
 			(*next_auto_id_p)++;
 		} while (*return_id_p + 1 != *next_auto_id_p);
 
-		if (*return_id_p > *id_max_p) {
+		if (*return_id_p >= *id_max_p) {
 			char *type = (hash_id_to_name == hash_uid_to_user ?
 				      "uid" : "gid");
 			gflog_warning(GFARM_MSG_UNFIXED,
@@ -486,7 +486,7 @@ gfarm2fs_get_nobody_uid()
 
 	if (pwd != NULL)
 		return (pwd->pw_uid);
-	return (0); /* root */
+	return (auto_uid_max);
 }
 
 gid_t
@@ -496,5 +496,5 @@ gfarm2fs_get_nogroup_gid()
 
 	if (grp != NULL)
 		return (grp->gr_gid);
-	return (0); /* root */
+	return (auto_gid_max);
 }
