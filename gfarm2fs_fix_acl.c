@@ -29,6 +29,7 @@
 
 #include "gfarm2fs.h"
 #include "acl.h"
+#include "xattr.h"
 
 static char *progname = "gfarm2fs_fix_acl";
 
@@ -135,7 +136,7 @@ check_acl_access(const char *path, struct stat *stbufp,
 		mode = (stbufp->st_mode & 07000) | mode;
 		printf("%s (%o): %s\n", ACL_EA_ACCESS, mode, path);
 		if (do_chmod) {
-			res = chmod(path ,mode);
+			res = chmod(path, mode);
 			if (res == -1) {
 				fprintf(stderr, "%s: chmod(): %s\n",
 					path, strerror(errno));
@@ -209,7 +210,7 @@ main(int argc, char **argv)
 	int do_chmod = 0, do_remove = 0, error = 0;
 
 	if (argc > 0)
-                progname = basename(argv[0]);
+		progname = basename(argv[0]);
 	while ((c = getopt(argc, argv, "crh?")) != -1) {
 		switch (c) {
 		case 'c':

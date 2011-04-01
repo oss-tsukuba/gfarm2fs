@@ -55,7 +55,7 @@
 #include <gfarm2fs.h>
 #include <replicate.h>
 #include <open_file.h>
-#include "acl.h"
+#include "xattr.h"
 #include "id.h"
 #include "gfarm2fs_msg_enums.h"
 
@@ -1171,7 +1171,7 @@ gfarm2fs_setxattr(const char *path, const char *name, const char *value,
 		break;
 	}
 	/* include gfs_lsetxattr() */
-	e = gfarm2fs_acl_setxattr(gfarmized.path, name, value, size, gflags);
+	e = gfarm2fs_xattr_set(gfarmized.path, name, value, size, gflags);
 	gfarm2fs_check_error(GFARM_MSG_2000036, OP_SETXATTR,
 			     "gfs_lsetxattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
@@ -1185,9 +1185,6 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 	struct gfarmized_path gfarmized;
 	size_t s = size;
 
-	if (strcmp(name, "security.selinux") == 0)
-		return (-ENODATA); /* ignore */
-
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000083, OP_GETXATTR,
@@ -1195,7 +1192,7 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 		return (-gfarm_error_to_errno(e));
 	}
 	/* include gfs_lgetxattr_cached() */
-	e = gfarm2fs_acl_getxattr(gfarmized.path, name, value, &s);
+	e = gfarm2fs_xattr_get(gfarmized.path, name, value, &s);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		/*
 		 * NOTE: man getxattr(2) says that ENOATTR must be returned,
@@ -1259,7 +1256,7 @@ gfarm2fs_removexattr(const char *path, const char *name)
 		return (-gfarm_error_to_errno(e));
 	}
 	/* include gfs_lremovexattr() */
-	e = gfarm2fs_acl_removexattr(gfarmized.path, name);
+	e = gfarm2fs_xattr_remove(gfarmized.path, name);
 	gfarm2fs_check_error(GFARM_MSG_2000039, OP_REMOVEXATTR,
 			     "gfs_lremovexattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
@@ -1855,7 +1852,7 @@ main(int argc, char *argv[])
 
 	gfarm2fs_replicate_init(&params);
 	gfarm2fs_open_file_init();
-	gfarm2fs_acl_init(&params);
+	gfarm2fs_xattr_init(&params);
 	gfarm2fs_id_init(&params);
 
 	setup_dumper();
