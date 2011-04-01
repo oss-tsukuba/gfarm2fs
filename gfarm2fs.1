@@ -1,10 +1,10 @@
-.TH "GFARM2FS" "1" "4 March 2011" "Gfarm" ""
+.TH "GFARM2FS" "1" "2 April 2011" "Gfarm" ""
 
 .SH NAME
 gfarm2fs \- mount a Gfarm file system
 
 .SH SYNOPSIS
-\fBgfarm2fs\fR \fBmount_point\fR [ \fBFUSE options\fR ]
+\fBgfarm2fs\fR \fBmount_point\fR [ \fBoptions\fR ]
 
 .SH "DESCRIPTION"
 .PP
@@ -57,6 +57,10 @@ specify the minimum number of GIDs generated automatically.
 \fB-o auto_gid_max=\fIN\fB\fR
 specify the maximum number of GIDs generated automatically.
 
+.SH "FUSE OPTIONS"
+.PP
+see \fBgfarm2fs -h\fR
+
 .SH "ENVIRONMENT VARIABLE"
 .TP
 \fBGFARM_CONFIG_FILE\fR
@@ -71,3 +75,21 @@ GID) is generated automatically on gfarm2fs.
 If UIDs/GIDs are generated automatically over the
 \fBauto_{uid,gid}_max\fR number, the setfacl command might fail
 (\fBEPERM\fR).
+
+.SH "SECURITY NOTES"
+.PP
+When untrusted users are registered in the \fBgfarmroot\fR group or
+\fBgfarm_root.{user,group}\fR extended attributes of any files or
+directories, a Security Hole exists on the mount point of gfarm2fs
+with "\fB-o suid,allow_other\fR" option executed by root (even if
+either "\fB-o ro\fR" option or "\fB-o default_permissions\fR" option
+is also specified).  Therefore both "\fB-o suid,allow_other\fR" option
+and \fBgfarm_root.{user,group}\fR extended attributes should not be
+used.
+
+.SH "SEE ALSO"
+.PP
+\fBfusermount\fR(1),
+\fBgfarm_attr\fR(5),
+\fBgfarm2.conf\fR(5),
+\fBmount\fR(8)
