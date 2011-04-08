@@ -11521,7 +11521,7 @@ _ACEOF
   LIBS="-lgfarm $LIBS"
 
 else
-  as_fn_error $? "Gfarm-2.4.1 or later is required" "$LINENO" 5
+  as_fn_error $? "Gfarm-2.4.2 or later is required" "$LINENO" 5
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fuse_opt_parse" >&5
