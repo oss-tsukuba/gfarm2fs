@@ -853,9 +853,15 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 				     "gfarm2fs_get_group", path, e);
 		goto end;
 	}
+#ifdef HAVE_GFS_LCHOWN
+	e = gfs_lchown(gfarmized.path, user, group);
+	gfarm2fs_check_error(GFARM_MSG_2000020, OP_CHOWN,
+			     "gfs_lchown", gfarmized.path, e);
+#else
 	e = gfs_chown(gfarmized.path, user, group);
 	gfarm2fs_check_error(GFARM_MSG_2000020, OP_CHOWN,
 			     "gfs_chown", gfarmized.path, e);
+#endif
 end:
 	free_gfarmized_path(&gfarmized);
 	free(user);
