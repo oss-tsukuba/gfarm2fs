@@ -1,3 +1,23 @@
+Release note for Gfarm2fs 1.2.3
+===============================
+
+[2011.4.22]
+
+New Feature
+* extended Access Control List (ACL) based on POSIX 1003.1e DRAFT 17
+* gfarm2fs_fix_acl.sh - fix incorrect ACL extended attribute when
+  using Gfarm 2.4.1 or earlier
+* support NetBSD [sf.net trac #207]
+
+Documentation
+* manual page - gfarm2fs(1)
+
+New Command-line Option
+* auto_uid_min, auto_uid_max, auto_gid_min, and auto_gid_max options
+
+Updated feature
+* automatic uid/gid mapping
+
 Release note for Gfarm2fs 1.2.2
 ===============================
 
