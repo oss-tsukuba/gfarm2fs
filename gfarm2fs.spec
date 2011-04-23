@@ -1,7 +1,7 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.2
-Release: 2%{?dist}
+Version: 1.2.3
+Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
 URL: http://sourceforge.net/projects/gfarm/
@@ -37,6 +37,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mandir}
 
 %changelog
+* Sat Apr 23 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.3-1
+- extended ACL support
+
 * Fri Mar  4 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.2-2
 - configure option can be specified by GFARM2FS_CONFIGURE_OPTION
 - install manual page
