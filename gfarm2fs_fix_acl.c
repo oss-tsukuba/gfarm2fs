@@ -19,7 +19,8 @@
 #undef PACKAGE_VERSION
 #include <gfarm/gfarm.h>
 
-#if defined(HAVE_SYS_ACL_H) && defined(HAVE_SYS_XATTR_H)
+#if defined(HAVE_SYS_ACL_H) && defined(HAVE_SYS_XATTR_H) && \
+	defined(ENABLE_XATTR)
 #define ENABLE_ACL
 #endif
 

@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
