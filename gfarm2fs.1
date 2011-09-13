@@ -45,6 +45,10 @@ specify the maximum number of concurrent copy
 creations.  this is effective if automatic replication
 is enabled.  default is 0.
 .TP
+\fB-o genuine_nlink\fR
+changes st_nlink of struct stat for directories from a faked value (32000)
+to genuine one. default is disabled to avoid a problem until gfarm-2.4.2.
+.TP
 \fB-o auto_uid_min=\fIN\fB\fR
 specify the minimum number of UIDs generated automatically.
 .TP
