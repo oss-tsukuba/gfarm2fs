@@ -19,6 +19,7 @@ struct gfarm2fs_param {
 	int auto_uid_max;
 	int auto_gid_min;
 	int auto_gid_max;
+	int genuine_nlink;
 };
 
 struct gfarmized_path {

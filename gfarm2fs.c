@@ -352,11 +352,18 @@ get_gid(const char *gpath, char *group)
 }
 
 static int
-get_nlink(struct gfs_stat *st)
+get_faked_nlink(struct gfs_stat *st)
 {
-	/* XXX FIXME */
 	return (GFARM_S_ISDIR(st->st_mode) ? 32000 : st->st_nlink);
 }
+
+static int
+get_genuine_nlink(struct gfs_stat *st)
+{
+	return (st->st_nlink);
+}
+
+static int (*get_nlink)(struct gfs_stat *st) = get_faked_nlink;
 
 static void
 copy_gfs_stat(const char *gpath, struct stat *dst, struct gfs_stat *src)
@@ -397,7 +404,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 			stbuf->st_dev = GFS_DEV;
 			stbuf->st_ino = 1;
 			stbuf->st_mode = S_IFDIR | 0111;
-			stbuf->st_nlink = 1;
+			stbuf->st_nlink = 1; /* tell find(1) to ignore nlink */
 			stbuf->st_uid = 0;
 			stbuf->st_gid = 0;
 			stbuf->st_size = 1024;
@@ -1628,6 +1635,7 @@ enum {
 	KEY_FIX_ACL,
 	KEY_DISABLE_ACL,
 	KEY_ENABLE_CACHED_ID,
+	KEY_GENUINE_NLINK,
 };
 
 #define GFARM2FS_OPT(t, p, v) \
@@ -1651,6 +1659,7 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("fix_acl", KEY_FIX_ACL),
 	FUSE_OPT_KEY("disable_acl", KEY_DISABLE_ACL), /* for debug */
 	FUSE_OPT_KEY("enable_cached_id", KEY_ENABLE_CACHED_ID), /* for debug */
+	GFARM2FS_OPT("genuine_nlink", genuine_nlink, KEY_GENUINE_NLINK),
 	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_uid_max=%d", auto_uid_max, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_gid_min=%d", auto_gid_min, KEY_GFARM2FS_OPT),
@@ -1678,6 +1687,7 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "                            (default: 0 - disable replication)\n"
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
 "                            (default: %d)\n"
+"    -o genuine_nlink        use st_nlink from gfmd, instead of faked one\n"
 "    -o auto_uid_min=N       minimum number of auto uid (default: %d)\n"
 "    -o auto_uid_max=N       maximum number of auto uid (default: %d)\n"
 "    -o auto_gid_min=N       minimum number of auto gid (default: %d)\n"
@@ -1736,6 +1746,9 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 	case KEY_ENABLE_CACHED_ID:
 		paramsp->enable_cached_id = 1;
 		return (0);
+	case KEY_GENUINE_NLINK:
+		paramsp->genuine_nlink = 1;
+		return (0);
 	case KEY_VERSION:
 		fprintf(stderr, "GFARM2FS version %s\n", VERSION);
 #if FUSE_VERSION >= 25
@@ -1774,6 +1787,7 @@ main(int argc, char *argv[])
 		.ncopy = 0,
 		.disable_acl = 0,      /* for debug */
 		.enable_cached_id = 0, /* for debug */
+		.genuine_nlink = 0,
 		.fix_acl = 0,
 		.auto_uid_min = 70000,
 		.auto_uid_max = 79999,
@@ -1854,6 +1868,10 @@ main(int argc, char *argv[])
 		gfs_stat_cache_enable(0); /* disable cache */
 		operation_mode = &gfarm2fs_oper;
 	}
+
+	if (params.genuine_nlink)
+		get_nlink = get_genuine_nlink;
+
 	/* end of setting params */
 
 	gfarm2fs_replicate_init(&params);
