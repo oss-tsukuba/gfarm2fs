@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.4
 ===============================
 
-[2011.9.15]
+[2011.9.14]
 
 Updated feature
 * -o genuine_nlink to use struct stat:st_nlink from gfmd
