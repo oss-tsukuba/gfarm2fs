@@ -1,3 +1,14 @@
+Release note for Gfarm2fs 1.2.4
+===============================
+
+[2011.9.15]
+
+Updated feature
+* -o genuine_nlink to use struct stat:st_nlink from gfmd
+
+Bug fix
+* fix compilation errors on MacOS X 10.7 Lion
+
 Release note for Gfarm2fs 1.2.3
 ===============================
 
