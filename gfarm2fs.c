@@ -278,8 +278,7 @@ parent_path(const char *path, struct gfarmized_path *gfarmized)
  *	/MOUNT/POINT/.gfarm/host:port/PATH/NAME
  */
 static gfarm_error_t
-gfarmize_symlink_old(const char *old, const char *new,
-	struct gfarmized_path *gfarmized_old)
+gfarmize_symlink_old(const char *old, struct gfarmized_path *gfarmized_old)
 {
 	if (gfarm_is_url(old)) {
 		gfarmized_old->path = (char *)old;	/* UNCONST */
@@ -744,17 +743,25 @@ static int
 gfarm2fs_symlink(const char *old, const char *new)
 {
 	gfarm_error_t e;
-	struct gfarmized_path gfarmized_old;
+	struct gfarmized_path gfarmized_old, gfarmized_new;
 
-	e = gfarmize_symlink_old(old, new, &gfarmized_old);
+	e = gfarmize_symlink_old(old, &gfarmized_old);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000071, OP_SYMLINK,
-				     "gfarmize_symlink_old", new, e);
+				     "gfarmize_symlink_old", old, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_symlink(gfarmized_old.path, new);
+	e = gfarmize_path(new, &gfarmized_new);
+	if (e != GFARM_ERR_NO_ERROR) {
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_SYMLINK,
+				     "gfarmize_symlink_new", new, e);
+		free_gfarmized_path(&gfarmized_old);
+		return (-gfarm_error_to_errno(e));
+	}
+	e = gfs_symlink(gfarmized_old.path, gfarmized_new.path);
 	gfarm2fs_check_error(GFARM_MSG_2000016, OP_SYMLINK,
 			     "gfs_symlink", new, e);
+	free_gfarmized_path(&gfarmized_new);
 	free_gfarmized_path(&gfarmized_old);
 	return (-gfarm_error_to_errno(e));
 }
