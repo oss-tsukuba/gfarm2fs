@@ -1,6 +1,6 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.4
+Version: 1.2.5
 Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
@@ -37,6 +37,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mandir}
 
 %changelog
+* Mon Dec 19 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.5-1
+- fix symlink problem
+
 * Sat Apr 23 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.3-1
 - extended ACL support
 
