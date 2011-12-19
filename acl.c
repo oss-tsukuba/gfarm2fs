@@ -24,7 +24,7 @@
 	do { \
 		if (nowlen + size > bufsize) { \
 			/* unexpected */ \
-			gflog_error(GFARM_MSG_UNFIXED, \
+			gflog_error(GFARM_MSG_2000095, \
 				    "unexpected acl entries size"); \
 			free(buf); \
 			return (GFARM_ERR_INVALID_ARGUMENT); \
@@ -57,7 +57,7 @@ gfarm2fs_gfarm_acl_to_posix_acl_xattr(
 	int bool;
 
 	if (acl == NULL || posix_xattr_value_p == NULL || sizep == NULL) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000096,
 			    "invalid argument of "
 			    "gfarm2fs_gfarm_acl_to_posix_acl_xattr()");
 		return (GFARM_ERR_INVALID_ARGUMENT);
@@ -66,7 +66,7 @@ gfarm2fs_gfarm_acl_to_posix_acl_xattr(
 	bufsize = ACL_BUFSIZE(acl);
 	GFARM_MALLOC_ARRAY(buf, bufsize);
 	if (buf == NULL) {
-		gflog_debug(GFARM_MSG_UNFIXED, "no memory for getting ACL");
+		gflog_debug(GFARM_MSG_2000097, "no memory for getting ACL");
 		return (GFARM_ERR_NO_MEMORY);
 	}
 
@@ -230,7 +230,7 @@ gfarm2fs_acl_set(const char *path, gfarm_acl_type_t type,
 
 	e = gfarm2fs_gfarm_acl_from_posix_acl_xattr(path, value, size, &acl);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000098,
 			"gfarm2fs_gfarm_acl_from_posix_acl_xattr(%s) failed"
 			": %s", path, gfarm_error_string(e));
 		return (e);
@@ -238,7 +238,7 @@ gfarm2fs_acl_set(const char *path, gfarm_acl_type_t type,
 	gfs_acl_sort(acl);
 	e = gfs_acl_set_file(path, type, acl);
 	if (e != GFARM_ERR_NO_ERROR)
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000099,
 			    "gfs_acl_set_file(%s) failed: %s",
 			    path, gfarm_error_string(e));
 	gfs_acl_free(acl);
@@ -266,14 +266,14 @@ gfarm2fs_acl_get(const char *path, gfarm_acl_type_t type,
 
 	e = gfarm2fs_gfarm_acl_to_posix_acl_xattr(path, acl, &posix, &size);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000100,
 			"gfarm2fs_gfarm_acl_to_posix_acl_xattr() failed: %s",
 			gfarm_error_string(e));
 		goto free_acl;
 	}
 	if (size > *sizep) {
 		e = GFARM_ERR_RESULT_OUT_OF_RANGE;
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000101,
 			    "unexpected error: acl size > buf size");
 		goto free_posix;
 	}

@@ -88,14 +88,14 @@ gfarm2fs_id_init(struct gfarm2fs_param *params)
 	auto_gid_max = params->auto_gid_max;
 
 	if (auto_uid_min >= auto_uid_max) {
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000102,
 			    "illegal parameter: "
 			    "auto_uid_min(%d) >= auto_uid_max(%d)",
 			    auto_uid_min, auto_uid_max);
 		exit(1);
 	}
 	if (auto_gid_min >= auto_gid_max) {
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000103,
 			    "illegal parameter: "
 			    "auto_gid_min(%d) >= auto_gid_max(%d)",
 			    auto_gid_min, auto_gid_max);
@@ -116,7 +116,7 @@ gfarm2fs_id_init(struct gfarm2fs_param *params)
 		gfarm_hash_key_equal_strptr);
 	if (hash_uid_to_user == NULL || hash_gid_to_group == NULL ||
 	    hash_user_to_uid == NULL || hash_group_to_gid == NULL)
-		gflog_fatal(GFARM_MSG_UNFIXED, "no memory for id hashtab");
+		gflog_fatal(GFARM_MSG_2000104, "no memory for id hashtab");
 
 	next_auto_uid = (sig_atomic_t) auto_uid_min;
 	next_auto_gid = (sig_atomic_t) auto_gid_min;
@@ -132,7 +132,7 @@ global_user_to_local_uid(
 
 	if ((e = gfarm_get_global_username_by_url(url, &guser))
 	    != GFARM_ERR_NO_ERROR) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000105,
 			    "gfarm_get_global_username_by_url() failed: %s",
 			    gfarm_error_string(e));
 		return (e);
@@ -185,7 +185,7 @@ local_uid_to_global_user(const char *url, gfarm_uint32_t uid, char **userp)
 	if (uid == (gfarm_uint32_t)getuid()) {
 		e = gfarm_get_global_username_by_url(url, userp);
 		if (e != GFARM_ERR_NO_ERROR)
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000106,
 			    "gfarm_get_global_username_by_url() failed: %s",
 			    gfarm_error_string(e));
 		return (e);
@@ -239,7 +239,7 @@ auto_id_to_name(struct gfarm_hash_table *id_to_name,
 	if (entry != NULL) {
 		*namep = strdup(*(char **)gfarm_hash_entry_data(entry));
 		if (*namep == NULL) {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000107,
 				    "no memory for auto uid/gid");
 			return (GFARM_ERR_NO_MEMORY);
 		}
@@ -284,7 +284,7 @@ id_and_name_enter(gfarm_uint32_t id, const char *name,
 		gfarm_hash_purge(hash_id_to_name, &id, sizeof(gfarm_uint32_t));
 		gfarm_hash_purge(hash_name_to_id, &str, sizeof(str));
 		free(str);
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000108,
 			    "unexpected: inconsistent auto %s(name=%s)",
 			    type, name);
 		return (GFARM_ERR_ALREADY_EXISTS);
@@ -317,7 +317,7 @@ id_and_name_enter(gfarm_uint32_t id, const char *name,
 #endif
 	return (GFARM_ERR_NO_ERROR);
 nomem:
-	gflog_error(GFARM_MSG_UNFIXED,
+	gflog_error(GFARM_MSG_2000109,
 		    "no memory for auto %s(name=%s)", type, name);
 	return (GFARM_ERR_NO_MEMORY);
 }
@@ -373,7 +373,7 @@ global_name_to_local_id(
 		if (*return_id_p >= *id_max_p) {
 			char *type = (hash_id_to_name == hash_uid_to_user ?
 				      "uid" : "gid");
-			gflog_warning(GFARM_MSG_UNFIXED,
+			gflog_warning(GFARM_MSG_2000110,
 				      "lack of auto_%s: name=%s", type, name);
 			return (GFARM_ERR_OPERATION_NOT_PERMITTED); /* EPERM */
 		}
@@ -449,7 +449,7 @@ gfarm2fs_get_user(const char *url, uid_t uid, char **userp)
 
 	e = auto_id_to_name(hash_uid_to_user, (gfarm_uint32_t)uid, userp);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000111,
 			    "cannot convert uid(%d) to gfarm username", uid);
 		return (GFARM_ERR_OPERATION_NOT_PERMITTED); /* EPERM */
 	} else
@@ -472,7 +472,7 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 
 	e = auto_id_to_name(hash_gid_to_group, (gfarm_uint32_t)gid, groupp);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000112,
 			    "cannot convert gid(%d) to gfarm groupname", gid);
 		return (GFARM_ERR_OPERATION_NOT_PERMITTED); /* EPERM */
 	} else

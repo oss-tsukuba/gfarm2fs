@@ -326,7 +326,7 @@ get_uid(const char *gpath, char *user)
 
 	e = gfarm2fs_get_uid(gpath, user, &uid);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_warning(GFARM_MSG_UNFIXED,
+		gflog_warning(GFARM_MSG_2000089,
 			      "get_uid(%s) failed: %s",
 			      user, gfarm_error_string(e));
 		return (gfarm2fs_get_nobody_uid());
@@ -342,7 +342,7 @@ get_gid(const char *gpath, char *group)
 
 	e = gfarm2fs_get_gid(gpath, group, &gid);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_warning(GFARM_MSG_UNFIXED,
+		gflog_warning(GFARM_MSG_2000090,
 			      "get_gid(%s) failed: %s",
 			      group, gfarm_error_string(e));
 		return (gfarm2fs_get_nogroup_gid());
@@ -452,7 +452,7 @@ gfarm2fs_fgetattr(const char *path, struct stat *stbuf,
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FGETATTR,
+		gfarm2fs_check_error(GFARM_MSG_2000091, OP_FGETATTR,
 					"gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -753,7 +753,7 @@ gfarm2fs_symlink(const char *old, const char *new)
 	}
 	e = gfarmize_path(new, &gfarmized_new);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_SYMLINK,
+		gfarm2fs_check_error(GFARM_MSG_2000092, OP_SYMLINK,
 				     "gfarmize_symlink_new", new, e);
 		free_gfarmized_path(&gfarmized_old);
 		return (-gfarm_error_to_errno(e));
@@ -855,7 +855,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	if (uid != -1 &&
 	    ((e = gfarm2fs_get_user(gfarmized.path, uid, &user))
 	     != GFARM_ERR_NO_ERROR)) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CHOWN,
+		gfarm2fs_check_error(GFARM_MSG_2000093, OP_CHOWN,
 				     "gfarm2fs_get_user", path, e);
 		goto end;
 	}
@@ -863,7 +863,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	if (gid != -1 &&
 	    ((e = gfarm2fs_get_group(gfarmized.path, gid, &group))
 	     != GFARM_ERR_NO_ERROR)) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CHOWN,
+		gfarm2fs_check_error(GFARM_MSG_2000094, OP_CHOWN,
 				     "gfarm2fs_get_group", path, e);
 		goto end;
 	}
