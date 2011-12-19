@@ -17,6 +17,7 @@
 #include "gfarm2fs.h"
 #include "id.h"
 #include "hash.h"
+#include "gfarm2fs_msg_enums.h"
 
 static struct gfarm_hash_table *hash_uid_to_user;
 static struct gfarm_hash_table *hash_gid_to_group;
