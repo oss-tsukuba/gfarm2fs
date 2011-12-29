@@ -16,6 +16,7 @@
 #include "gfarm2fs.h"
 #include "id.h"
 #include "acl.h"
+#include "gfarm2fs_msg_enums.h"
 
 #ifdef ENABLE_GFARM_ACL  /* with HAVE_SYS_ACL_H */
 #include <sys/acl.h>
