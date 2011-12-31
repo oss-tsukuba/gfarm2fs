@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.6
 ===============================
 
-[2011.12.30]
+[2011.12.31]
 
 Bug fix
 * fix compilation error when Gfarm ACL is enabled, introduced in the
