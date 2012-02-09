@@ -575,18 +575,31 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	GFS_Dir dp = get_dirp(fi);
 	struct gfs_dirent *de;
 	struct stat st;
-	/* gfarm_off_t off = 0; */
-	gfarm_error_t e;
+	gfarm_off_t off = 0;
+	int seekdir_works = 0;
+	gfarm_error_t e, e2;
 
 	(void) path;
-	/* XXX gfs_seekdir(dp, offset); */
+	e2 = gfs_seekdir(dp, offset);
+	if (e2 == GFARM_ERR_NO_ERROR) {
+		seekdir_works = 1;
+	} else if (e2 != GFARM_ERR_FUNCTION_NOT_IMPLEMENTED) {
+		/* was GFARM_ERR_FUNCTION_NOT_IMPLEMENTED until gfarm-2.5.4 */
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READDIR,
+				     "gfs_seekdir", path, e2);
+	}
+		
 	while ((e = gfs_readdir(dp, &de)) == GFARM_ERR_NO_ERROR &&
 		de != NULL) {
 		memset(&st, 0, sizeof(st));
 		st.st_ino = de->d_fileno;
 		st.st_mode = de->d_type << 12;
-		/* XXX (void)gfs_telldir(dp, &off); */
-		if (filler(buf, de->d_name, &st, 0))
+		if (seekdir_works) {
+			e2 = gfs_telldir(dp, &off);
+			gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READDIR,
+					     "gfs_telldir", path, e2);
+		}
+		if (filler(buf, de->d_name, &st, off))
 			break;
 	}
 	gfarm2fs_check_error(GFARM_MSG_2000006, OP_READDIR,
