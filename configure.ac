@@ -13,7 +13,7 @@ AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_LIBTOOL
+LT_INIT
 
 ### --with-gfarm=GFARM_ROOT
 AC_MSG_CHECKING([for Gfarm file system])
@@ -24,7 +24,7 @@ case x$with_gfarm in
 esac
 if test x"$with_gfarm" != x/usr; then
   CPPFLAGS="$CPPFLAGS -I$with_gfarm/include"
-  LDFLAGS="$LDFLAGS -R$with_gfarm/lib -L$with_gfarm/lib"
+  LDFLAGS="$LDFLAGS -L$with_gfarm/lib"
 fi
 AC_MSG_RESULT([$with_gfarm])
 
