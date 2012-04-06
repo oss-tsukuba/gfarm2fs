@@ -13,7 +13,7 @@ AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC
-LT_INIT
+AC_PROG_LIBTOOL
 
 ### --with-gfarm=GFARM_ROOT
 AC_MSG_CHECKING([for Gfarm file system])
