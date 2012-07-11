@@ -902,6 +902,7 @@ gfarm2fs_truncate(const char *path, off_t size)
 	gfarm_error_t e, e2;
 	struct gfarmized_path gfarmized;
 	GFS_File gf;
+	int flags = GFARM_FILE_WRONLY;
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
@@ -909,7 +910,9 @@ gfarm2fs_truncate(const char *path, off_t size)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfs_pio_open(gfarmized.path, GFARM_FILE_WRONLY, &gf);
+	if (size == 0)
+		flags |= GFARM_FILE_TRUNC;
+	e = gfs_pio_open(gfarmized.path, flags, &gf);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000021, OP_TRUNCATE,
 				     "gfs_pio_open", gfarmized.path, e);
