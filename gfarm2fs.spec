@@ -1,6 +1,6 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.6
+Version: 1.2.7
 Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
@@ -37,6 +37,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mandir}
 
 %changelog
+* Mon Sep  3 2012 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.7-1
+- support file overwrite under no file replica
+- support ubuntu 11.10 or later
+
 * Mon Dec 19 2011 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.5-1
 - fix symlink problem
 

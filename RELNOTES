@@ -1,3 +1,12 @@
+Release note for Gfarm2fs 1.2.7
+===============================
+
+[2012.9.3]
+
+Updated feature
+* support file overwrite under no file replica
+* support ubuntu 11.10 or later
+
 Release note for Gfarm2fs 1.2.6
 ===============================
 
