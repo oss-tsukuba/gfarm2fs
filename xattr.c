@@ -24,7 +24,7 @@ struct gfarm2fs_xattr_sw {
 	gfarm_error_t (*remove)(const char *path, const char *name);
 };
 
-#define XATTR_IS_SUPPORTTED(name) \
+#define XATTR_IS_SUPPORTED(name) \
 	(strncmp(name, "gfarm.", 6) == 0 || \
 	 strncmp(name, "gfarm_root.", 11) == 0 || \
 	 strncmp(name, "user.", 5) == 0)
@@ -42,7 +42,7 @@ normal_set(const char *path, const char *name,
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
 		return (gfarm2fs_acl_set(path, GFARM_ACL_TYPE_DEFAULT,
 					 value, size));
-	else if (XATTR_IS_SUPPORTTED(name))
+	else if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lsetxattr(path, name, value, size, flags));
 	else
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
@@ -57,7 +57,7 @@ normal_get(const char *path, const char *name, void *value, size_t *sizep)
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
 		return (gfarm2fs_acl_get(path, GFARM_ACL_TYPE_DEFAULT,
 					value, sizep));
-	else if (XATTR_IS_SUPPORTTED(name))
+	else if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lgetxattr_cached(path, name, value, sizep));
 	else
 		return (GFARM_ERR_NO_SUCH_OBJECT); /* ENODATA */
@@ -70,7 +70,7 @@ normal_remove(const char *path, const char *name)
 		return (gfs_lremovexattr(path, GFARM_ACL_EA_ACCESS));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
 		return (gfs_lremovexattr(path, GFARM_ACL_EA_DEFAULT));
-	else if (XATTR_IS_SUPPORTTED(name))
+	else if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lremovexattr(path, name));
 	else
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
@@ -99,7 +99,7 @@ fix_acl_set(const char *path, const char *name,
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
 		return (gfarm2fs_acl_set(path, GFARM_ACL_TYPE_DEFAULT,
 					 value, size));
-	else if (XATTR_IS_SUPPORTTED(name))
+	else if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lsetxattr(path, name, value, size, flags));
 	else
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
@@ -120,7 +120,7 @@ fix_acl_get(const char *path, const char *name, void *value, size_t *sizep)
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
 		return (gfarm2fs_acl_get(path, GFARM_ACL_TYPE_DEFAULT,
 					 value, sizep));
-	else if (XATTR_IS_SUPPORTTED(name))
+	else if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lgetxattr_cached(path, name, value, sizep));
 	else
 		return (GFARM_ERR_NO_SUCH_OBJECT); /* ENODATA */
@@ -137,7 +137,7 @@ fix_acl_remove(const char *path, const char *name)
 		return (gfs_lremovexattr(path, GFARM_ACL_EA_ACCESS));
 	else if (strcmp(name, ACL_EA_DEFAULT) == 0)
 		return (gfs_lremovexattr(path, GFARM_ACL_EA_DEFAULT));
-	else if (XATTR_IS_SUPPORTTED(name))
+	else if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lremovexattr(path, name));
 	else
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
@@ -157,7 +157,7 @@ static gfarm_error_t
 disable_acl_set(const char *path, const char *name,
 		const void *value, size_t size, int flags)
 {
-	if (XATTR_IS_SUPPORTTED(name))
+	if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lsetxattr(path, name, value, size, flags));
 	else
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
@@ -166,7 +166,7 @@ disable_acl_set(const char *path, const char *name,
 static gfarm_error_t
 disable_acl_get(const char *path, const char *name, void *value, size_t *sizep)
 {
-	if (XATTR_IS_SUPPORTTED(name))
+	if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lgetxattr_cached(path, name, value, sizep));
 	else
 		return (GFARM_ERR_NO_SUCH_OBJECT); /* ENODATA */
@@ -175,7 +175,7 @@ disable_acl_get(const char *path, const char *name, void *value, size_t *sizep)
 static gfarm_error_t
 disable_acl_remove(const char *path, const char *name)
 {
-	if (XATTR_IS_SUPPORTTED(name))
+	if (XATTR_IS_SUPPORTED(name))
 		return (gfs_lremovexattr(path, name));
 	else
 		return (GFARM_ERR_OPERATION_NOT_SUPPORTED); /* EOPNOTSUPP */
