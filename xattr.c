@@ -195,6 +195,9 @@ gfarm_error_t
 gfarm2fs_xattr_set(const char *path, const char *name,
 		   const void *value, size_t size, int flags)
 {
+	/* gfarm2fs.path is locally processed */
+	if (strcmp(name, "gfarm2fs.path") == 0)
+		return (GFARM_ERR_NO_ERROR);
 	return ((*funcs->set)(path, name, value, size, flags));
 }
 
@@ -202,12 +205,29 @@ gfarm_error_t
 gfarm2fs_xattr_get(const char *path, const char *name,
 		   void *value, size_t *sizep)
 {
+	size_t len;
+
+	/* gfarm2fs.path is locally processed */
+	if (strcmp(name, "gfarm2fs.path") == 0) {
+		len = strlen(path);
+		if (*sizep == 0) {
+			*sizep = len;
+			return (GFARM_ERR_NO_ERROR);
+		} else if (len > *sizep)
+			return (GFARM_ERR_RESULT_OUT_OF_RANGE);
+		*sizep = len;
+		memcpy(value, path, len);
+		return (GFARM_ERR_NO_ERROR);
+	}
 	return ((*funcs->get)(path, name, value, sizep));
 }
 
 gfarm_error_t
 gfarm2fs_xattr_remove(const char *path, const char *name)
 {
+	/* gfarm2fs.path is locally processed */
+	if (strcmp(name, "gfarm2fs.path") == 0)
+		return (GFARM_ERR_NO_ERROR);
 	return ((*funcs->remove)(path, name));
 }
 
