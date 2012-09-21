@@ -39,12 +39,7 @@
 #define _FILE_OFFSET_BITS 64
 #endif
 
-#ifdef __NetBSD__ /*  FUSE_USE_VERSION is not reflected in FUSE_VERSION */
 #define FUSE_USE_VERSION 26
-#else
-#define FUSE_USE_VERSION 25
-#endif
-
 #include <fuse.h>
 
 #undef PACKAGE_NAME
