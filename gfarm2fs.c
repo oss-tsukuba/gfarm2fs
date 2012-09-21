@@ -1843,6 +1843,8 @@ main(int argc, char *argv[])
 	 * libgfarm is not thread-safe for now
 	 */
 	fuse_opt_add_arg(&args, "-s");
+	/* -o atomic_o_trunc required to overwrite a "lost all replica" file */
+	fuse_opt_add_arg(&args, "-oatomic_o_trunc");
 
 	if (params.mount_point == NULL) {
 		fprintf(stderr, "missing mountpoint\n");
