@@ -1842,6 +1842,8 @@ main(int argc, char *argv[])
 	/* -o atomic_o_trunc required to overwrite a "lost all replica" file */
 	fuse_opt_add_arg(&args, "-oatomic_o_trunc");
 #endif
+	/* use inum in Gfarm */
+	fuse_opt_add_arg(&args, "-ouse_ino");
 	if (params.mount_point == NULL) {
 		fprintf(stderr, "missing mountpoint\n");
 		fprintf(stderr, "see `%s -h' for usage\n", program_name);
