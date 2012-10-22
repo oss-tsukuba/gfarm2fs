@@ -5,6 +5,9 @@ Gfarm2fs Installation Note
 This distribution is fully tested on Linux.  To build the Gfarm2fs,
 the Gfarm version 2 is required to be installed.
 
+To enable extended attribute feature, libattr-devel or equivalent
+package is required.
+
 The following is the installation procedure for the Gfarm2fs.
 
 	% ./configure [options]
