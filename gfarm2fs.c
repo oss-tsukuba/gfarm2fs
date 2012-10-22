@@ -1654,6 +1654,7 @@ enum {
 	KEY_DISABLE_ACL,
 	KEY_ENABLE_CACHED_ID,
 	KEY_GENUINE_NLINK,
+	KEY_DISABLE_GENUINE_NLINK,
 };
 
 #define GFARM2FS_OPT(t, p, v) \
@@ -1677,7 +1678,8 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("fix_acl", KEY_FIX_ACL),
 	FUSE_OPT_KEY("disable_acl", KEY_DISABLE_ACL), /* for debug */
 	FUSE_OPT_KEY("enable_cached_id", KEY_ENABLE_CACHED_ID), /* for debug */
-	GFARM2FS_OPT("genuine_nlink", genuine_nlink, KEY_GENUINE_NLINK),
+	FUSE_OPT_KEY("genuine_nlink", KEY_GENUINE_NLINK),
+	FUSE_OPT_KEY("disable_genuine_nlink", KEY_DISABLE_GENUINE_NLINK),
 	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_uid_max=%d", auto_uid_max, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_gid_min=%d", auto_gid_min, KEY_GFARM2FS_OPT),
@@ -1764,8 +1766,8 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 	case KEY_ENABLE_CACHED_ID:
 		paramsp->enable_cached_id = 1;
 		return (0);
-	case KEY_GENUINE_NLINK:
-		paramsp->genuine_nlink = 1;
+	case KEY_DISABLE_GENUINE_NLINK:
+		paramsp->genuine_nlink = 0;
 		return (0);
 	case KEY_VERSION:
 		fprintf(stderr, "GFARM2FS version %s\n", VERSION);
@@ -1805,7 +1807,7 @@ main(int argc, char *argv[])
 		.ncopy = 0,
 		.disable_acl = 0,      /* for debug */
 		.enable_cached_id = 0, /* for debug */
-		.genuine_nlink = 0,
+		.genuine_nlink = 1,
 		.fix_acl = 0,
 		.auto_uid_min = 70000,
 		.auto_uid_max = 79999,
