@@ -1771,13 +1771,13 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 		fprintf(stderr, "GFARM2FS version %s\n", VERSION);
 #if FUSE_VERSION >= 25
 		fuse_opt_add_arg(outargs, "--version");
-		gfarm2fs_fuse_main(outargs, NULL);
+		gfarm2fs_fuse_main(outargs, &gfarm2fs_oper);
 #endif
 		exit(0);
 	case KEY_HELP:
 		usage(outargs->argv[0], paramsp);
 		fuse_opt_add_arg(outargs, "-ho");
-		gfarm2fs_fuse_main(outargs, NULL);
+		gfarm2fs_fuse_main(outargs, &gfarm2fs_oper);
 		exit(1);
 	default:
 		return (0);
