@@ -226,7 +226,7 @@ static gfarm_error_t
 gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 	size_t *sizep)
 {
-	const char *n, *metadb, *user;
+	const char *n, *metadb;
 	size_t len, metadb_len, port_len, path_len;
 	int port;
 	gfarm_error_t e;
