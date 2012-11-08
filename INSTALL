@@ -2,11 +2,13 @@
 Gfarm2fs Installation Note
 ==========================
 
-This distribution is fully tested on Linux.  To build the Gfarm2fs,
-the Gfarm version 2 is required to be installed.
+This distribution is fully tested on Linux.
 
-To enable extended attribute feature, libattr-devel or equivalent
-package is required.
+To build the Gfarm2fs, the Gfarm File System version 2.4.2 or later
+and the FUSE file system in userspace are required.  To enable
+extended attribute feature, libattr is required.  To enable the
+extended ACL feature, libacl is required.  Regarding RPM packages and
+Debian packages for them, see required package section below.
 
 The following is the installation procedure for the Gfarm2fs.
 
@@ -21,7 +23,6 @@ Options for the configure:
   Specifies an installation directory for the Gfarm version 2.  When
   this option is not specified, /usr is assumed.
 
-
   --prefix=directory
 
   Specifies a destination directory for installation.  The default is
@@ -31,5 +32,22 @@ When you need to specify a compiler program explicitly, use the
 environment variable, CC.  This is an example using gcc.
 
 	% env CC=gcc ./configure [options]
+
+Required Package
+----------------
+
+* RPM Package
+
+gfarm{,-gsi}-devel
+fuse-devel
+libattr-devel		(required to enable extended attribute)
+libacl-devel		(required to enable extended ACL)
+
+* Debian Package
+
+libgfarm-dev
+libfuse-dev
+libattr1-dev		(required to enable extended attribute)
+libacl1-dev		(required to enable extended ACL)
 
 $Id$
