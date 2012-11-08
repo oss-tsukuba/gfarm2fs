@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* support extended ACL */
+#undef ENABLE_ACL
+
 /* support extended attribute */
 #undef ENABLE_XATTR
 
