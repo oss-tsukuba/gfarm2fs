@@ -58,7 +58,8 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(man1dir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_gfarm2fs_OBJECTS = gfarm2fs.$(OBJEXT) acl.$(OBJEXT) id.$(OBJEXT) \
-	replicate.$(OBJEXT) open_file.$(OBJEXT) xattr.$(OBJEXT)
+	replicate.$(OBJEXT) open_file.$(OBJEXT) xattr.$(OBJEXT) \
+	gfarm_config.$(OBJEXT)
 gfarm2fs_OBJECTS = $(am_gfarm2fs_OBJECTS)
 gfarm2fs_LDADD = $(LDADD)
 am_gfarm2fs_fix_acl_OBJECTS = gfarm2fs_fix_acl.$(OBJEXT)
@@ -242,8 +243,9 @@ top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
 gfarm2fs_SOURCES = gfarm2fs.c acl.c id.c replicate.c open_file.c xattr.c \
+	gfarm_config.c \
 	gfarm2fs.h acl.h id.h replicate.h open_file.h gfarm2fs_msg_enums.h \
-	hash.h xattr.h
+	hash.h xattr.h gfarm_config.h
 
 gfarm2fs_fix_acl_SOURCES = gfarm2fs_fix_acl.c acl.h xattr.h gfarm2fs.h
 dist_bin_SCRIPTS = gfarm2fs_fix_acl.sh
@@ -397,6 +399,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gfarm2fs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gfarm2fs_fix_acl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gfarm_config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/id.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/open_file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/replicate.Po@am__quote@
