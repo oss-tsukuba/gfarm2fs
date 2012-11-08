@@ -45,21 +45,20 @@ specify the maximum number of concurrent copy
 creations.  this is effective if automatic replication
 is enabled.  default is 0.
 .TP
-\fB-o genuine_nlink\fR
-changes st_nlink of struct stat for directories from a faked value (32000)
-to genuine one. default is disabled to avoid a problem until gfarm-2.4.2.
+\fB-o disable_genuine_nlink\fR
+uses faked st_nlink (32000) of struct stat for directories.
 .TP
 \fB-o auto_uid_min=\fIN\fB\fR
-specify the minimum number of UIDs generated automatically.
+specify the minimum UID automatically assigned.
 .TP
 \fB-o auto_uid_max=\fIN\fB\fR
-specify the maximum number of UIDs generated automatically.
+specify the maximum UID automatically assigned.
 .TP
 \fB-o auto_gid_min=\fIN\fB\fR
-specify the minimum number of GIDs generated automatically.
+specify the minimum GID automatically assigned.
 .TP
 \fB-o auto_gid_max=\fIN\fB\fR
-specify the maximum number of GIDs generated automatically.
+specify the maximum GID automatically assigned.
 
 .SH "FUSE OPTIONS"
 .PP
@@ -72,13 +71,14 @@ specifies the Gfarm configuration file.
 
 .SH "NOTES"
 .PP
-When a Gfarm global user's name (or group's name) is not registered in
-the local account with the same name, the user's UID (or the group's
-GID) is generated automatically on gfarm2fs.
+When there is not the same local account name as the Gfarm global user
+name, a temporal UID is assigned between auto_uid_min and
+auto_uid_max.  When there is not the same local group name as the
+Gfarm global group name, a temporal GID is assigned between
+auto_gid_min and auto_gid_max.
 
-If UIDs/GIDs are generated automatically over the
-\fBauto_{uid,gid}_max\fR number, the setfacl command might fail
-(\fBEPERM\fR).
+When a temporal UID/GID cannot be assigned, setfacl(1) fails with
+\fBEPERM\fR.
 
 .SH "SECURITY NOTES"
 .PP

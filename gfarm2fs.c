@@ -1707,11 +1707,11 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "                            (default: 0 - disable replication)\n"
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
 "                            (default: %d)\n"
-"    -o genuine_nlink        use st_nlink from gfmd, instead of faked one\n"
-"    -o auto_uid_min=N       minimum number of auto uid (default: %d)\n"
-"    -o auto_uid_max=N       maximum number of auto uid (default: %d)\n"
-"    -o auto_gid_min=N       minimum number of auto gid (default: %d)\n"
-"    -o auto_gid_max=N       maximum number of auto gid (default: %d)\n"
+"    -o disable_genuine_nlink use faked st_nlink\n"
+"    -o auto_uid_min=N       minimum UID automatically assigned (default: %d)\n"
+"    -o auto_uid_max=N       maximum UID automatically assigned (default: %d)\n"
+"    -o auto_gid_min=N       minimum GID automatically assigned (default: %d)\n"
+"    -o auto_gid_max=N       maximum GID automatically assigned (default: %d)\n"
 		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
 		GFARM2FS_SYSLOG_PRIORITY_DEFAULT,
