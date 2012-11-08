@@ -58,14 +58,30 @@ if test "x$enable_xattr" != xno; then
   AC_DEFINE(ENABLE_XATTR, [1], [support extended attribute])
 fi
 
+### --disable-acl
+AC_ARG_ENABLE(acl,
+  AS_HELP_STRING([--disable-acl], [disable extended ACL]), [], [enable_acl=yes])
+if test "x$enable_acl" != xno; then
+  if test "x$enable_xattr" = xno; then
+    AC_MSG_ERROR([extended ACL requires extended attribute.  specify --disable-acl])
+  fi
+  AC_DEFINE(ENABLE_ACL, [1], [support extended ACL])
+fi
+
 # Checks for header files.
 AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
 # fuse.h requres _FILE_OFFSET_BITS is defined in any case, but
 # AC_SYS_LARGEFILE does not define it on a 64bit platform like x86_64
 # since it is not necessary.  To avoid this problem we just skip the check.
 #AC_CHECK_HEADERS([fuse.h],, [AC_MSG_ERROR([fuse.h not found])])
-AC_CHECK_HEADERS(sys/xattr.h)
-AC_CHECK_HEADERS(sys/acl.h)
+AC_CHECK_HEADERS(sys/xattr.h,,
+if test "x$enable_xattr" != xno; then
+  AC_MSG_ERROR([sys/xattr.h not found.  specify --disable-xattr])
+fi)
+AC_CHECK_HEADERS(sys/acl.h,,
+if test "x$enable_acl" != xno; then
+  AC_MSG_ERROR([sys/acl.h not found.  specify --disable-acl])
+fi)
 
 # Checks for libraries.
 AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])

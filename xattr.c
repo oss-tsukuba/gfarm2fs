@@ -36,7 +36,7 @@ static const char LOCAL_XATTR_PREFIX[] = "gfarm2fs.";
 #define XATTR_IS_LOCALLY_SUPPORTED(name) \
 	(strncmp(name, LOCAL_XATTR_PREFIX, LOCAL_XATTR_PREFIX_LENGTH) == 0)
 
-#ifdef ENABLE_GFARM_ACL
+#ifdef ENABLE_ACL
 /* ------------------------------- */
 
 static gfarm_error_t
@@ -156,7 +156,7 @@ static struct gfarm2fs_xattr_sw sw_fix_acl = {
 	fix_acl_remove,
 };
 
-#endif /* ENABLE_GFARM_ACL */
+#endif /* ENABLE_ACL */
 
 /* ------------------------------- */
 
@@ -292,7 +292,7 @@ gfarm2fs_xattr_remove(const char *path, const char *name)
 void
 gfarm2fs_xattr_init(struct gfarm2fs_param *params)
 {
-#ifdef ENABLE_GFARM_ACL
+#ifdef ENABLE_ACL
 	if (params->disable_acl)
 		funcs = &sw_disable_acl;
 	else if (params->fix_acl)

@@ -18,7 +18,7 @@
 #include "acl.h"
 #include "gfarm2fs_msg_enums.h"
 
-#ifdef ENABLE_GFARM_ACL  /* with HAVE_SYS_ACL_H */
+#ifdef ENABLE_ACL  /* with HAVE_SYS_ACL_H */
 #include <sys/acl.h>
 
 #define ADD_BUF(src, size) \
@@ -289,4 +289,4 @@ free_acl:
 	return (e);
 }
 
-#endif /* ENABLE_GFARM_ACL */
+#endif /* ENABLE_ACL */
