@@ -4,6 +4,7 @@
 
 #include "config.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #undef PACKAGE_NAME
@@ -15,6 +16,7 @@
 #include "gfarm2fs.h"
 #include "acl.h"
 #include "xattr.h"
+#include "gfarm_config.h"
 
 struct gfarm2fs_xattr_sw {
 	gfarm_error_t (*set)(const char *path, const char *name,
@@ -28,6 +30,11 @@ struct gfarm2fs_xattr_sw {
 	(strncmp(name, "gfarm.", 6) == 0 || \
 	 strncmp(name, "gfarm_root.", 11) == 0 || \
 	 strncmp(name, "user.", 5) == 0)
+
+static const char LOCAL_XATTR_PREFIX[] = "gfarm2fs.";
+#define LOCAL_XATTR_PREFIX_LENGTH 9 /* sizeof(LOCAL_XATTR_PREFIX) - 1 */
+#define XATTR_IS_LOCALLY_SUPPORTED(name) \
+	(strncmp(name, LOCAL_XATTR_PREFIX, LOCAL_XATTR_PREFIX_LENGTH) == 0)
 
 #ifdef ENABLE_GFARM_ACL
 /* ------------------------------- */
@@ -189,14 +196,78 @@ static struct gfarm2fs_xattr_sw sw_disable_acl = {
 
 /* ------------------------------- */
 
+static gfarm_error_t
+gfarm2fs_xattr_copy(const char *src, void *dst, size_t *sizep)
+{
+	size_t len;
+
+	len = strlen(src);
+	if (*sizep == 0) {
+		*sizep = len;
+		return (GFARM_ERR_NO_ERROR);
+	} else if (len > *sizep)
+		return (GFARM_ERR_RESULT_OUT_OF_RANGE);
+	*sizep = len;
+	memcpy(dst, src, len);
+	return (GFARM_ERR_NO_ERROR);
+}
+
+static int
+port_size(int port)
+{
+	int s;
+
+	for (s = 0; port > 0; ++s, port /= 10)
+		;
+	return (s);
+}
+
+static gfarm_error_t
+gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
+	size_t *sizep)
+{
+	const char *n, *metadb, *user;
+	size_t len, metadb_len, port_len, path_len;
+	int port;
+	gfarm_error_t e;
+
+	n = name + LOCAL_XATTR_PREFIX_LENGTH;
+	if (strcmp(n, "path") == 0)
+		return (gfarm2fs_xattr_copy(path, value, sizep));
+	else if (strcmp(n, "url") == 0) {
+		e = gfarm_config_metadb_server(path, &metadb, &port);
+		if (e != GFARM_ERR_NO_ERROR)
+			return (e);
+		metadb_len = strlen(metadb);
+		port_len = port_size(port);
+		path_len = strlen(path);
+		len = GFARM_URL_PREFIX_LENGTH + 2 + metadb_len + 1 +
+			port_len + path_len;
+		if (*sizep == 0) {
+			*sizep = len;
+			return (GFARM_ERR_NO_ERROR);
+		} else if (len > *sizep)
+			return (GFARM_ERR_RESULT_OUT_OF_RANGE);
+		*sizep = len;
+		snprintf(value, len, "%s//%s:%d", GFARM_URL_PREFIX,
+		    metadb, port);
+		value += GFARM_URL_PREFIX_LENGTH + 2 + metadb_len + 1 +
+			port_len;
+		memcpy(value, path, path_len);
+		return (GFARM_ERR_NO_ERROR);
+	} else
+		return (GFARM_ERR_NO_SUCH_OBJECT); /* ENODATA */
+}
+
+/* ------------------------------- */
+
 static struct gfarm2fs_xattr_sw *funcs = &sw_disable_acl;
 
 gfarm_error_t
 gfarm2fs_xattr_set(const char *path, const char *name,
 		   const void *value, size_t size, int flags)
 {
-	/* gfarm2fs.path is locally processed */
-	if (strcmp(name, "gfarm2fs.path") == 0)
+	if (XATTR_IS_LOCALLY_SUPPORTED(name))
 		return (GFARM_ERR_NO_ERROR);
 	return ((*funcs->set)(path, name, value, size, flags));
 }
@@ -205,28 +276,15 @@ gfarm_error_t
 gfarm2fs_xattr_get(const char *path, const char *name,
 		   void *value, size_t *sizep)
 {
-	size_t len;
-
-	/* gfarm2fs.path is locally processed */
-	if (strcmp(name, "gfarm2fs.path") == 0) {
-		len = strlen(path);
-		if (*sizep == 0) {
-			*sizep = len;
-			return (GFARM_ERR_NO_ERROR);
-		} else if (len > *sizep)
-			return (GFARM_ERR_RESULT_OUT_OF_RANGE);
-		*sizep = len;
-		memcpy(value, path, len);
-		return (GFARM_ERR_NO_ERROR);
-	}
+	if (XATTR_IS_LOCALLY_SUPPORTED(name))
+		return (gfarm2fs_xattr_get_local(path, name, value, sizep));
 	return ((*funcs->get)(path, name, value, sizep));
 }
 
 gfarm_error_t
 gfarm2fs_xattr_remove(const char *path, const char *name)
 {
-	/* gfarm2fs.path is locally processed */
-	if (strcmp(name, "gfarm2fs.path") == 0)
+	if (XATTR_IS_LOCALLY_SUPPORTED(name))
 		return (GFARM_ERR_NO_ERROR);
 	return ((*funcs->remove)(path, name));
 }

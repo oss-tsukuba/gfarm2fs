@@ -1,7 +1,8 @@
 bin_PROGRAMS = gfarm2fs gfarm2fs_fix_acl
 gfarm2fs_SOURCES = gfarm2fs.c acl.c id.c replicate.c open_file.c xattr.c \
+	gfarm_config.c \
 	gfarm2fs.h acl.h id.h replicate.h open_file.h gfarm2fs_msg_enums.h \
-	hash.h xattr.h
+	hash.h xattr.h gfarm_config.h
 gfarm2fs_fix_acl_SOURCES = gfarm2fs_fix_acl.c acl.h xattr.h gfarm2fs.h
 dist_bin_SCRIPTS = gfarm2fs_fix_acl.sh
 man_MANS = gfarm2fs.1
