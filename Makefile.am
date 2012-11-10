@@ -7,6 +7,7 @@ gfarm2fs_fix_acl_SOURCES = gfarm2fs_fix_acl.c acl.h xattr.h gfarm2fs.h
 dist_bin_SCRIPTS = gfarm2fs_fix_acl.sh
 man_MANS = gfarm2fs.1
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(man_MANS) $(private_srcs)
+SUBDIRS = contrib
 AM_CFLAGS = -Wall
 ACLOCAL_AMFLAGS = -I m4
 

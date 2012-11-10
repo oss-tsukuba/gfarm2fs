@@ -1,0 +1,61 @@
+#!/bin/sh
+#
+# $Id$
+
+USAGE() {
+cat <<EOF
+umount.gfarm2fs [ mount_point ]
+
+Environment variable:
+    GFS_USERNAME    global user name in Gfarm
+    GFS_MOUNTDIR    mount point
+EOF
+	exit 1
+}
+
+ABORT() {
+	[ $# -gt 0 ] && echo 1>&2 $*
+	exit 1
+}
+
+UMOUNT_FUSE()
+{
+	MNTDIR=$1
+	retry=10
+	i=0
+	while true; do
+		fusermount -u $MNTDIR > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			return 0
+		fi
+		ls -l $MNTDIR > /dev/null 2>&1
+		if [ $i -ge $retry ]; then
+			return 1
+		fi
+		i=`expr $i + 1`
+	done
+}
+
+[ x"$1" = x"-h" -o x"$1" = x"--help" ] && USAGE
+
+if [ $# -gt 0 ]; then
+	GFS_MOUNTDIR=$1
+	shift
+fi
+
+: ${GFS_USERNAME:=`gfwhoami 2> /dev/null`}
+: ${GFS_USERNAME:=$USER}
+: ${GFS_USERNAME:=$LOGNAME}
+: ${GFS_USERNAME:=`logname 2> /dev/null`}
+: ${GFS_MOUNTDIR:=`grep user=$LOGNAME /etc/mtab | grep gfarm | head -1 | awk '{ print $2 }'`}
+: ${GFS_MOUNTDIR:=`grep user=$LOGNAME /etc/mtab | head -1 | awk '{ print $2 }'`}
+
+[ X"$GFS_MOUNTDIR" = X ] &&
+	ABORT "It seems GfarmFS is not mounted.  Specify the mount directory by GFS_MOUNTDIR environment variable"
+
+UMOUNT_FUSE $GFS_MOUNTDIR
+STATUS=$?
+if [ $STATUS = 0 ]; then
+	echo Unmount GfarmFS on $GFS_MOUNTDIR
+fi
+exit $STATUS
