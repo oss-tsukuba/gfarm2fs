@@ -1,1 +1,1 @@
-SUBDIRS = gfarmfs-exec mount.gfarm2fs
+SUBDIRS = gfarm2fs-exec mount.gfarm2fs
