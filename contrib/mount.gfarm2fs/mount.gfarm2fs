@@ -4,7 +4,7 @@
 
 USAGE() {
 cat <<EOF
-mount.gfarm2fs [ username mount_point options ]
+mount.gfarm2fs [ configuration_file mount_point options ]
 
 Environment variable:
     GFS_USERNAME     global user name in Gfarm
@@ -12,6 +12,12 @@ Environment variable:
     GFARMFS_ROOT     directory to be mounted in Gfarm
     GFARMFS_OPTIONS  gfarmfs mount options
     FUSE_OPTIONS     fuse mount options
+
+When mount.gfarm2fs is installed to /sbin/mount.gfarm2fs, you can
+mount the Gfarm file system by the mount(8) command.
+
+Example of /etc/fstab entries:
+/etc/gfarm2.conf	/gfarm/tatebe	gfarm2fs noauto,user 0 0
 EOF
 	exit 1
 }
@@ -24,7 +30,7 @@ ABORT() {
 [ x"$1" = x"-h" -o x"$1" = x"--help" ] && USAGE
 
 if [ $# -gt 0 ]; then
-	GFS_USERNAME=$1
+	export GFARM_CONFIG_FILE=$1
 	shift
 fi
 if [ $# -gt 0 ]; then
@@ -32,7 +38,8 @@ if [ $# -gt 0 ]; then
 	shift
 fi
 if [ $# -gt 0 ]; then
-	FUSE_OPTIONS=$*
+	# abandon
+	OPTIONS=$*
 fi
 
 : ${GFS_USERNAME:=`gfwhoami 2> /dev/null`}
