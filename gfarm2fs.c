@@ -194,10 +194,18 @@ gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 	sprintf(gfarm2fs_path_prefix, "%s/%s",
 	    mpoint, gfarm_path_prefix);
 
-	if (strcmp(subdir, "/") == 0)
-		++subdir;
-	gfarm2fs_subdir = subdir;
+	/* subdir may be modified (free'ed?) when it includes trailing /s */
+	gfarm2fs_subdir = strdup(subdir);
+	if (gfarm2fs_subdir == NULL) {
+		gflog_error(GFARM_MSG_UNFIXED,
+		    "no memory to allocate subdir \"%s\"", subdir);
+		exit(1);
+	}
 	gfarm2fs_subdir_len = strlen(gfarm2fs_subdir);
+	/* ignore one trailing slash.  see gfarm2fs_getattr */
+	if (gfarm2fs_subdir_len > 0 &&
+	    gfarm2fs_subdir[gfarm2fs_subdir_len - 1] == '/')
+		--gfarm2fs_subdir_len;
 }
 
 gfarm_error_t
