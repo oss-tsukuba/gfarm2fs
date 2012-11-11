@@ -4,6 +4,7 @@
 
 struct gfarm2fs_param {
 	const char *mount_point;
+	const char *subdir;
 	int foreground;
 	int debug;
 	double cache_timeout;

@@ -151,9 +151,12 @@ static const char gfarm_path_prefix[] = GFARM_DIR "/";
 
 static char *gfarm2fs_path_prefix, *gfarm2fs_realpath_prefix;
 static size_t gfarm2fs_path_prefix_len, gfarm2fs_realpath_prefix_len;
+const static char *gfarm2fs_subdir;
+static size_t gfarm2fs_subdir_len;
+#define IS_SUBDIR(p)	(memcmp(p, gfarm2fs_subdir, gfarm2fs_subdir_len) == 0)
 
 static void
-gfarm2fs_record_mount_point(const char *mpoint)
+gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 {
 	char buf[PATH_MAX];
 
@@ -190,6 +193,11 @@ gfarm2fs_record_mount_point(const char *mpoint)
 	}
 	sprintf(gfarm2fs_path_prefix, "%s/%s",
 	    mpoint, gfarm_path_prefix);
+
+	if (strcmp(subdir, "/") == 0)
+		++subdir;
+	gfarm2fs_subdir = subdir;
+	gfarm2fs_subdir_len = strlen(gfarm2fs_subdir);
 }
 
 gfarm_error_t
@@ -198,6 +206,8 @@ gfarmize_path(const char *path, struct gfarmized_path *gfarmized)
 	const char *p = path;
 	int sz;
 
+	if (IS_SUBDIR(p))
+		p += gfarm2fs_subdir_len;
 	if (p[0] == '/')
 		p++;
 	if (memcmp(p, gfarm_path_prefix, GFARM_PATH_PREFIX_LEN) == 0) {
@@ -393,7 +403,9 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 	}
 	e = gfs_lstat_cached(gfarmized.path, &st);
 	if (e != GFARM_ERR_NO_ERROR) {
-		if (strcmp(gfarmized.path, "/" GFARM_DIR) == 0) {
+		if (IS_SUBDIR(gfarmized.path) &&
+		    strcmp(gfarmized.path + gfarm2fs_subdir_len, "/" GFARM_DIR)
+		    == 0) {
 			memset(stbuf, 0, sizeof(*stbuf));
 			stbuf->st_dev = GFS_DEV;
 			stbuf->st_ino = 1;
@@ -1746,6 +1758,8 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 
 	switch (key) {
 	case FUSE_OPT_KEY_OPT: /* -?, -o opt, --opt */
+		if (memcmp(arg, "subdir=", 7) == 0)
+			paramsp->subdir = arg + 7;
 		return (1); /* through */
 	case FUSE_OPT_KEY_NONOPT:
 		if (!paramsp->mount_point)
@@ -1798,6 +1812,7 @@ main(int argc, char *argv[])
 
 	struct gfarm2fs_param params = {
 		.mount_point = NULL,
+		.subdir = "",
 		.foreground = 0,
 		.debug = 0,
 		.cache_timeout = -1.0,
@@ -1852,7 +1867,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 	mount_point = params.mount_point;
-	gfarm2fs_record_mount_point(mount_point);
+	gfarm2fs_record_mount_point(mount_point, params.subdir);
 
 	if (params.foreground || params.debug) {
 		params.use_syslog = 0; /* use stderr */
