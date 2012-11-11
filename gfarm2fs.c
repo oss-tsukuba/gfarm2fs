@@ -603,7 +603,7 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READDIR,
 				     "gfs_seekdir", path, e2);
 	}
-		
+
 	while ((e = gfs_readdir(dp, &de)) == GFARM_ERR_NO_ERROR &&
 		de != NULL) {
 		memset(&st, 0, sizeof(st));
