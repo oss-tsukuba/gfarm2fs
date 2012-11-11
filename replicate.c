@@ -207,7 +207,7 @@ select_nhosts(const char *path, int n, struct selected_hosts *selected)
 				selected->nhosts = n;
 				e = gfarm_schedule_hosts_acyclic_to_write(path,
 				    selected->available_nhosts,
-				    selected->available_hosts, 
+				    selected->available_hosts,
 				    &selected->nhosts,
 				    selected->hosts, selected->ports);
 				if (e == GFARM_ERR_NO_ERROR)
