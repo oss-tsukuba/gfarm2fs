@@ -9,8 +9,8 @@ struct gfarm2fs_param {
 	int debug;
 	double cache_timeout;
 	int use_syslog;
-	char *facility;
-	char *loglevel;
+	const char *facility;
+	const char *loglevel;
 	int ncopy;
 	int copy_limit;
 	int fix_acl;

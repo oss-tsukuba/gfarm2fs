@@ -18,6 +18,9 @@
 #include "acl.h"
 #include "gfarm2fs_msg_enums.h"
 
+const char ACL_EA_ACCESS[] = "system.posix_acl_access";
+const char ACL_EA_DEFAULT[] = "system.posix_acl_default";
+
 #ifdef ENABLE_ACL  /* with HAVE_SYS_ACL_H */
 #include <sys/acl.h>
 

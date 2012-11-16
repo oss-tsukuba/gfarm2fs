@@ -64,15 +64,16 @@
 
 char *program_name = "gfarm2fs";
 
-static char GFARM2FS_SYSLOG_FACILITY_DEFAULT[] = "local0";
-static char GFARM2FS_SYSLOG_PRIORITY_DEFAULT[] = "notice";
-static char GFARM2FS_SYSLOG_PRIORITY_DEBUG[] = "debug";
+static const char GFARM2FS_SYSLOG_FACILITY_DEFAULT[] = "local0";
+static const char GFARM2FS_SYSLOG_PRIORITY_DEFAULT[] = "notice";
+static const char GFARM2FS_SYSLOG_PRIORITY_DEBUG[] = "debug";
 
 static const char *mount_point;
 
 #define PATH_LEN_LIMIT 200
-static char *syslog_fmt = "<%s:%s>[%s]%s%s: %s";
-static char *trunc_str = "(...)";
+static const char syslog_fmt[] = "<%s:%s>[%s]%s%s: %s";
+static const char trunc_str[] = "(...)";
+static const char empty_str[] = "";
 
 #define gfarm2fs_check_error(msgNo, fuse_opname, gfarm_funcname, \
 			     gfarm_path, gfarm_e) \
@@ -81,7 +82,7 @@ static char *trunc_str = "(...)";
 		int ret_errno    = gfarm_error_to_errno(gfarm_e); \
 		int path_len     = strlen(gfarm_path); \
 		int path_offset  = 0; \
-		char *path_prefix = ""; \
+		const char *path_prefix = empty_str; \
 		if (path_len > PATH_LEN_LIMIT) { \
 			path_offset = path_len - PATH_LEN_LIMIT; \
 			path_prefix = trunc_str; \
@@ -105,43 +106,43 @@ static char *trunc_str = "(...)";
 	} \
 }
 
-static char OP_GETATTR[] = "GETATTR";
-static char OP_FGETATTR[] = "FGETATTR";
+static const char OP_GETATTR[] = "GETATTR";
+static const char OP_FGETATTR[] = "FGETATTR";
 #if 0 /* XXX Part of invoking gfs_access() is defined "if 0" now */
-static char OP_ACCESS[] = "ACCESS";
+static const char OP_ACCESS[] = "ACCESS";
 #endif
-static char OP_READLINK[] = "READLINK";
+static const char OP_READLINK[] = "READLINK";
 #ifndef USE_GETDIR
-static char OP_OPENDIR[] = "OPENDIR";
-static char OP_READDIR[] = "READDIR";
-static char OP_RELEASEDIR[] = "RELEASEDIR";
+static const char OP_OPENDIR[] = "OPENDIR";
+static const char OP_READDIR[] = "READDIR";
+static const char OP_RELEASEDIR[] = "RELEASEDIR";
 #else /* USE_GETDIR */
-static char OP_GETDIR[] = "GETDIR";
+static const char OP_GETDIR[] = "GETDIR";
 #endif /* USE_GETDIR */
-static char OP_MKNOD[] = "MKNOD";
-static char OP_MKDIR[] = "MKDIR";
-static char OP_UNLINK[] = "UNLINK";
-static char OP_RMDIR[] = "RMDIR";
-static char OP_SYMLINK[] = "SYMLINK";
-static char OP_RENAME[] = "RENAME";
-static char OP_LINK[] = "LINK";
-static char OP_CHMOD[] = "CHMOD";
-static char OP_CHOWN[] = "CHOWN";
-static char OP_TRUNCATE[] = "TRUNCATE";
-static char OP_FTRUNCATE[] = "FTRUNCATE";
-static char OP_UTIME[] = "UTIME";
-static char OP_CREATE[] = "CREATE";
-static char OP_OPEN[] = "OPEN";
-static char OP_READ[] = "READ";
-static char OP_WRITE[] = "WRITE";
-static char OP_STATFS[] = "STATFS";
-static char OP_RELEASE[] = "RELEASE";
-static char OP_FSYNC[] = "FSYNC";
+static const char OP_MKNOD[] = "MKNOD";
+static const char OP_MKDIR[] = "MKDIR";
+static const char OP_UNLINK[] = "UNLINK";
+static const char OP_RMDIR[] = "RMDIR";
+static const char OP_SYMLINK[] = "SYMLINK";
+static const char OP_RENAME[] = "RENAME";
+static const char OP_LINK[] = "LINK";
+static const char OP_CHMOD[] = "CHMOD";
+static const char OP_CHOWN[] = "CHOWN";
+static const char OP_TRUNCATE[] = "TRUNCATE";
+static const char OP_FTRUNCATE[] = "FTRUNCATE";
+static const char OP_UTIME[] = "UTIME";
+static const char OP_CREATE[] = "CREATE";
+static const char OP_OPEN[] = "OPEN";
+static const char OP_READ[] = "READ";
+static const char OP_WRITE[] = "WRITE";
+static const char OP_STATFS[] = "STATFS";
+static const char OP_RELEASE[] = "RELEASE";
+static const char OP_FSYNC[] = "FSYNC";
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
-static char OP_SETXATTR[] = "SETXATTR";
-static char OP_GETXATTR[] = "GETXATTR";
-static char OP_LISTXATTR[] = "LISTXATTR";
-static char OP_REMOVEXATTR[] = "REMOVEXATTR";
+static const char OP_SETXATTR[] = "SETXATTR";
+static const char OP_GETXATTR[] = "GETXATTR";
+static const char OP_LISTXATTR[] = "LISTXATTR";
+static const char OP_REMOVEXATTR[] = "REMOVEXATTR";
 #endif /* HAVE_SYS_XATTR_H && ENABLE_XATTR */
 
 #define GFARM_DIR	".gfarm"

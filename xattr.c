@@ -93,6 +93,9 @@ static struct gfarm2fs_xattr_sw sw_normal = {
 
 /* for gfarm2fs_fix_acl command */
 
+const char FIX_ACL_ACCESS[] = "gfarm2fs.fix_acl_access";
+const char FIX_ACL_DEFAULT[] = "gfarm2fs.fix_acl_default";
+
 static gfarm_error_t
 fix_acl_set(const char *path, const char *name,
 	    const void *value, size_t size, int flags)
