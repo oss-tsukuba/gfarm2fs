@@ -15,3 +15,6 @@ int gfarm_metadb_server_get_port(struct gfarm_metadb_server *);
 
 gfarm_error_t gfarm_config_user(const char *, const char **);
 gfarm_error_t gfarm_config_metadb_server(const char *, const char **, int *);
+gfarm_error_t gfarm_config_gsi_proxy_info(char **);
+gfarm_error_t gfarm_config_gsi_path(char **);
+gfarm_error_t gfarm_config_gsi_timeleft(char **);

@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
@@ -230,6 +231,7 @@ gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 	size_t *sizep)
 {
 	const char *n, *metadb;
+	char *gsivalue = NULL;
 	size_t len, metadb_len, port_len, path_len;
 	int port;
 	gfarm_error_t e;
@@ -258,6 +260,27 @@ gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 			port_len;
 		memcpy(value, path, path_len);
 		return (GFARM_ERR_NO_ERROR);
+	} else if (strcmp(n, "gsiproxyinfo") == 0) {
+		e = gfarm_config_gsi_proxy_info(&gsivalue);
+		if (e == GFARM_ERR_NO_ERROR) {
+			e = gfarm2fs_xattr_copy(gsivalue, value, sizep);
+			free(gsivalue);
+		}
+		return (e);
+	} else if (strcmp(n, "gsipath") == 0) {
+		e = gfarm_config_gsi_path(&gsivalue);
+		if (e == GFARM_ERR_NO_ERROR) {
+			e = gfarm2fs_xattr_copy(gsivalue, value, sizep);
+			free(gsivalue);
+		}
+		return (e);
+	} else if (strcmp(n, "gsitimeleft") == 0) {
+		e = gfarm_config_gsi_timeleft(&gsivalue);
+		if (e == GFARM_ERR_NO_ERROR) {
+			e = gfarm2fs_xattr_copy(gsivalue, value, sizep);
+			free(gsivalue);
+		}
+		return (e);
 	} else
 		return (GFARM_ERR_NO_SUCH_OBJECT); /* ENODATA */
 }
