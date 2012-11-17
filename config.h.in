@@ -27,6 +27,9 @@
 /* Define to 1 if you have the `gfs_lchown' function. */
 #undef HAVE_GFS_LCHOWN
 
+/* Define to 1 if you have the `gfs_lutimes' function. */
+#undef HAVE_GFS_LUTIMES
+
 /* Define to 1 if you have the `gfs_replicate_file_to' function. */
 #undef HAVE_GFS_REPLICATE_FILE_TO
 
@@ -53,6 +56,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if `st_mtim.tv_nsec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC
 
 /* Define to 1 if you have the <sys/acl.h> header file. */
 #undef HAVE_SYS_ACL_H
