@@ -47,9 +47,10 @@
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #include <gfarm/gfarm.h>
-#include <gfarm2fs.h>
-#include <replicate.h>
-#include <open_file.h>
+
+#include "gfarm2fs.h"
+#include "replicate.h"
+#include "open_file.h"
 #include "xattr.h"
 #include "id.h"
 #include "gfarm2fs_msg_enums.h"
@@ -130,7 +131,7 @@ static const char OP_CHMOD[] = "CHMOD";
 static const char OP_CHOWN[] = "CHOWN";
 static const char OP_TRUNCATE[] = "TRUNCATE";
 static const char OP_FTRUNCATE[] = "FTRUNCATE";
-static const char OP_UTIME[] = "UTIME";
+static const char OP_UTIMENS[] = "UTIMENS";
 static const char OP_CREATE[] = "CREATE";
 static const char OP_OPEN[] = "OPEN";
 static const char OP_READ[] = "READ";
@@ -394,6 +395,9 @@ copy_gfs_stat(const char *gpath, struct stat *dst, struct gfs_stat *src)
 	dst->st_atime = src->st_atimespec.tv_sec;
 	dst->st_mtime = src->st_mtimespec.tv_sec;
 	dst->st_ctime = src->st_ctimespec.tv_sec;
+	gfarm2fs_stat_atime_nsec_set(dst, src->st_atimespec.tv_nsec);
+	gfarm2fs_stat_mtime_nsec_set(dst, src->st_mtimespec.tv_nsec);
+	gfarm2fs_stat_ctime_nsec_set(dst, src->st_ctimespec.tv_nsec);
 }
 
 static int
@@ -961,27 +965,29 @@ gfarm2fs_ftruncate(const char *path, off_t size,
 }
 
 static int
-gfarm2fs_utime(const char *path, struct utimbuf *buf)
+gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 {
 	struct gfarm_timespec gt[2];
 	gfarm_error_t e;
 	struct gfarmized_path gfarmized;
 
-	if (buf != NULL) {
-		gt[0].tv_sec = buf->actime;
-		gt[0].tv_nsec = 0;
-		gt[1].tv_sec = buf->modtime;
-		gt[1].tv_nsec = 0;
-	}
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_2000079, OP_UTIME,
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UTIMENS,
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
+	gt[0].tv_sec = ts[0].tv_sec;
+	gt[0].tv_nsec = ts[0].tv_nsec;
+	gt[1].tv_sec = ts[1].tv_sec;
+	gt[1].tv_nsec = ts[1].tv_nsec;
+#ifdef HAVE_GFS_LUTIMES
+	e = gfs_lutimes(gfarmized.path, gt);
+#else
 	e = gfs_utimes(gfarmized.path, gt);
-	gfarm2fs_check_error(GFARM_MSG_2000025, OP_UTIME,
-			     "gfs_utime", gfarmized.path, e);
+#endif
+	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UTIMENS,
+			     "gfs_lutimes", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
 	return (-gfarm_error_to_errno(e));
 }
@@ -1342,7 +1348,7 @@ static struct fuse_operations gfarm2fs_oper = {
     .chown	= gfarm2fs_chown,
     .truncate	= gfarm2fs_truncate,
     .ftruncate	= gfarm2fs_ftruncate,
-    .utime	= gfarm2fs_utime,
+    .utimens	= gfarm2fs_utimens,
     .create	= gfarm2fs_create,
     .open	= gfarm2fs_open,
     .read	= gfarm2fs_read,
@@ -1521,9 +1527,9 @@ gfarm2fs_ftruncate_cached(const char *path, off_t size,
 }
 
 static int
-gfarm2fs_utime_cached(const char *path, struct utimbuf *buf)
+gfarm2fs_utimens_cached(const char *path, const struct timespec ts[2])
 {
-	int rv = gfarm2fs_utime(path, buf);
+	int rv = gfarm2fs_utimens(path, ts);
 
 	if (rv == 0)
 		uncache_path(path);
@@ -1621,7 +1627,7 @@ static struct fuse_operations gfarm2fs_cached_oper = {
     .chown	= gfarm2fs_chown_cached,
     .truncate	= gfarm2fs_truncate_cached,
     .ftruncate	= gfarm2fs_ftruncate_cached,
-    .utime	= gfarm2fs_utime_cached,
+    .utimens	= gfarm2fs_utimens_cached,
     .create	= gfarm2fs_create_cached,
     .open	= gfarm2fs_open_cached,
     .read	= gfarm2fs_read,

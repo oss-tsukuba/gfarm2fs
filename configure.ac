@@ -88,11 +88,11 @@ AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])
 AC_CHECK_LIB([gfarm], [gfarm_get_global_username_by_url],, [AC_MSG_ERROR([Gfarm-2.4.2 or later is required])])
 AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse],, [AC_MSG_ERROR([libfuse not found])])
 
-
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
 
 # Checks for library functions.
-AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown)
+AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown gfs_lutimes)
 
 AC_TRY_RUN([
 #  include <fuse.h>
