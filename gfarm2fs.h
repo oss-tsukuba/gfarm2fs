@@ -31,6 +31,13 @@ struct gfarmized_path {
 gfarm_error_t gfarmize_path(const char *, struct gfarmized_path *);
 void free_gfarmized_path(struct gfarmized_path *);
 
+struct gfarm2fs_file {
+	GFS_File gf;
+	gfarm_ino_t inum;
+	int time_updated;
+	struct gfarm_timespec gt[2];
+};
+
 /* support nanosecond */
 #if defined(HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC)
 #define gfarm2fs_stat_mtime_nsec_set(st, v) ((st)->st_mtim.tv_nsec = (v))
