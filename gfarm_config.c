@@ -111,10 +111,10 @@ unlink:
 gfarm_error_t
 gfarm_config_gsi_proxy_info(char **infop)
 {
-	char cmd[] = "grid-proxy-info >& /tmp/gfarm2fs-XXXXXX";
-	/* offset to            1111111111 */
-	/* filename   01234567890123456789 */
-	int offset_to_filename = 19;
+	char cmd[] = "(grid-proxy-info 2>&1) > /tmp/gfarm2fs-XXXXXX";
+	/* offset to            1111111111222222 */
+	/* filename   01234567890123456789012345 */
+	int offset_to_filename = 25;
 
 	return (gfarm_config_gsi_common(cmd, offset_to_filename, 0, infop));
 }
