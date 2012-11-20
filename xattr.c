@@ -240,6 +240,8 @@ gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 	if (strcmp(n, "path") == 0)
 		return (gfarm2fs_xattr_copy(path, value, sizep));
 	else if (strcmp(n, "url") == 0) {
+		if (gfarm_is_url(path))
+			return (gfarm2fs_xattr_copy(path, value, sizep));
 		e = gfarm_config_metadb_server(path, &metadb, &port);
 		if (e != GFARM_ERR_NO_ERROR)
 			return (e);
