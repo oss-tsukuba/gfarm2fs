@@ -46,20 +46,6 @@ fi
 : ${GFS_USERNAME:=$USER}
 : ${GFS_USERNAME:=$LOGNAME}
 : ${GFS_USERNAME:=`logname 2> /dev/null`}
-: ${UID:=`id -u`}
-if [ X"$GFS_MOUNTDIR" = X ]; then
-	dirs=`find /gfarm -mount -type d -exec test -w \{} \; -print 2> /dev/null`
-	if [ X"$dirs" = X ]; then
-		break
-	elif [ `echo "$dirs" | wc -l` -gt 1 ]; then
-		echo "Possible mount points:"
-		echo "$dirs"
-		echo "specify by GFS_MOUNTDIR environment variable"
-		exit 1
-	else
-		GFS_MOUNTDIR=$dirs
-	fi
-fi
 : ${GFS_MOUNTDIR:=/tmp/$GFS_USERNAME}
 : ${GFARMFS_ROOT:=`gfuser -l $GFS_USERNAME 2> /dev/null | awk -F: '{ print $3 }'`}
 : ${GFARMFS_ROOT:=/}
@@ -67,6 +53,7 @@ fi
 : ${FUSE_OPTIONS:=}
 
 # copy proxy cert to default location and unset X509_USER_PROXY
+: ${UID:=`id -u`}
 [ X"$X509_USER_PROXY" != X -a -f "$X509_USER_PROXY" ] &&
 cp -p $X509_USER_PROXY /tmp/x509up_u$UID &&
 unset X509_USER_PROXY
