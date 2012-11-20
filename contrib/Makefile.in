@@ -205,7 +205,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
-SUBDIRS = gfarm2fs-exec mount.gfarm2fs
+SUBDIRS = gfarm2fs-exec mount.gfarm2fs gfarm2fs-proxy-info
 all: all-recursive
 
 .SUFFIXES:
