@@ -48,7 +48,7 @@ fi
 : ${GFS_USERNAME:=`logname 2> /dev/null`}
 : ${UID:=`id -u`}
 if [ X"$GFS_MOUNTDIR" = X ]; then
-	dirs=`find /gfarm -mount -uid $UID -perm /200 -type d 2> /dev/null`
+	dirs=`find /gfarm -mount -type d -exec test -w \{} \; -print 2> /dev/null`
 	if [ X"$dirs" = X ]; then
 		break
 	elif [ `echo "$dirs" | wc -l` -gt 1 ]; then
