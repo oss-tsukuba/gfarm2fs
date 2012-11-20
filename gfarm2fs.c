@@ -139,6 +139,7 @@ static const char OP_WRITE[] = "WRITE";
 static const char OP_STATFS[] = "STATFS";
 static const char OP_RELEASE[] = "RELEASE";
 static const char OP_FSYNC[] = "FSYNC";
+static const char OP_FLUSH[] = "FLUSH";
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
 static const char OP_SETXATTR[] = "SETXATTR";
 static const char OP_GETXATTR[] = "GETXATTR";
@@ -1054,6 +1055,9 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 	return (-gfarm_error_to_errno(e));
 }
 
+#define IS_WRITABLE(x) (((x) & GFARM_FILE_WRONLY) != 0 || \
+			((x) & GFARM_FILE_RDWR) != 0)
+
 static int
 gfs_hook_open_flags_gfarmize(int open_flags)
 {
@@ -1092,7 +1096,8 @@ gfs_hook_open_flags_gfarmize(int open_flags)
 }
 
 static gfarm_error_t
-gfarm2fs_file_init(const char *path, GFS_File gf, struct gfarm2fs_file **fpp)
+gfarm2fs_file_init(
+	const char *path, GFS_File gf, struct gfarm2fs_file **fpp, int flags)
 {
 	gfarm_error_t e;
 	struct gfarm2fs_file *fp;
@@ -1104,6 +1109,7 @@ gfarm2fs_file_init(const char *path, GFS_File gf, struct gfarm2fs_file **fpp)
 
 	GFARM_MALLOC(fp);
 	if (fp) {
+		fp->flags = flags;
 		fp->gf = gf;
 		fp->time_updated = 0;
 		fp->inum = st.st_ino;
@@ -1139,7 +1145,7 @@ gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfarm2fs_file_init(gfarmized.path, gf, &fp);
+	e = gfarm2fs_file_init(gfarmized.path, gf, &fp, flags);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CREATE,
 		    "gfarm2fs_file_init", gfarmized.path, e);
@@ -1176,7 +1182,7 @@ gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
-	e = gfarm2fs_file_init(gfarmized.path, gf, &fp);
+	e = gfarm2fs_file_init(gfarmized.path, gf, &fp, flags);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_OPEN,
 		    "gfarm2fs_file_init", gfarmized.path, e);
@@ -1318,6 +1324,21 @@ gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 					"gfs_pio_sync", path, e);
 	}
 	return (-gfarm_error_to_errno(e));
+}
+
+static int
+gfarm2fs_flush(const char *path, struct fuse_file_info *fi)
+{
+	gfarm_error_t e;
+	struct gfarm2fs_file *fp = get_filep(fi);
+
+	if (IS_WRITABLE(fp->flags)) {
+		e = gfs_pio_flush(fp->gf);
+		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FLUSH,
+		    "gfs_pio_flush", path, e);
+		return (-gfarm_error_to_errno(e));
+	} else
+		return (0);
 }
 
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
@@ -1481,6 +1502,7 @@ static struct fuse_operations gfarm2fs_oper = {
     .statfs	= gfarm2fs_statfs,
     .release	= gfarm2fs_release,
     .fsync	= gfarm2fs_fsync,
+    .flush	= gfarm2fs_flush,
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
     .setxattr	= gfarm2fs_setxattr,
     .getxattr	= gfarm2fs_getxattr,
@@ -1760,6 +1782,7 @@ static struct fuse_operations gfarm2fs_cached_oper = {
     .statfs	= gfarm2fs_statfs,
     .release	= gfarm2fs_release_cached,
     .fsync	= gfarm2fs_fsync,
+    .flush	= gfarm2fs_flush,
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
     .setxattr	= gfarm2fs_setxattr_cached,
     .getxattr	= gfarm2fs_getxattr,

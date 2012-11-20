@@ -32,6 +32,7 @@ gfarm_error_t gfarmize_path(const char *, struct gfarmized_path *);
 void free_gfarmized_path(struct gfarmized_path *);
 
 struct gfarm2fs_file {
+	int flags;
 	GFS_File gf;
 	gfarm_ino_t inum;
 	int time_updated;
