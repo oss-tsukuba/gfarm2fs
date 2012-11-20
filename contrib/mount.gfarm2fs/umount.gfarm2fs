@@ -57,5 +57,7 @@ UMOUNT_FUSE $GFS_MOUNTDIR
 STATUS=$?
 if [ $STATUS = 0 ]; then
 	echo Unmount GfarmFS on $GFS_MOUNTDIR
+else
+	ABORT Error: failed to umount GfarmFS on $GFS_MOUNTDIR
 fi
 exit $STATUS
