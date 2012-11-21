@@ -1147,13 +1147,14 @@ gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 	e = gfarm2fs_file_init(gfarmized.path, gf, &fp, flags);
 	if (e != GFARM_ERR_NO_ERROR) {
+		(void)gfs_pio_close(gf);
 		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CREATE,
 		    "gfarm2fs_file_init", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
 
-	fi->fh = (uint64_t)fp;
+	fi->fh = (unsigned long)fp;
 	gfarm2fs_open_file_enter(fp, fi->flags|O_CREAT);
 	free_gfarmized_path(&gfarmized);
 	return (0);
@@ -1184,13 +1185,14 @@ gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 	}
 	e = gfarm2fs_file_init(gfarmized.path, gf, &fp, flags);
 	if (e != GFARM_ERR_NO_ERROR) {
+		(void)gfs_pio_close(gf);
 		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_OPEN,
 		    "gfarm2fs_file_init", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
 
-	fi->fh = (uint64_t)fp;
+	fi->fh = (unsigned long)fp;
 	gfarm2fs_open_file_enter(fp, fi->flags);
 	free_gfarmized_path(&gfarmized);
 	return (0);
