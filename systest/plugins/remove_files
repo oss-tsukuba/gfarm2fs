@@ -1,0 +1,54 @@
+#
+# Dependencies of this sub-command
+#
+remove_files_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: remove files
+#
+subcmd_remove_files()
+{
+	log_debug "subcmd_remove_files"
+
+	check_argc $# 2
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - remove_files "$@"
+	[ $? -ne 0 ] && log_error "gfservice remove_files failed"
+
+	log_debug "end subcmd_remove_files"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+remove_files_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: remove_files
+# Remove files in target dir.
+#
+subcmd_remove_files_agent()
+{
+	log_debug "subcmd_remove_files_agent TARGET_DIR=$1 NUM_FILES=$2"
+
+	for I in `seq $2` ; do
+		TESTFILE=`printf test_file.%04d $I`
+		if [ -f $1/$TESTFILE ]; then
+			rm $1/$TESTFILE
+			[ $? -ne 0 ] && log_error "failed to remove file: " \
+				"$PROGHOST:$1/$TESTFILE"
+		fi
+	done
+
+	rmdir -p $1 2> /dev/null
+
+	log_debug "end subcmd_remove_files_agent"
+
+	return 0
+}

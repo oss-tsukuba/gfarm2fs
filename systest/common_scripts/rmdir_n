@@ -1,0 +1,17 @@
+#
+# rmdir n times
+#
+rmdir_n()
+{
+	HOSTID=$1
+	DIR_PREFIX=$2
+	COUNT=$3
+
+	$GFSERVICE $DEBUG rmdir_n $HOSTID $DIR_PREFIX $COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice rmdir_n failed $HOSTID"
+		return 1
+	fi
+
+	return 0
+}

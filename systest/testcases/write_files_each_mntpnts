@@ -1,0 +1,63 @@
+#
+# test case for writing files on each mount points for each clients
+#
+load	"calc_checksum" \
+	"exec_on_multiple_clients" \
+	"mkdir_n" \
+	"mount_n" \
+	"make_files_each_mntpnts" \
+	"gfwhere_check" \
+	"check_files_each_mntpnts" \
+	"remove_files_each_mntpnts" \
+	"log_view" \
+	"umount_n" \
+	"rmdir_n"
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# NUM_CLIENTS:	Number of clients used
+# NUM_MOUNT:	Number of mount points
+# NUM_FILES:	Number of files to write
+# FILE_SIZE:	File size of each file to be written
+test_write_files_each_mntpnts()
+{
+	CHKSUM=`calc_checksum $FILE_SIZE`
+	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
+	RESULT=0
+
+	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	exec_on_multiple_clients $NUM_CLIENTS mount_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT $GFARM_HOME
+
+	exec_on_multiple_clients $NUM_CLIENTS make_files_each_mntpnts true \
+		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES $FILE_SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to make files"
+		RESULT=1
+	fi
+
+	gfwhere_check client1 $GFARM_HOME
+
+	exec_on_multiple_clients $NUM_CLIENTS check_files_each_mntpnts true \
+		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES $CHKSUM
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: file checksum is not expected one"
+		RESULT=1
+	fi
+
+	log_view client1
+
+	exec_on_multiple_clients $NUM_CLIENTS remove_files_each_mntpnts false \
+		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES
+
+	exec_on_multiple_clients $NUM_CLIENTS umount_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	exec_on_multiple_clients $NUM_CLIENTS rmdir_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	return $RESULT
+}

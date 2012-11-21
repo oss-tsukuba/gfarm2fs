@@ -1,0 +1,21 @@
+#
+# files check with md5
+#
+check_files()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	TARGET_DIR=$3
+	NFILES=$4
+	CHKSUM=$5
+
+	MNT=`printf $MNTDIR_PREFIX%04d 1`
+	$GFSERVICE $DEBUG check_files $HOSTID "$MNT/$TARGET_DIR" $NFILES \
+		$CHKSUM
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice check_files failed $HOSTID $CHKSUM"
+		return 1
+	fi
+
+	return 0
+}

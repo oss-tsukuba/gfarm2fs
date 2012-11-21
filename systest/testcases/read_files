@@ -1,0 +1,53 @@
+#
+# Test case for reading files
+#
+load 	"exec_on_multiple_clients" \
+	"mkdir_n" \
+	"mount_n" \
+	"make_files_single" \
+	"read_files" \
+	"log_view" \
+	"remove_files" \
+	"umount_n" \
+	"rmdir_n"
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# NUM_CLIENTS:	Number of clients used
+# NUM_MOUNT:	Number of mount points
+# NUM_FILES:	Number of files to read
+# FILE_SIZE:	File size of each file to be read
+test_read_files()
+{
+	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
+	RESULT=0
+
+	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	exec_on_multiple_clients $NUM_CLIENTS mount_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT $GFARM_HOME
+
+	make_files_single client1 ${TEST_EXEC_ID}_ $TARGET_DIR $NUM_FILES \
+		$FILE_SIZE
+
+	exec_on_multiple_clients $NUM_CLIENTS read_files true \
+		${TEST_EXEC_ID}_ $NUM_MOUNT $NUM_FILES $FILE_SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to read files"
+		RESULT=1
+	fi
+
+	log_view client1
+
+	remove_files client1 ${TEST_EXEC_ID}_ $TARGET_DIR $NUM_FILES
+
+	exec_on_multiple_clients $NUM_CLIENTS umount_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	exec_on_multiple_clients $NUM_CLIENTS rmdir_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	return $RESULT
+}

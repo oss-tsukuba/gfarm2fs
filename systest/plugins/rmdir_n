@@ -1,0 +1,51 @@
+#
+# Dependencies of this sub-command
+#
+rmdir_n_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: rmdir_n
+#
+subcmd_rmdir_n()
+{
+	log_debug "subcmd_rmdir_n"
+
+	check_argc $# 2
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - rmdir_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice rmdir_n failed"
+
+	log_debug "end subcmd_rmdir_n"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+rmdir_n_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: rmdir_n
+# Remove directories in target dir.
+#
+subcmd_rmdir_n_agent()
+{
+	DIR_PREFIX=$1
+	NUM_DIRS=$2
+	log_debug "subcmd_rmdir_n_agent DIR_PREFIX=$1 NUM_DIRS=$2"
+
+	for I in `seq $NUM_DIRS`; do
+		DIR=`printf $DIR_PREFIX%04d $I`
+		if [ -d $DIR ]; then
+			rmdir -p $DIR
+			[ $? -ne 0 ] && log_error "failed to rmdir $DIR"
+		fi
+	done
+
+	log_debug "end subcmd_rmdir_n_agent"
+}

@@ -1,0 +1,17 @@
+#
+# mkdir n times
+#
+mkdir_n()
+{
+	HOSTID=$1
+	DIR_PREFIX=$2
+	COUNT=$3
+
+	$GFSERVICE $DEBUG mkdir_n $HOSTID $DIR_PREFIX $COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice mkdir_n failed $HOSTID"
+		return 1
+	fi
+
+	return 0
+}

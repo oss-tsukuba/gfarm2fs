@@ -1,0 +1,9 @@
+#
+# Test parameters for writing files(1client, 100mountpoint, 1000files, 100M size)
+# (Test case No. 2-1-2-2)
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+NUM_CLIENTS=${NUM_CLIENTS-"1"}
+NUM_MOUNT=${NUM_MOUNT-"100"}
+NUM_FILES=${NUM_FILES-"1000"}
+FILE_SIZE=${FILE_SIZE-"100M"}

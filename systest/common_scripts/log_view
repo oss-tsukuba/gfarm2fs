@@ -1,0 +1,15 @@
+#
+# view log file
+#
+log_view()
+{
+	HOSTID=$1
+
+	$GFSERVICE $DEBUG log_view $HOSTID -
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice log_view failed $HOSTID"
+		return 1
+	fi
+
+	return 0
+}

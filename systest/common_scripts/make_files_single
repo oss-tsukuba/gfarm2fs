@@ -1,0 +1,24 @@
+#
+# make files with single
+#
+make_files_single()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	TARGET_DIR=$3
+	NFILES=$4
+	SIZE=$5
+
+	if [  "X$SIZE" = "X" ]; then
+		SIZE=1M
+	fi
+
+	MNT=`printf $MNTDIR_PREFIX%04d 1`
+	$GFSERVICE $DEBUG make_files $HOSTID "$MNT/$TARGET_DIR" $NFILES $SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice make_files failed $HOSTID $NFILES $SIZE"
+		return 1
+	fi
+
+	return 0
+}

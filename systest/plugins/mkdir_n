@@ -1,0 +1,52 @@
+#
+# Dependencies of this sub-command
+#
+mkdir_n_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: mkdir_n
+#
+subcmd_mkdir_n()
+{
+	log_debug "subcmd_mkdir_n"
+
+	check_argc $# 2
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - mkdir_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice mkdir_n failed"
+
+	log_debug "end subcmd_mkdir_n"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+mkdir_n_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: mkdir_n
+# Make directories in target dir.
+#
+subcmd_mkdir_n_agent()
+{
+	log_debug "subcmd_mkdir_n_agent DIR_PREFIX=$1 NUM_DIRS=$2"
+
+	DIR_PREFIX=$1
+	NUM_DIRS=$2
+
+	for I in `seq $NUM_DIRS`; do
+		DIR=`printf $DIR_PREFIX%04d $I`
+		if [ ! -d $DIR ]; then
+			mkdir -p $DIR
+			[ $? -ne 0 ] && log_error "failed to mkdir $DIR"
+		fi
+	done
+
+	log_debug "end subcmd_mkdir_n_agent"
+}

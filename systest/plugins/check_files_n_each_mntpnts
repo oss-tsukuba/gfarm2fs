@@ -1,0 +1,59 @@
+#
+# Dependencies of this sub-command
+#
+check_files_n_each_mntpnts_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: check files on each mount points
+#
+subcmd_check_files_n_each_mntpnts()
+{
+	log_debug "subcmd_check_files_n_each_mntpnts"
+
+	check_argc $# 5
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - check_files_n_each_mntpnts "$@"
+	[ $? -ne 0 ] && log_error "gfservice check_files_n_each_mntpnts failed"
+
+	log_debug "end subcmd_check_files_n_each_mntpnts"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+check_files_n_each_mntpnts_agent_depends()
+{
+	echo "check_files"
+}
+
+#
+# Sub-command: check_files_n_each_mntpnts
+# Check files in target dir on each mount points.
+#
+subcmd_check_files_n_each_mntpnts_agent()
+{
+	log_debug "subcmd_check_files_n_each_mntpnts_agent MNTDIR_PREFIX=$1" \
+		"COUNT=$2 $TARGET_DIR=$3"
+
+	MNTDIR_PREFIX=$1
+	COUNT=$2
+	TARGET_DIR=$3
+	shift 3
+
+	PROCESS_LIST=""
+
+	for I in `df|awk "/$MNTDIR_PREFIX/{print \\\$6}"|sort|head -$COUNT`; do
+		check_files_internal "$I/$PROGHOST/$I/$TARGET_DIR" "$@" &
+		PROCESS_LIST="$PROCESS_LIST $!"
+	done
+
+	for PROCESS in $PROCESS_LIST; do
+		wait $PROCESS
+		[ $? -ne 0 ] && log_error "check_files_n_each_mntpnts failed"
+	done
+
+	log_debug "end subcmd_check_files_n_each_mntpnts_agent"
+}

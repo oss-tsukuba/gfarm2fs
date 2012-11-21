@@ -1,0 +1,21 @@
+#
+# remove files on each mount points for each clients.
+#
+remove_files_each_mntpnts()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	COUNT=$3
+	TARGET_DIR=$4
+	NFILES=$5
+
+	$GFSERVICE $DEBUG remove_files_each_mntpnts $HOSTID $MNTDIR_PREFIX \
+		$COUNT $TARGET_DIR $NFILES
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice remove_files_each_mntpnts failed $HOSTID" \
+			"$NFILES"
+		return 1
+	fi
+
+	return 0
+}

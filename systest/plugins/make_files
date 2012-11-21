@@ -1,0 +1,68 @@
+#
+# Dependencies of this sub-command
+#
+make_files_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: make files
+#
+subcmd_make_files()
+{
+	log_debug "subcmd_make_files"
+
+	check_argc $# 3
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - make_files "$@"
+	[ $? -ne 0 ] && log_error "gfservice make_files failed"
+
+	log_debug "end subcmd_make_files"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+make_files_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: make_files
+# Make files in target dir.
+#
+subcmd_make_files_agent()
+{
+	log_debug "subcmd_make_files_agent TARGET_DIR=$1 NUM_FILES=$2" \
+		"FILE_SIZE=$3"
+
+	TARGET_DIR=$1
+	NUM_FILES=$2
+	FILE_SIZE=$3
+
+	if [ ! -d $TARGET_DIR ]; then
+		mkdir -p $TARGET_DIR
+	fi
+
+	if [ "X$FILE_SIZE" = X1G ]; then
+		DD_OPT="bs=64M count=16"
+	else
+		DD_OPT="bs=$FILE_SIZE count=1"
+	fi
+
+	for I in `seq $NUM_FILES` ; do
+		TESTFILE=`printf test_file.%04d $I`
+		dd if=/dev/zero $DD_OPT 2> /dev/null | tr "\000" "a" \
+			> "$TARGET_DIR/$TESTFILE"
+		echo "$PROGHOST makes $TARGET_DIR/$TESTFILE done"
+		[ $? -ne 0 ] && log_error "failed to make file: " \
+			"$PROGHOST:$TARGET_DIR/$TESTFILE"
+		[ -f stop ] && log_error "stopped."
+	done
+
+	log_debug "end subcmd_make_files_agent"
+
+	return 0
+}

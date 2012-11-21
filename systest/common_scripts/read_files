@@ -1,0 +1,20 @@
+#
+# read files
+#
+read_files()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	COUNT=$3
+	NFILES=$4
+	SIZE=$5
+
+	$GFSERVICE $DEBUG read_files_n $HOSTID $MNTDIR_PREFIX $COUNT \
+		test_${COUNT}_${NFILES}_${SIZE} $NFILES 
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice read_files_n failed $HOSTID $NFILES"
+		return 1
+	fi
+
+	return 0
+}

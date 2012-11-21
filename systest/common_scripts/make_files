@@ -1,0 +1,25 @@
+#
+# make files
+#
+make_files()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	COUNT=$3
+	TARGET_DIR=$4
+	NFILES=$5
+	SIZE=$6
+
+	if [  "X$SIZE" = "X" ]; then
+		SIZE=1M
+	fi
+
+	$GFSERVICE $DEBUG make_files_n $HOSTID $MNTDIR_PREFIX $COUNT \
+		$TARGET_DIR $NFILES $SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice make_files_n failed $HOSTID $NFILES $SIZE"
+		return 1
+	fi
+
+	return 0
+}

@@ -1,0 +1,69 @@
+# Default settings.
+DEFAULT_LOG_FILE_PATHS="/var/log/messages"
+
+#
+# Dependencies of this sub-command
+#
+log_view_depends()
+{
+	echo ""
+}
+
+#
+# Get log file paths corresponding with a host ID.
+#
+get_log_file_paths()
+{
+	log_debug "get_log_file_paths: HOSTID=$1"
+
+	if [ "X`eval echo \\$$1_LOG_FILE_PATHS`" = X ]; then
+		echo $DEFAULT_LOG_FILE_PATHS
+	else
+		eval echo "\$$1_LOG_FILE_PATHS"
+		log_debug "get_log_file_paths: `eval echo \\$$1_LOG_FILE_PATHS`"
+	fi
+
+	log_debug "end log_file_paths"
+	return 0
+}
+
+#
+# Sub-command: Log view
+#
+subcmd_log_view()
+{
+	log_debug "subcmd_log_view"
+
+	check_hostid $HOSTID
+	LOG_FILE_PATHS=`get_log_file_paths $HOSTID`
+	exec_client_host_agent $HOSTID root log_view \
+		"log-file-paths=$LOG_FILE_PATHS"
+	[ $? -ne 0 ] && log_error "gfservice log_view failed"
+
+	log_debug "end subcmd_log_view"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+log_view_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: log_view
+#
+subcmd_log_view_agent()
+{
+	log_debug "subcmd_log_view_agent"
+
+	LOG_FILE_PATHS=`get_param log-file-paths`
+
+	for F in $LOG_FILE_PATHS ; do
+		grep -e err -e warning $F |grep -v auth
+		[ $? -ne 0 ] && log_error "log_view failed: $F"
+	done
+
+	log_debug "end subcmd_log_view_agent"
+}

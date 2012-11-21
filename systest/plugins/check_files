@@ -1,0 +1,75 @@
+#
+# Dependencies of this sub-command
+#
+check_files_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: check files
+#
+subcmd_check_files()
+{
+	log_debug "subcmd_check_files"
+
+	check_argc $# 3
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - check_files "$@"
+	[ $? -ne 0 ] && log_error "gfservice check_files failed"
+
+	log_debug "end subcmd_check_files"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+check_files_agent_depends()
+{
+	echo ""
+}
+
+#
+# check_files_internal
+# Check files in target dir.
+#
+check_files_internal()
+{
+	TARGET_DIR=$1
+	NUM_FILES=$2
+	CHECKSUM=$3
+
+	for I in `seq $NUM_FILES` ; do
+		TESTFILE=`printf test_file.%04d $I`
+		TARGET_CHECKSUM=`openssl md5 $TARGET_DIR/$TESTFILE|awk '{print $2}'`
+		[ $? -ne 0 ] && log_error "failed to read file:" \
+			"$TARGET_DIR/$TESTFILE"
+		[ "X$CHECKSUM" != "X$TARGET_CHECKSUM" ] \
+			&& log_error "checksum did not match:" \
+			"$TARGET_DIR/$TESTFILE $CHECKSUM $TARGET_CHECKSUM"
+	done
+
+	return 0
+}
+
+#
+# Sub-command: check_files
+# Check files in target dir.
+#
+subcmd_check_files_agent()
+{
+	log_debug "subcmd_check_files_agent TARGET_DIR=$1 NUM_FILES=$2" \
+		"CHECKSUM=$3"
+
+	TARGET_DIR=$1
+	NUM_FILES=$2
+	CHECKSUM=$3
+
+	if [ ! -d $TARGET_DIR ]; then
+		 log_error "failed to read dir: $MNT/$TARGET_DIR"
+	fi
+
+	check_files_internal $TARGET_DIR $NUM_FILES $CHECKSUM
+
+	log_debug "end subcmd_check_files_agent"
+}

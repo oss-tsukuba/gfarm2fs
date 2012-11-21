@@ -1,0 +1,14 @@
+#
+# calculate expected md5sum
+#
+calc_checksum()
+{
+	SIZE=$1
+	if [ X$SIZE = X1G ]; then
+		DD_OPT="bs=64M count=16"
+	else
+		DD_OPT="bs=$SIZE count=1"
+	fi
+
+	dd if=/dev/zero $DD_OPT | tr "\000" "a" | openssl md5 | awk '{print $2}'
+}

@@ -1,0 +1,41 @@
+#
+# execute function on multiple clients
+#
+exec_on_multiple_clients()
+{
+	NUM_CLIENTS=$1
+	FUNC=$2
+	EXEC_IN_PARALLEL=$3
+	shift 3
+
+	PROCESS_LIST=""
+	RESULT=0
+
+	if [ $NUM_CLIENTS -eq 1 ]; then
+		EXEC_IN_PARALLEL=false
+	fi
+
+	for I in `seq $NUM_CLIENTS` ; do
+		HOSTID=`printf client%d $I`
+		if [ X$EXEC_IN_PARALLEL = Xtrue ]; then
+			$FUNC $HOSTID $@ &
+			PROCESS_LIST="$PROCESS_LIST $!"
+		else
+			$FUNC $HOSTID $@
+			if [ $? -ne 0 ]; then
+				RESULT=1
+			fi
+		fi
+	done
+
+	if [ X$EXEC_IN_PARALLEL = Xtrue ]; then
+		for PROCESS in $PROCESS_LIST; do
+			wait $PROCESS
+			if [ $? -ne 0 ]; then
+				RESULT=1
+			fi
+		done
+	fi
+
+	return $RESULT
+}

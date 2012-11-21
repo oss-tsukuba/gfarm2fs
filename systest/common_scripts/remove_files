@@ -1,0 +1,19 @@
+#
+# remove files
+#
+remove_files()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	TARGET_DIR=$3
+	NFILES=$4
+
+	MNT=`printf $MNTDIR_PREFIX%04d 1`
+	$GFSERVICE $DEBUG remove_files $HOSTID "$MNT/$TARGET_DIR" $NFILES
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice remove_files failed $HOSTID $NFILES"
+		return 1
+	fi
+
+	return 0
+}

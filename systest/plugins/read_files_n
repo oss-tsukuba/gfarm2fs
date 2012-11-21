@@ -1,0 +1,82 @@
+#
+# Dependencies of this sub-command
+#
+read_files_n_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: read files for n
+#
+subcmd_read_files_n()
+{
+	log_debug "subcmd_read_files_n"
+
+	check_argc $# 4
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - read_files_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice read_files_n failed"
+
+	log_debug "end subcmd_read_files_n"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+read_files_n_agent_depends()
+{
+	echo ""
+}
+
+#
+# Read files in target dir.
+#
+read_files()
+{
+	TARGET_DIR=$1
+	NUM_FILES=$2
+
+	if [ ! -d $TARGET_DIR ]; then
+		log_error "failed to read file: $TARGET_DIR"
+	fi
+
+	for I in `seq $NUM_FILES` ; do
+		TESTFILE=`printf test_file.%04d $I`
+		dd if="$TARGET_DIR/$TESTFILE" of=/dev/null
+		[ $? -ne 0 ] && log_error "failed to read file:" \
+			"$TARGET_DIR/$TESTFILE"
+		[ -f stop ] && log_error "stopped."
+	done
+
+	return 0
+}
+
+#
+# Sub-command: read_files_n
+# Read files in target dir.
+#
+subcmd_read_files_n_agent()
+{
+	log_debug "subcmd_read_files_n_agent MNTDIR_PREFIX=$1 COUNT=$2" \
+		"TARGET_DIR=$3"
+
+	MNTDIR_PREFIX=$1
+	COUNT=$2
+	TARGET_DIR=$3
+	shift 3
+
+	PROCESS_LIST=""
+
+	for I in `df|awk "/$MNTDIR_PREFIX/{print \\\$6}"|sort|head -$COUNT`; do
+		read_files "$I/$TARGET_DIR" "$@" &
+		PROCESS_LIST="$PROCESS_LIST $!"
+	done
+
+	for PROCESS in $PROCESS_LIST; do
+		wait $PROCESS
+		[ $? -ne 0 ] && log_error "read_files_n failed"
+	done
+
+	log_debug "end subcmd_make_files_n_agent"
+}

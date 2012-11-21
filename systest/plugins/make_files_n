@@ -1,0 +1,59 @@
+#
+# Dependencies of this sub-command
+#
+make_files_n_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: make files for n
+#
+subcmd_make_files_n()
+{
+	log_debug "subcmd_make_files_n"
+
+	check_argc $# 5
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - make_files_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice make_files_n failed"
+
+	log_debug "end subcmd_make_files_n"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+make_files_n_agent_depends()
+{
+	echo "make_files"
+}
+
+#
+# Sub-command: make_files_n
+# Make files in target dir.
+#
+subcmd_make_files_n_agent()
+{
+	log_debug "subcmd_make_files_n_agent MNTDIR_PREFIX=$1 COUNT=$2" \
+		"TARGET_DIR=$3"
+
+	MNTDIR_PREFIX=$1
+	COUNT=$2
+	TARGET_DIR=$3
+	shift 3
+
+	PROCESS_LIST=""
+
+	for I in `df|awk "/$MNTDIR_PREFIX/{print \\\$6}"|sort|head -$COUNT`; do
+		subcmd_make_files_agent "$I/$TARGET_DIR" "$@" &
+		PROCESS_LIST="$PROCESS_LIST $!"
+	done
+
+	for PROCESS in $PROCESS_LIST; do
+		wait $PROCESS
+		[ $? -ne 0 ] && log_error "make_files_n_agent failed"
+	done
+
+	log_debug "end subcmd_make_files_n_agent"
+}
