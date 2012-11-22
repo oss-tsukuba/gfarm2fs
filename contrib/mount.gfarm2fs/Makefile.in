@@ -165,6 +165,7 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+gfarm_root = @gfarm_root@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -195,7 +196,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
-bin_SCRIPTS = mount.gfarm2fs umount.gfarm2fs
+bin_SCRIPTS = mount.gfarm2fs umount.gfarm2fs mount.hpci umount.hpci
 EXTRA_DIST = $(bin_SCRIPTS)
 all: all-am
 
