@@ -66,7 +66,6 @@
 char *program_name = "gfarm2fs";
 
 static const char GFARM2FS_SYSLOG_FACILITY_DEFAULT[] = "local0";
-static const char GFARM2FS_SYSLOG_PRIORITY_DEFAULT[] = "notice";
 static const char GFARM2FS_SYSLOG_PRIORITY_DEBUG[] = "debug";
 
 static const char *mount_point;
@@ -1895,7 +1894,8 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "\n"
 "GFARM2FS options:\n"
 "    -o syslog=facility      syslog facility (default: %s)\n"
-"    -o loglevel=priority    syslog priority level (default: %s)\n"
+"    -o loglevel=priority    syslog priority level\n"
+"                            (default: log_level directive in gfarm2.conf)\n"
 "    -E T                    cache timeout for gfs_stat (default: 1.0 sec.)\n"
 "    -o gfs_stat_timeout=T   same -E option\n"
 "    -o ncopy=N              number of copies\n"
@@ -1909,7 +1909,6 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "    -o auto_gid_max=N       maximum GID automatically assigned (default: %d)\n"
 		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
-		GFARM2FS_SYSLOG_PRIORITY_DEFAULT,
 		paramsp->copy_limit,
 		paramsp->auto_uid_min,
 		paramsp->auto_uid_max,
@@ -2059,28 +2058,31 @@ main(int argc, char *argv[])
 
 	if (params.foreground || params.debug) {
 		params.use_syslog = 0; /* use stderr */
-		if (params.loglevel == NULL)
-			params.loglevel = GFARM2FS_SYSLOG_PRIORITY_DEBUG;
+		if (params.loglevel == NULL) {
+			syslog_priority = gflog_syslog_name_to_priority(
+			    GFARM2FS_SYSLOG_PRIORITY_DEBUG);
+			gflog_set_priority_level(syslog_priority);
+		}
 	}
-
-	if (params.loglevel == NULL)
-		params.loglevel = GFARM2FS_SYSLOG_PRIORITY_DEFAULT;
-	syslog_priority = gflog_syslog_name_to_priority(params.loglevel);
-	if (syslog_priority == -1) {
-		fprintf(stderr, "invalid loglevel: `%s'\n", params.loglevel);
-		fprintf(stderr, "see `%s -h' for usage\n", program_name);
-		exit(1);
+	if (params.loglevel != NULL) {
+		syslog_priority =
+		    gflog_syslog_name_to_priority(params.loglevel);
+		if (syslog_priority == -1) {
+			fprintf(stderr, "invalid loglevel: `%s'\n",
+			    params.loglevel);
+			fprintf(stderr, "see `%s -h' for usage\n",
+			    program_name);
+			exit(1);
+		}
+		gflog_set_priority_level(syslog_priority);
 	}
-	gflog_set_priority_level(syslog_priority);
-
 	gflog_set_identifier(program_name);
 	gflog_auth_set_verbose(1);
 
 	if (params.use_syslog) {
-		if (params.facility == NULL)
-			params.facility = GFARM2FS_SYSLOG_FACILITY_DEFAULT;
 		syslog_facility = gflog_syslog_name_to_facility(
-			params.facility);
+		    params.facility != NULL ? params.facility :
+		    GFARM2FS_SYSLOG_FACILITY_DEFAULT);
 		if (syslog_facility == -1) {
 			fprintf(stderr, "invalid facility: `%s'\n",
 				params.facility);
@@ -2116,7 +2118,10 @@ main(int argc, char *argv[])
 	fuse_opt_free_args(&args);
 
 	gfarm2fs_replicate_final();
-	free(params.subdir);
+
+	free((void *)params.loglevel);
+	free((void *)params.facility);
+	free((void *)params.subdir);
 
 	return (ret_fuse_main);
 }
