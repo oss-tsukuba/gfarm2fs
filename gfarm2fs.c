@@ -246,22 +246,40 @@ free_gfarmized_path(struct gfarmized_path *gfarmized)
 
 /* NOTE: *pathp must be malloc'ed memory */
 static gfarm_error_t
-ungfarmize_path(char **pathp)
+ungfarmize_path(char **pathp, const char *c_path)
 {
-	char *path = *pathp, *p;
+	char *path = *pathp, *p, *metadb = NULL;
+	const static char metadb_xattr[] = "gfarm2fs.metadb";
+	size_t metadb_size = 0;
+	gfarm_error_t e;
 
 	if (gfarm_is_url(path) &&
 	    path[GFARM_URL_PREFIX_LENGTH] == '/' &&
 	    path[GFARM_URL_PREFIX_LENGTH + 1] == '/') {
+		if (path[GFARM_URL_PREFIX_LENGTH + 2] == '/' &&
+		    (gfarm2fs_xattr_get(c_path, metadb_xattr, NULL,
+			&metadb_size) == GFARM_ERR_NO_ERROR)) {
+			/* expand metadb and port from the current path */
+			GFARM_MALLOC_ARRAY(metadb, metadb_size + 1);
+			if (metadb == NULL) /* 1 for '\0' */
+				return (GFARM_ERR_NO_MEMORY);
+			e = gfarm2fs_xattr_get(c_path, metadb_xattr,
+				metadb, &metadb_size);
+			if (e != GFARM_ERR_NO_ERROR)
+				return (e);
+			metadb[metadb_size] = '\0';
+		}
 		/* "gfarm://host/path" -> "MOUNT_POINT/.gfarm/host/path" */
-		p = malloc(gfarm2fs_path_prefix_len +
+		p = malloc(gfarm2fs_path_prefix_len + metadb_size +
 		    strlen(path) - (GFARM_URL_PREFIX_LENGTH + 2) + 1);
 		if (p == NULL) {
 			/* NOTE: *pathp is not freed in this case */
 			return (GFARM_ERR_NO_MEMORY);
 		}
-		sprintf(p, "%s%s", gfarm2fs_path_prefix,
+		sprintf(p, "%s%s%s", gfarm2fs_path_prefix,
+		    metadb == NULL ? "" : metadb,
 		    path + GFARM_URL_PREFIX_LENGTH + 2);
+		free(metadb);
 		free(path);
 		*pathp = p;
 	}
@@ -578,7 +596,7 @@ gfarm2fs_readlink(const char *path, char *buf, size_t size)
 		return (-gfarm_error_to_errno(e));
 	}
 
-	e = ungfarmize_path(&old);
+	e = ungfarmize_path(&old, path);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000064, OP_READLINK,
 		    "ungfarmize_path", old, GFARM_ERR_NO_MEMORY);

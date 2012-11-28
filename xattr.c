@@ -226,6 +226,17 @@ port_size(int port)
 	return (s);
 }
 
+static void
+port_to_string(int port, char *dst)
+{
+	int s, size = port_size(port);
+
+	for (s = size - 1; s >= 0; --s) {
+		dst[s] = port % 10 + '0';
+		port /= 10;
+	}
+}
+
 static gfarm_error_t
 gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 	size_t *sizep)
@@ -261,6 +272,23 @@ gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 		value += GFARM_URL_PREFIX_LENGTH + 2 + metadb_len + 1 +
 			port_len;
 		memcpy(value, path, path_len);
+		return (GFARM_ERR_NO_ERROR);
+	} else if (strcmp(n, "metadb") == 0) {
+		e = gfarm_config_metadb_server(path, &metadb, &port);
+		if (e != GFARM_ERR_NO_ERROR)
+			return (e);
+		metadb_len = strlen(metadb);
+		port_len = port_size(port);
+		len = metadb_len + 1 + port_len;
+		if (*sizep == 0) {
+			*sizep = len;
+			return (GFARM_ERR_NO_ERROR);
+		} else if (len > *sizep)
+			return (GFARM_ERR_RESULT_OUT_OF_RANGE);
+		*sizep = len;
+		snprintf(value, len, "%s:", metadb);
+		value += metadb_len + 1;
+		port_to_string(port, value);
 		return (GFARM_ERR_NO_ERROR);
 	} else if (strcmp(n, "gsiproxyinfo") == 0) {
 		e = gfarm_config_gsi_proxy_info(&gsivalue);
