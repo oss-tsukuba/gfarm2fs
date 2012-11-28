@@ -2000,7 +2000,7 @@ main(int argc, char *argv[])
 
 	struct gfarm2fs_param params = {
 		.mount_point = NULL,
-		.subdir = "",
+		.subdir = NULL,
 		.foreground = 0,
 		.debug = 0,
 		.cache_timeout = -1.0,
