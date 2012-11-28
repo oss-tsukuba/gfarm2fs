@@ -1935,14 +1935,18 @@ static int
 gfarm2fs_opt_proc(void *data, const char *arg, int key,
 			struct fuse_args *outargs)
 {
+	char *s;
+
 #ifndef HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD
 	struct gfarm2fs_param *paramsp = data;
 #endif
 
 	switch (key) {
 	case FUSE_OPT_KEY_OPT: /* -?, -o opt, --opt */
-		if (memcmp(arg, "subdir=", 7) == 0)
-			paramsp->subdir = arg + 7;
+		if (memcmp(arg, "subdir=", 7) == 0) {
+			s = strdup(arg + 7);
+			if (s != NULL)
+				paramsp->subdir = s;
 		return (1); /* through */
 	case FUSE_OPT_KEY_NONOPT:
 		if (!paramsp->mount_point)
