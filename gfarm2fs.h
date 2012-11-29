@@ -4,13 +4,13 @@
 
 struct gfarm2fs_param {
 	const char *mount_point;
-	const char *subdir;
+	char *subdir;
 	int foreground;
 	int debug;
 	double cache_timeout;
 	int use_syslog;
-	const char *facility;
-	const char *loglevel;
+	char *facility;
+	char *loglevel;
 	int ncopy;
 	int copy_limit;
 	int fix_acl;

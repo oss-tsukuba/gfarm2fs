@@ -197,7 +197,7 @@ gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 	    mpoint, gfarm_path_prefix);
 
 	/* subdir may be modified (free'ed?) when it includes trailing /s */
-	gfarm2fs_subdir = strdup(subdir != NULL ? subdir : "");
+	gfarm2fs_subdir = subdir != NULL ? strdup(subdir) : "";
 	if (gfarm2fs_subdir == NULL) {
 		gflog_error(GFARM_MSG_UNFIXED,
 		    "no memory to allocate subdir \"%s\"", subdir);
@@ -2118,10 +2118,9 @@ main(int argc, char *argv[])
 	fuse_opt_free_args(&args);
 
 	gfarm2fs_replicate_final();
-
-	free((void *)params.loglevel);
-	free((void *)params.facility);
-	free((void *)params.subdir);
+	free(params.subdir);
+	free(params.facility);
+	free(params.loglevel);
 
 	return (ret_fuse_main);
 }
