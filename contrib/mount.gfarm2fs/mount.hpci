@@ -5,6 +5,15 @@ ABORT() {
 	exit 1
 }
 
+create_link()
+{
+    LINK=$1
+    G=$2
+    U=$3
+    [ -h $LINK ] ||
+	(gfln -s gfarm:///$LINK/$G/$U $LINK && echo create \'$LINK\' symlink)
+}
+
 u=`gfwhoami`
 [ X"$u" = X ] && ABORT 'Who?'
 
@@ -12,4 +21,9 @@ groups=`gfgroup -l | grep $u | awk -F: '{print $1}'`
 for g in $groups
 do
 	env GFS_MOUNTDIR=/gfarm/$g/$u GFARMFS_ROOT=/home/$g/$u mount.gfarm2fs
+	# create symlinks
+	test $? -eq 0 && (cd /gfarm/$g/$u && {
+	    create_link www $g $u
+	    create_link samba $g $u
+	})
 done
