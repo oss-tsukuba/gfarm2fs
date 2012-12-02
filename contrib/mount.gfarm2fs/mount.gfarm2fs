@@ -52,12 +52,6 @@ fi
 : ${GFARMFS_OPTIONS:=}
 : ${FUSE_OPTIONS:=}
 
-# copy proxy cert to default location and unset X509_USER_PROXY
-: ${UID:=`id -u`}
-[ X"$X509_USER_PROXY" != X -a -f "$X509_USER_PROXY" ] &&
-cp -p $X509_USER_PROXY /tmp/x509up_u$UID &&
-unset X509_USER_PROXY
-
 # if already mounted, exit
 grep $GFS_MOUNTDIR /etc/mtab > /dev/null &&
 ABORT "$GFS_MOUNTDIR: already mounted"
