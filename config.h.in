@@ -15,6 +15,9 @@
 /* Define to 1 if you have the `gfarm_schedule_cache_dump' function. */
 #undef HAVE_GFARM_SCHEDULE_CACHE_DUMP
 
+/* Define to 1 if you have the `gfarm_version' function. */
+#undef HAVE_GFARM_VERSION
+
 /* Define to 1 if you have the `gfarm_xattr_caching' function. */
 #undef HAVE_GFARM_XATTR_CACHING
 

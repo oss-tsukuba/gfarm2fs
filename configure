@@ -12532,7 +12532,7 @@ fi
 
 
 # Checks for library functions.
-for ac_func in gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown gfs_lutimes
+for ac_func in gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown gfs_lutimes gfarm_version
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
