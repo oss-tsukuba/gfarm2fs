@@ -1,5 +1,5 @@
 common_scriptsdir = @gfarm_root@/share/gfarm/systest/common_scripts
-common_scripts_DATA = calc_checksum \
+dist_common_scripts_DATA = calc_checksum \
 	check_files \
 	check_files_each_mntpnts \
 	exec_on_multiple_clients \

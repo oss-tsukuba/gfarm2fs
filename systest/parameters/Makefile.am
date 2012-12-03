@@ -1,5 +1,5 @@
 parametersdir = @gfarm_root@/share/gfarm/systest/parameters
-parameters_DATA = read_files_1c_100m_1000f_100M \
+dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	read_files_1c_100m_1000f_1G \
 	read_files_1c_100m_1000f_1M \
 	read_files_1c_1m_1000f_100M \

@@ -1,5 +1,5 @@
 gfservicedir = @gfarm_root@/share/gfarm/gfservice
-gfservice_DATA = check_files \
+dist_gfservice_DATA = check_files \
 	check_files_n_each_mntpnts \
 	log_view \
 	make_files \
