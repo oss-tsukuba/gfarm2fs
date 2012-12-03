@@ -199,7 +199,7 @@ gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 	/* subdir may be modified (free'ed?) when it includes trailing /s */
 	gfarm2fs_subdir = subdir != NULL ? strdup(subdir) : "";
 	if (gfarm2fs_subdir == NULL) {
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000113,
 		    "no memory to allocate subdir \"%s\"", subdir);
 		exit(1);
 	}
@@ -664,7 +664,7 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		seekdir_works = 1;
 	} else if (e2 != GFARM_ERR_FUNCTION_NOT_IMPLEMENTED) {
 		/* was GFARM_ERR_FUNCTION_NOT_IMPLEMENTED until gfarm-2.5.4 */
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READDIR,
+		gfarm2fs_check_error(GFARM_MSG_2000114, OP_READDIR,
 				     "gfs_seekdir", path, e2);
 	}
 
@@ -675,7 +675,7 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		st.st_mode = de->d_type << 12;
 		if (seekdir_works) {
 			e2 = gfs_telldir(dp, &off);
-			gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READDIR,
+			gfarm2fs_check_error(GFARM_MSG_2000115, OP_READDIR,
 					     "gfs_telldir", path, e2);
 		}
 		if (filler(buf, de->d_name, &st, off))
@@ -1038,13 +1038,13 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UTIMENS,
+		gfarm2fs_check_error(GFARM_MSG_2000116, OP_UTIMENS,
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
 	e = gfs_lstat_cached(gfarmized.path, &st);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UTIMENS,
+		gfarm2fs_check_error(GFARM_MSG_2000117, OP_UTIMENS,
 		    "gfs_lstat_cached", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
@@ -1066,7 +1066,7 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 #else
 	e = gfs_utimes(gfarmized.path, gt);
 #endif
-	gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_UTIMENS,
+	gfarm2fs_check_error(GFARM_MSG_2000118, OP_UTIMENS,
 			     "gfs_lutimes", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
 	return (-gfarm_error_to_errno(e));
@@ -1165,7 +1165,7 @@ gfarm2fs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	e = gfarm2fs_file_init(gfarmized.path, gf, &fp, flags);
 	if (e != GFARM_ERR_NO_ERROR) {
 		(void)gfs_pio_close(gf);
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_CREATE,
+		gfarm2fs_check_error(GFARM_MSG_2000119, OP_CREATE,
 		    "gfarm2fs_file_init", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
@@ -1203,7 +1203,7 @@ gfarm2fs_open(const char *path, struct fuse_file_info *fi)
 	e = gfarm2fs_file_init(gfarmized.path, gf, &fp, flags);
 	if (e != GFARM_ERR_NO_ERROR) {
 		(void)gfs_pio_close(gf);
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_OPEN,
+		gfarm2fs_check_error(GFARM_MSG_2000120, OP_OPEN,
 		    "gfarm2fs_file_init", gfarmized.path, e);
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
@@ -1310,7 +1310,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 
 		e = gfarmize_path(path, &gfarmized);
 		if (e != GFARM_ERR_NO_ERROR) {
-			gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RELEASE,
+			gfarm2fs_check_error(GFARM_MSG_2000121, OP_RELEASE,
 			    "gfarmize_path", path, e);
 		} else {
 #ifdef HAVE_GFS_LUTIMES
@@ -1318,7 +1318,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 #else
 			e = gfs_utimes(gfarmized.path, fp->gt);
 #endif
-			gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_RELEASE,
+			gfarm2fs_check_error(GFARM_MSG_2000122, OP_RELEASE,
 			    "gfs_lutimes", gfarmized.path, e);
 			free_gfarmized_path(&gfarmized);
 		}
@@ -1353,7 +1353,7 @@ gfarm2fs_flush(const char *path, struct fuse_file_info *fi)
 
 	if (IS_WRITABLE(fp->flags)) {
 		e = gfs_pio_flush(fp->gf);
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FLUSH,
+		gfarm2fs_check_error(GFARM_MSG_2000123, OP_FLUSH,
 		    "gfs_pio_flush", path, e);
 		return (-gfarm_error_to_errno(e));
 	} else
