@@ -1,3 +1,27 @@
+Release note for Gfarm2fs 1.2.8
+===============================
+
+[2012.12.3]
+
+Updated feature
+* relative pathname support for Gfarm clients
+* use inumber and nlink in Gfarm
+* mount.gfarm2fs, gfarm2fs-exec.sh - utility for gfarm2fs
+* mount.hpci - utility for HPCI
+* gfarm2fs-proxy-info - investigate proxy cert used in gfarm2fs
+* nanosecond support [sf.net trac #530]
+* support gfarm:/// symlink
+* -V option - display the Gfarm version also
+
+Bug fix
+* Gfarm URLs don't work with gfarm2fs -o subdir= [sf.net trac #255]
+* cp -p file1 file2: cannot preserve atime and mtime [sf.net trac
+  #532]
+* close(2) on gfarm2fs cannot return the error of flushing buffer
+  [sf.net trac #534]
+* gfarm2fs always ignores log_level directive in gfarm2.conf [sf.net
+  trac #547]
+
 Release note for Gfarm2fs 1.2.7
 ===============================
 

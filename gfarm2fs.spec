@@ -1,6 +1,6 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.7
+Version: 1.2.8
 Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
