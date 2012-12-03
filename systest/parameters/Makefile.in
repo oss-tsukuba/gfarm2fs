@@ -35,7 +35,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = systest/parameters
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(dist_parameters_DATA) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -77,7 +78,7 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(parametersdir)"
-DATA = $(parameters_DATA)
+DATA = $(dist_parameters_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -197,7 +198,7 @@ top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
 parametersdir = @gfarm_root@/share/gfarm/systest/parameters
-parameters_DATA = read_files_1c_100m_1000f_100M \
+dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	read_files_1c_100m_1000f_1G \
 	read_files_1c_100m_1000f_1M \
 	read_files_1c_1m_1000f_100M \
@@ -268,10 +269,10 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-parametersDATA: $(parameters_DATA)
+install-dist_parametersDATA: $(dist_parameters_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(parametersdir)" || $(MKDIR_P) "$(DESTDIR)$(parametersdir)"
-	@list='$(parameters_DATA)'; test -n "$(parametersdir)" || list=; \
+	@list='$(dist_parameters_DATA)'; test -n "$(parametersdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
@@ -281,9 +282,9 @@ install-parametersDATA: $(parameters_DATA)
 	  $(INSTALL_DATA) $$files "$(DESTDIR)$(parametersdir)" || exit $$?; \
 	done
 
-uninstall-parametersDATA:
+uninstall-dist_parametersDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(parameters_DATA)'; test -n "$(parametersdir)" || list=; \
+	@list='$(dist_parameters_DATA)'; test -n "$(parametersdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(parametersdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
@@ -380,7 +381,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-parametersDATA
+install-data-am: install-dist_parametersDATA
 
 install-dvi: install-dvi-am
 
@@ -424,21 +425,21 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-parametersDATA
+uninstall-am: uninstall-dist_parametersDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man \
-	install-parametersDATA install-pdf install-pdf-am install-ps \
+	install-data install-data-am install-dist_parametersDATA \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am uninstall uninstall-am uninstall-parametersDATA
+	ps ps-am uninstall uninstall-am uninstall-dist_parametersDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

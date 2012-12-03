@@ -35,7 +35,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = systest/common_scripts
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(dist_common_scripts_DATA) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -77,7 +78,7 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(common_scriptsdir)"
-DATA = $(common_scripts_DATA)
+DATA = $(dist_common_scripts_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -197,7 +198,7 @@ top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
 common_scriptsdir = @gfarm_root@/share/gfarm/systest/common_scripts
-common_scripts_DATA = calc_checksum \
+dist_common_scripts_DATA = calc_checksum \
 	check_files \
 	check_files_each_mntpnts \
 	exec_on_multiple_clients \
@@ -253,10 +254,10 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-common_scriptsDATA: $(common_scripts_DATA)
+install-dist_common_scriptsDATA: $(dist_common_scripts_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(common_scriptsdir)" || $(MKDIR_P) "$(DESTDIR)$(common_scriptsdir)"
-	@list='$(common_scripts_DATA)'; test -n "$(common_scriptsdir)" || list=; \
+	@list='$(dist_common_scripts_DATA)'; test -n "$(common_scriptsdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
@@ -266,9 +267,9 @@ install-common_scriptsDATA: $(common_scripts_DATA)
 	  $(INSTALL_DATA) $$files "$(DESTDIR)$(common_scriptsdir)" || exit $$?; \
 	done
 
-uninstall-common_scriptsDATA:
+uninstall-dist_common_scriptsDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(common_scripts_DATA)'; test -n "$(common_scriptsdir)" || list=; \
+	@list='$(dist_common_scripts_DATA)'; test -n "$(common_scriptsdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(common_scriptsdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
@@ -365,7 +366,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-common_scriptsDATA
+install-data-am: install-dist_common_scriptsDATA
 
 install-dvi: install-dvi-am
 
@@ -409,21 +410,22 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-common_scriptsDATA
+uninstall-am: uninstall-dist_common_scriptsDATA
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-common_scriptsDATA install-data install-data-am \
+	install-data install-data-am install-dist_common_scriptsDATA \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-info install-info-am \
 	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am uninstall uninstall-am uninstall-common_scriptsDATA
+	ps ps-am uninstall uninstall-am \
+	uninstall-dist_common_scriptsDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
