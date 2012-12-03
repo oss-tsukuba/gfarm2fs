@@ -1971,7 +1971,10 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 		paramsp->genuine_nlink = 0;
 		return (0);
 	case KEY_VERSION:
-		fprintf(stderr, "GFARM2FS version %s\n", VERSION);
+		fprintf(stderr, "Gfarm2fs version " VERSION "\n");
+#ifdef HAVE_GFARM_VERSION
+		fprintf(stderr, "Gfarm version %s\n", gfarm_version());
+#endif
 #if FUSE_VERSION >= 25
 		fuse_opt_add_arg(outargs, "--version");
 		gfarm2fs_fuse_main(outargs, &gfarm2fs_oper);
