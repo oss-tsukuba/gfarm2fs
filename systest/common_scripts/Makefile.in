@@ -166,7 +166,6 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-gfarm_root = @gfarm_root@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -197,7 +196,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
-common_scriptsdir = @gfarm_root@/share/gfarm/systest/common_scripts
+common_scriptsdir = $(datadir)/gfarm/systest/common_scripts
 dist_common_scripts_DATA = calc_checksum \
 	check_files \
 	check_files_each_mntpnts \
