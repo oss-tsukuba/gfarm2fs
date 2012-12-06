@@ -615,7 +615,6 @@ LTLIBOBJS
 LIBOBJS
 private_srcs
 top_private_dir
-gfarm_root
 CPP
 OTOOL64
 OTOOL
@@ -2778,7 +2777,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile"
+ac_config_files="$ac_config_files Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile systest/Makefile systest/testcases/Makefile systest/parameters/Makefile systest/common_scripts/Makefile systest/plugins/Makefile"
 
 
 DEPDIR="${am__leading_dot}deps"
@@ -12245,10 +12244,8 @@ if test x"$with_gfarm" != x/usr; then
   CPPFLAGS="$CPPFLAGS -I$with_gfarm/include"
   LDFLAGS="$LDFLAGS -L$with_gfarm/lib"
 fi
-gfarm_root=$with_gfarm
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_gfarm" >&5
 $as_echo "$with_gfarm" >&6; }
-
 
 ### --with-private-srcdir
 ### This is provided to replace some functionalities with your private code.
@@ -13606,6 +13603,11 @@ do
     "contrib/mount.gfarm2fs/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/mount.gfarm2fs/Makefile" ;;
     "contrib/gfarm2fs-exec/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/gfarm2fs-exec/Makefile" ;;
     "contrib/gfarm2fs-proxy-info/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/gfarm2fs-proxy-info/Makefile" ;;
+    "systest/Makefile") CONFIG_FILES="$CONFIG_FILES systest/Makefile" ;;
+    "systest/testcases/Makefile") CONFIG_FILES="$CONFIG_FILES systest/testcases/Makefile" ;;
+    "systest/parameters/Makefile") CONFIG_FILES="$CONFIG_FILES systest/parameters/Makefile" ;;
+    "systest/common_scripts/Makefile") CONFIG_FILES="$CONFIG_FILES systest/common_scripts/Makefile" ;;
+    "systest/plugins/Makefile") CONFIG_FILES="$CONFIG_FILES systest/plugins/Makefile" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
 
