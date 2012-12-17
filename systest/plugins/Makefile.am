@@ -9,4 +9,6 @@ dist_gfservice_DATA = check_files \
 	read_files_n \
 	remove_files \
 	remove_files_each_mntpnts \
-	rmdir_n
+	rmdir_n \
+	exec_ssh \
+	spool_file_exists

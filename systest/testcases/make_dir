@@ -1,0 +1,110 @@
+#
+# Test case for making directories
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+test_make_dir()
+{
+	RESULT=0
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# step: gfmkdir
+	$GFSERVICE $DEBUG gfcmd client1 gfmkdir $GFARM_HOME/$TEST_EXEC_ID
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfmkdir failed"
+		RESULT=1
+	fi
+
+	# step: gfchown
+	$GFSERVICE $DEBUG gfcmd client1 gfchown `id -un`:gfarmadm \
+		$GFARM_HOME/$TEST_EXEC_ID
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfchown failed"
+		RESULT=1
+	fi
+
+	# step: gfchmod
+	$GFSERVICE $DEBUG gfcmd client1 gfchmod 775 $GFARM_HOME/$TEST_EXEC_ID
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfchmod failed"
+		RESULT=1
+	fi
+
+	# step: gfls
+	FOUND=1
+	FILES=`$GFSERVICE $DEBUG gfcmd client1 gfls $GFARM_HOME`
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfls failed"
+		RESULT=1
+	fi
+	for FILE in $FILES; do
+		if [ X$FILE = X$TEST_EXEC_ID ]; then
+			FOUND=0
+		fi
+	done
+	if [ ! $FOUND ]; then
+		log_warn "$TESTNAME: directory is not created"
+		RESULT=1
+	fi
+
+	# step: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to mount gfarm"
+		RESULT=1
+	fi
+
+	# step: df
+	FOUND=1
+	REMOTE_HOME=`$GFSERVICE $DEBUG exec_ssh client1 echo '$HOME'`
+	DIRS=`$GFSERVICE $DEBUG exec_ssh client1 df | \
+		awk '{ if (NR == 1) {print $6} }'`
+	for DIR in $DIRS; do
+		if [ X$DIR = X$REMOTE_HOME/$MOUNT_POINT ]; then
+			FOUND=0
+		fi
+	done
+	if [ ! $FOUND ]; then
+		log_warn "$TESTNAME: failed to find mount point"
+		RESULT=1
+	fi
+
+	# step: mkdir
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir \
+		"$MOUNT_POINT/${TEST_EXEC_ID}-2"
+
+	# step: ls
+	FOUND=1
+	DIRS=`$GFSERVICE $DEBUG exec_ssh client1 ls $MOUNT_POINT`
+	for DIR in $DIRS; do
+		if [ X$DIR = X${TEST_EXEC_ID}-2 ]; then
+			FOUND=0
+		fi
+	done
+	if [ ! $FOUND ]; then
+		log_warn "$TESTNAME: failed to find directory"
+		RESULT=1
+	fi
+
+	# cleanup: remove directory
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir \
+		"$MOUNT_POINT/${TEST_EXEC_ID}" "$MOUNT_POINT/${TEST_EXEC_ID}-2"
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+
+	# cleanup: remove mount point
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}

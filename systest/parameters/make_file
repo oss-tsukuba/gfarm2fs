@@ -1,0 +1,5 @@
+#
+# Test parameters for making files
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+RETRY_COUNT=${RETRY_COUNT-"10"}

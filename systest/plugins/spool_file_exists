@@ -1,0 +1,45 @@
+#
+# Dependencies of this sub-command
+#
+spool_file_exists_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: spool_file_exists
+#
+subcmd_spool_file_exists()
+{
+	log_debug "subcmd_spool_file_exists"
+
+	check_argc $# 1
+	check_gfsd_hostid $HOSTID
+	exec_gfsd_host_agent $HOSTID root spool_file_exists "$@"
+	[ $? -ne 0 ] && log_error "gfservice spool_file_exists failed"
+
+	log_debug "end subcmd_spool_file_exists"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+spool_file_exists_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: spool_file_exists
+# check whether spool file exists
+#
+subcmd_spool_file_exists_agent()
+{
+	log_debug "subcmd_spool_file_exists_agent"
+
+	set_gfsd_params
+
+	[ ! -f $SPOOL_DIR/$1 ] && log_error "spool file does'nt exist"
+
+	log_debug "end subcmd_spool_file_exists_agent"
+}

@@ -1,0 +1,86 @@
+#
+# Test case for making files
+#
+load	"check_replica_num"
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# RETRY_COUNT:»-Retry number to check replica
+test_make_file()
+{
+	RESULT=0
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: set file replica to be created
+	$GFSERVICE $DEBUG gfcmd client1 gfncopy -s 2 $GFARM_HOME
+
+	# step: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+
+	# step: create file
+	$GFSERVICE $DEBUG exec_ssh client1 "echo test_$TEST_EXEC_ID \
+		> $MOUNT_POINT/${TEST_EXEC_ID}.txt"
+
+	# step: ls
+	FILES=`$GFSERVICE $DEBUG exec_ssh client1 ls $MOUNT_POINT`
+	for FILE in $FILES; do
+		if [ X$FILE = X${TEST_EXEC_ID}.txt ]; then
+			FOUND=0
+		fi
+	done
+	if [ ! $FOUND ]; then
+		log_warn "$TESTNAME: failed to find file"
+		RESULT=1
+	fi
+
+	# step: cat
+	CONTENTS=`$GFSERVICE $DEBUG exec_ssh client1 cat \
+		$MOUNT_POINT/${TEST_EXEC_ID}.txt`
+	if [ X$CONTENTS != Xtest_$TEST_EXEC_ID ]; then
+		log_warn "$TESTNAME: contents of file is not same"
+		RESULT=1
+	fi
+
+	# step: check number of replica files
+	check_replica_num client1 $MOUNT_POINT/${TEST_EXEC_ID}.txt 2 \
+		$RETRY_COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: number of replica files did not match"
+		RESULT=1
+	fi
+
+	# step: check spool
+	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE`
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath \
+		$GFARM_HOME/$TEST_EXEC_ID`
+	for HOST in $HOSTS; do
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		echo test_$TEST_EXEC_ID | $GFSERVICE $DEBUG compare_spool_file \
+			$HOSTID $SPOOL_PATH
+		if [ $? -ne 0 ]; then
+			log_warn "$TESTNAME: file in spool directory is not same"
+			RESULT=1
+		fi
+	done
+
+	# cleanup: remove file
+	$GFSERVICE $DEBUG exec_ssh client1 rm -f \
+		$MOUNT_POINT/${TEST_EXEC_ID}.txt
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+
+	# cleanup: remove mount point
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}

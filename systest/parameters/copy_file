@@ -1,0 +1,5 @@
+#
+# Test parameters for copying files
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+NUM_FILES=${NUM_FILES-"3"}

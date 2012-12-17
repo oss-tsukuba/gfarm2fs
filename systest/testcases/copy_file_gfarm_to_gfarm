@@ -1,0 +1,113 @@
+#
+# Test case for copying files from Gfarm to Gfarm
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# NUM_FILES:	Number of files created
+test_copy_file_gfarm_to_gfarm()
+{
+	RESULT=0
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+
+	# step: make directory
+	SRC_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_src_%d"
+	DST_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_dst_%d"
+	for I in `seq $NUM_FILES`; do
+		SRC_PATH=`printf $SRC_PATH_TMPL $I`
+		DST_PATH=`printf $DST_PATH_TMPL $I`
+		$GFSERVICE $DEBUG exec_ssh client1 mkdir $SRC_PATH $DST_PATH
+	done
+
+	# step: create file
+	SRC_FILE_TMPL="$SRC_PATH_TMPL/${TEST_EXEC_ID}_src_%d.txt"
+	DST_FILE_TMPL="$DST_PATH_TMPL/${TEST_EXEC_ID}_dst_%d.txt"
+	for I in `seq $NUM_FILES`; do
+		SRC_FILE=`printf $SRC_FILE_TMPL $I $I`
+		$GFSERVICE $DEBUG exec_ssh client1 "echo ${TEST_EXEC_ID}_$I \
+		> $SRC_FILE"
+	done
+
+	# step: cp
+	for I in `seq $NUM_FILES`; do
+		SRC_FILE=`printf $SRC_FILE_TMPL $I $I`
+		DST_FILE=`printf $DST_FILE_TMPL $I $I`
+		$GFSERVICE $DEBUG exec_ssh client1 cp $SRC_FILE $DST_FILE
+	done
+
+	# step: diff
+	DIFF_CMD="diff -q"
+	for I in `seq $NUM_FILES`; do
+		SRC_FILE=`printf $SRC_FILE_TMPL $I $I`
+		DST_FILE=`printf $DST_FILE_TMPL $I $I`
+		$GFSERVICE $DEBUG exec_ssh client1 $DIFF_CMD $SRC_FILE \
+			$DST_FILE
+		if [ $? -ne 0 ]; then
+			log_warn "$TESTNAME: contents of $SRC_FILE is not same"
+			RESULT=1
+		fi
+	done
+
+	for I in `seq $NUM_FILES`; do
+		# step: check spool
+		SRC_FILE=`printf $SRC_FILE_TMPL $I $I`
+		DST_FILE=`printf $DST_FILE_TMPL $I $I`
+
+		HOST=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $DST_FILE`
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+
+		SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $DST_FILE`
+
+		echo ${TEST_EXEC_ID}_$I | $GFSERVICE $DEBUG compare_spool_file \
+			$HOSTID $SPOOL_PATH
+		if [ $? -ne 0 ]; then
+			log_warn "$TESTNAME: $DST_FILE in spool directory" \
+				"is not same"
+			RESULT=1
+		fi
+
+		# step: remove src file
+		HOST=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $SRC_FILE`
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+
+		SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $SRC_FILE`
+
+		$GFSERVICE $DEBUG exec_ssh client1 rm -f $SRC_FILE
+
+		# step: check spool file is removed
+		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
+		if [ $? -ne 1 ]; then
+			log_warn "$TESTNAME: $SRC_FILE in spool directory remains"
+			RESULT=1
+		fi
+	done
+
+	# cleanup: remove file and directory
+	for I in `seq $NUM_FILES`; do
+		SRC_PATH=`printf $SRC_PATH_TMPL $I`
+		DST_PATH=`printf $DST_PATH_TMPL $I`
+		DST_FILE=`printf $DST_FILE_TMPL $I $I`
+		$GFSERVICE $DEBUG exec_ssh client1 rm -f $DST_FILE
+		$GFSERVICE $DEBUG exec_ssh client1 rmdir $SRC_PATH $DST_PATH
+	done
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+
+	# cleanup: remove mount point
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}
