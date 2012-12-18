@@ -5,11 +5,16 @@ ABORT() {
 	exit 1
 }
 
-u=`gfwhoami`
-[ X"$u" = X ] && ABORT 'Who?'
+GFUSER=`gfwhoami`
+[ X"$GFUSER" = X ] && ABORT 'Who?'
+: ${USER:=`whoami`}
 
-groups=`gfgroup -l | grep $u | awk -F: '{print $1}'`
+groups=`gfgroup -l | grep $GFUSER | awk -F: '{print $1}'`
 for g in $groups
 do
+    for u in $GFUSER $USER
+    do
+	[ -d /gfarm/$g/$u ] &&
 	umount.gfarm2fs /gfarm/$g/$u
+    done
 done
