@@ -1,6 +1,6 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.8
+Version: 1.2.8.1
 Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
@@ -35,8 +35,14 @@ rm -rf $RPM_BUILD_ROOT
 %doc RELNOTES
 %doc LICENSE
 %doc %{_mandir}
+%{_datadir}/gfarm/gfservice
+%{_datadir}/gfarm/systest
 
 %changelog
+* Tue Jan 15 2013 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.8.1-1
+- %{_datadir}/gfarm/{gfservice,systest} are included
+- update mount.hpci to mount /gfarm/GROUP/localaccount
+
 * Mon Sep  3 2012 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.7-1
 - support file overwrite under no file replica
 - support ubuntu 11.10 or later
