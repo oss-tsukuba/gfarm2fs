@@ -212,7 +212,8 @@ dist_common_scripts_DATA = calc_checksum \
 	remove_files \
 	remove_files_each_mntpnts \
 	rmdir_n \
-	umount_n
+	umount_n \
+	wait_for_gfsd_disconnect
 
 all: all-am
 
