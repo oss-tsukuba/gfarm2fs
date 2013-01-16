@@ -1,0 +1,7 @@
+#
+# Test parameters for copying a file when gfsd network interface is down
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+FILE_SIZE=${FILE_SIZE-"100M"}
+RETRY_COUNT=${RETRY_COUNT-"10"}
+RETRY_INTERVAL=${RETRY_INTERVAL-"5"}

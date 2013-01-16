@@ -1,0 +1,66 @@
+#
+# Dependencies of this sub-command
+#
+read_files_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: make files
+#
+subcmd_read_files()
+{
+	log_debug "subcmd_read_files"
+
+	check_argc $# 2
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - read_files "$@"
+	[ $? -ne 0 ] && log_error "gfservice read_files failed"
+
+	log_debug "end subcmd_read_files"
+}
+
+#
+# Read files in target dir.
+#
+read_files()
+{
+	TARGET_DIR=$1
+	NUM_FILES=$2
+
+	if [ ! -d $TARGET_DIR ]; then
+		log_error "failed to read file: $TARGET_DIR"
+	fi
+
+	for I in `seq $NUM_FILES` ; do
+		TESTFILE=`printf test_file.%04d $I`
+		read_file "$TARGET_DIR/$TESTFILE"
+		[ -f stop ] && log_error "stopped."
+	done
+
+	return 0
+}
+
+#
+# Dependencies of this sub-command agent
+#
+read_files_agent_depends()
+{
+	echo "read_file"
+}
+
+#
+# Sub-command: make_files
+# Make files in target dir.
+#
+subcmd_read_files_agent()
+{
+	log_debug "subcmd_read_files_agent TARGET_DIR=$1 NUM_FILES=$2"
+
+	read_files "$@"
+
+	log_debug "end subcmd_read_files_agent"
+
+	return 0
+}

@@ -1,0 +1,47 @@
+#
+# Dependencies of this sub-command
+#
+spool_file_checksum_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: spool_file_checksum
+#
+subcmd_spool_file_checksum()
+{
+	log_debug "subcmd_spool_file_checksum"
+
+	check_argc $# 1
+	check_gfsd_hostid $HOSTID
+	exec_gfsd_host_agent $HOSTID root spool_file_checksum "$@"
+	[ $? -ne 0 ] && log_error "gfservice spool_file_checksum failed"
+
+	log_debug "end subcmd_spool_file_checksum"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+spool_file_checksum_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: spool_file_checksum
+# get checksum of specified spool file
+#
+subcmd_spool_file_checksum_agent()
+{
+	log_debug "subcmd_spool_file_checksum_agent"
+
+	set_gfsd_params
+
+	[ ! -f $SPOOL_DIR/$1 ] && log_error "spool file does'nt exist"
+
+	openssl md5 $SPOOL_DIR/$1 | awk '{ print $2 }'
+
+	log_debug "end subcmd_spool_file_checksum_agent"
+}

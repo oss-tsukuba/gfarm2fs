@@ -1,0 +1,88 @@
+#
+# Test case for check behavior when gfmd network interface is down
+# in writing files
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# FILE_SIZE:	Size of a file to be created
+# SLEEP_SEC:	Second to sleep before make network interface down
+test_gfmd_ifdown_in_write()
+{
+	RESULT=$RESULT_PASS
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfmd2 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+
+	# step: make files in background
+	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
+	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE &
+	MAKE_PID=$!
+
+	# wait a bit for a process starts making files
+	sleep $SLEEP_SEC
+
+	# step: make network interface down
+	$GFSERVICE $DEBUG ifdown gfmd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfmd1"
+		return $RESULT_FATAL
+	fi
+
+	# step: make network interface down
+	$GFSERVICE $DEBUG ifdown gfmd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfmd2"
+		return $RESULT_FATAL
+	fi
+
+	wait $MAKE_PID
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to make a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup gfmd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfmd1"
+		return $RESULT_FATAL
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup gfmd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfmd2"
+		return $RESULT_FATAL
+	fi
+
+	# step: make files
+	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to make a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# cleanup: remove files
+	$GFSERVICE $DEBUG exec_ssh client1 rm -f $FILE_PATH
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}

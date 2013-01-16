@@ -1,0 +1,26 @@
+#
+# wait until a gfsd get disconnected to gfmd
+#
+wait_for_gfsd_disconnect()
+{
+	GFSD_HOSTNAME=`$GFSERVICE $DEBUG get-config-gfsd-param $1 GFSD_HOSTNAME`
+	if [ X$GFSD_HOSTNAME = X ]; then
+		return 1
+	fi
+
+	I=0
+	while [ $I -lt $3 ]; do
+		HOSTS=`$GFSERVICE $DEBUG gfcmd $2 gfsched -M`
+		ALIVE=false
+		for HOST in $HOSTS; do
+			if [ X$HOST = X$GFSD_HOSTNAME ]; then
+				ALIVE=true
+			fi
+		done
+		[ X$ALIVE = Xfalse ] && return 0
+		sleep $4
+		I=`expr $I + 1`
+	done
+
+	return 1
+}

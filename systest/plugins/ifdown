@@ -1,0 +1,50 @@
+# Default settings.
+DEFAULT_IFDOWN_CMD="/sbin/ifdown eth0"
+
+#
+# Dependencies of this sub-command
+#
+ifdown_depends()
+{
+	echo ""
+}
+
+#
+# Get command to make network interface down.
+#
+get_ifdown_cmd()
+{
+	log_debug "get_ifdown_cmd: HOSTID=$1"
+
+	if [ "X`eval echo \\$$1_IFDOWN_CMD`" = X ]; then
+		echo $DEFAULT_IFDOWN_CMD
+	else
+		eval echo "\$$1_IFDOWN_CMD"
+		log_debug "get_ifdown_cmd: `eval echo \\$$1_IFDOWN_CMD`"
+	fi
+
+	log_debug "end get_ifdown_cmd"
+	return 0
+}
+
+#
+# Sub-command: ifdown
+#
+subcmd_ifdown()
+{
+	log_debug "subcmd_ifdown"
+
+	check_argc $# 0
+	check_hostid $HOSTID
+
+	SSH=`get_ssh $HOSTID`
+	HOST=`get_host $HOSTID`
+	SUDO=`get_sudo $HOSTID root`
+	IFDOWN_CMD=`get_ifdown_cmd $HOSTID`
+
+	log_debug "execute $SSH $HOST $SUDO $IFDOWN_CMD"
+	$SSH $HOST $SUDO $IFDOWN_CMD
+	[ $? -ne 0 ] && log_error "gfservice ifdown failed"
+
+	log_debug "end subcmd_ifdown"
+}

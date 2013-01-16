@@ -1,0 +1,6 @@
+#
+# Test parameters for appending to a file when gfsd network interface is down
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+FILE_SIZE=${FILE_SIZE-"100M"}
+RETRY_COUNT=${RETRY_COUNT-"10"}

@@ -1,0 +1,5 @@
+#
+# Test parameters for operation when gfsd network interface is down
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+FILE_SIZE=${FILE_SIZE-"100M"}

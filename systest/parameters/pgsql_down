@@ -1,0 +1,7 @@
+#
+# Test parameters for check behavior when backend db is down
+# in reading/writing files
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+FILE_SIZE=${FILE_SIZE-"100M"}
+SLEEP_SEC=${SLEEP_SEC-"3"}

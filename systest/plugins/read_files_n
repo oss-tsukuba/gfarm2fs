@@ -26,30 +26,7 @@ subcmd_read_files_n()
 #
 read_files_n_agent_depends()
 {
-	echo ""
-}
-
-#
-# Read files in target dir.
-#
-read_files()
-{
-	TARGET_DIR=$1
-	NUM_FILES=$2
-
-	if [ ! -d $TARGET_DIR ]; then
-		log_error "failed to read file: $TARGET_DIR"
-	fi
-
-	for I in `seq $NUM_FILES` ; do
-		TESTFILE=`printf test_file.%04d $I`
-		dd if="$TARGET_DIR/$TESTFILE" of=/dev/null
-		[ $? -ne 0 ] && log_error "failed to read file:" \
-			"$TARGET_DIR/$TESTFILE"
-		[ -f stop ] && log_error "stopped."
-	done
-
-	return 0
+	echo "read_file read_files"
 }
 
 #

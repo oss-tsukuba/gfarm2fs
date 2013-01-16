@@ -9,4 +9,22 @@ dist_testcases_DATA = read_files \
 	copy_file_gfarm_to_local \
 	copy_dir_local_to_gfarm \
 	copy_dir_gfarm_to_gfarm \
-	copy_dir_gfarm_to_local
+	copy_dir_gfarm_to_local \
+	gfmd_ifdown_in_write \
+	gfmd_ifdown_in_read \
+	operation_in_gfmd_ifdown \
+	pgsql_down_in_write \
+	pgsql_down_in_read \
+	operation_in_pgsql_down \
+	client_ifdown_in_write \
+	client_ifdown_in_read \
+	operation_in_client_ifdown \
+	gfsd_ifdown_in_write \
+	gfsd_ifdown_in_read \
+	gfsd_ifdown_in_rep \
+	operation_in_gfsd_ifdown \
+	append_in_gfsd_ifdown \
+	delete_in_gfsd_ifdown \
+	rename_in_gfsd_ifdown \
+	copy_in_gfsd_ifdown \
+	append_immediately_in_gfsd_ifdown

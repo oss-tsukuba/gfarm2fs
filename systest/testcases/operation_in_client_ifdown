@@ -1,0 +1,91 @@
+#
+# Test case for operation when client network interface is down
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+test_operation_in_client_ifdown()
+{
+	RESULT=$RESULT_PASS
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: create mount point
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+
+	# prepare: mount
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
+
+	# prepare: write file
+	GFARM_FILE1=$MOUNT_POINT/${TEST_EXEC_ID}_1
+	$GFSERVICE $DEBUG exec_ssh client1 \
+		"echo ${TEST_EXEC_ID}_1 > $GFARM_FILE1"
+
+	# prepare: make network interface down
+	$GFSERVICE $DEBUG ifdown client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on client1"
+		return $RESULT_FATAL
+	fi
+
+	# step: write file
+	GFARM_FILE2=$MOUNT_POINT/${TEST_EXEC_ID}_2
+	$GFSERVICE $DEBUG exec_ssh client1 \
+		"echo ${TEST_EXEC_ID}_2 > $GFARM_FILE2"
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to write a file"
+		RESULT=$RESULT_XPASS
+	fi
+
+	# step: read file
+	$GFSERVICE $DEBUG exec_ssh client1 "cat $GFARM_FILE1"
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to read a file"
+		RESULT=$RESULT_XPASS
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on client1"
+		return $RESULT_FATAL
+	fi
+
+	# step: write file
+	GFARM_FILE3=$MOUNT_POINT/${TEST_EXEC_ID}_3
+	$GFSERVICE $DEBUG exec_ssh client1 \
+		"echo ${TEST_EXEC_ID}_3 > $GFARM_FILE3"
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to create a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: read file
+	$GFSERVICE $DEBUG exec_ssh client1 "cat $GFARM_FILE1"
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to read a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# cleanup: remove files
+	$GFSERVICE $DEBUG exec_ssh client1 rm -f $GFARM_FILE1 $GFARM_FILE2 \
+		$GFARM_FILE3
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+
+	# cleanup: remove mount point
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}

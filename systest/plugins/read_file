@@ -1,0 +1,54 @@
+#
+# Dependencies of this sub-command
+#
+read_file_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: read file
+#
+subcmd_read_file()
+{
+	log_debug "subcmd_read_file"
+
+	check_argc $# 1
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - read_file "$@"
+	[ $? -ne 0 ] && log_error "gfservice read_file failed"
+
+	log_debug "end subcmd_read_file"
+}
+
+read_file()
+{
+	FILE_PATH=$1
+
+	dd if=$FILE_PATH of=/dev/null 2>/dev/null
+	[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
+	log_debug "$PROGHOST read $FILE_PATH done"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+read_file_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: read_file
+# Read given files.
+#
+subcmd_read_file_agent()
+{
+	log_debug "subcmd_read_file_agent FILE_PATH=$1"
+
+	read_file "$@"
+
+	log_debug "end subcmd_read_file_agent"
+
+	return 0
+}

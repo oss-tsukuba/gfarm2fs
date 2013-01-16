@@ -27,13 +27,16 @@ test_make_file()
 		-o subdir=$GFARM_HOME
 
 	# step: create file
+	FILE_NAME=${TEST_EXEC_ID}.txt
+	FILE_PATH=$MOUNT_POINT/$FILE_NAME
+	GFARM_PATH=$GFARM_HOME/$FILE_NAME
 	$GFSERVICE $DEBUG exec_ssh client1 "echo test_$TEST_EXEC_ID \
-		> $MOUNT_POINT/${TEST_EXEC_ID}.txt"
+		> $FILE_PATH"
 
 	# step: ls
 	FILES=`$GFSERVICE $DEBUG exec_ssh client1 ls $MOUNT_POINT`
 	for FILE in $FILES; do
-		if [ X$FILE = X${TEST_EXEC_ID}.txt ]; then
+		if [ X$FILE = X$FILE_NAME ]; then
 			FOUND=0
 		fi
 	done
@@ -43,25 +46,22 @@ test_make_file()
 	fi
 
 	# step: cat
-	CONTENTS=`$GFSERVICE $DEBUG exec_ssh client1 cat \
-		$MOUNT_POINT/${TEST_EXEC_ID}.txt`
+	CONTENTS=`$GFSERVICE $DEBUG exec_ssh client1 cat $FILE_PATH`
 	if [ X$CONTENTS != Xtest_$TEST_EXEC_ID ]; then
 		log_warn "$TESTNAME: contents of file is not same"
 		RESULT=1
 	fi
 
 	# step: check number of replica files
-	check_replica_num client1 $MOUNT_POINT/${TEST_EXEC_ID}.txt 2 \
-		$RETRY_COUNT
+	check_replica_num client1 $GFARM_PATH 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of replica files did not match"
 		RESULT=1
 	fi
 
 	# step: check spool
-	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE`
-	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath \
-		$GFARM_HOME/$TEST_EXEC_ID`
+	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
 	for HOST in $HOSTS; do
 		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
 		echo test_$TEST_EXEC_ID | $GFSERVICE $DEBUG compare_spool_file \
@@ -73,14 +73,16 @@ test_make_file()
 	done
 
 	# cleanup: remove file
-	$GFSERVICE $DEBUG exec_ssh client1 rm -f \
-		$MOUNT_POINT/${TEST_EXEC_ID}.txt
+	$GFSERVICE $DEBUG exec_ssh client1 rm -f $FILE_PATH
 
 	# cleanup: unmount
 	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
 
 	# cleanup: remove mount point
 	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	# cleanup: reset number of file replica to be created
+	$GFSERVICE $DEBUG gfcmd client1 gfncopy -r $GFARM_HOME
 
 	return $RESULT
 }

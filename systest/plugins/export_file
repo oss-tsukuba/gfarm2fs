@@ -1,0 +1,87 @@
+#
+# Dependencies of this sub-command
+#
+export_file_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: export_file
+#
+subcmd_export_file()
+{
+	log_debug "subcmd_export_file"
+
+	check_argc $# 2 +
+	check_hostid $HOSTID
+	FILE_PATH=$1
+	GFMD=$2
+	GFSD=$3
+
+	#
+	# Get BACKEND_HOSTNAME of the gfmd host.
+	#
+	BACKEND_HOSTNAME=`exec_gfmd_host_agent \
+		$GFMD root get-config-gfarm-param param=BACKEND_HOSTNAME`
+	[ "X$BACKEND_HOSTNAME" = X ] \
+		&& log_error "failed to get BACKEND_HOSTNAME of $HOSTID"
+
+	#
+	# Get GFMD_PORT of the gfmd host.
+	#
+	GFMD_PORT=`exec_gfmd_host_agent \
+		$GFMD root get-config-gfarm-param param=GFMD_PORT`
+	[ "X$GFMD_PORT" = X ] \
+		&& log_error "failed to get GFMD_PORT of $HOSTID"
+
+	#
+	# Get GFSD_HOSTNAME of the gfsd host.
+	#
+	if [ X$GFSD != X ]; then
+		GFSD_HOSTNAME=`exec_gfsd_host_agent $GFSD root \
+			get-config-gfsd-param param=GFSD_HOSTNAME`
+		[ "X$GFSD_HOSTNAME" = X ] \
+			&& log_error "failed to get GFSD_HOSTNAME of $HOSTID"
+	fi
+
+	exec_remote_host_agent $HOSTID - export_file \
+		"gfarm-url=gfarm://${BACKEND_HOSTNAME}:${GFMD_PORT}/${FILE_PATH}" \
+		"filesystem-node=$GFSD_HOSTNAME"
+	[ $? -ne 0 ] && log_error "gfservice export_file failed"
+
+	log_debug "end subcmd_export_file"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+export_file_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: export_file
+# read file from the Gfarm file system and print to stdout
+#
+subcmd_export_file_agent()
+{
+	log_debug "subcmd_export_file_agent"
+
+	set_params
+
+	GFARM_URL=`get_param gfarm-url`
+	FILESYSTEM_NODE=`get_param filesystem-node`
+
+	if [ X$FILESYSTEM_NODE != X ]; then
+		GFEXPORT_OPT="-h $FILESYSTEM_NODE"
+	fi
+
+	log_debug "execute: GFARM_CONFIG_FILE=$GFARM_CONF gfexport" \
+		"$GFEXPORT_OPT $GFARM_URL"
+	GFARM_CONFIG_FILE=$GFARM_CONF gfexport $GFEXPORT_OPT $GFARM_URL
+	[ $? -ne 0 ] && log_error "gfexport command failed"
+
+	log_debug "end subcmd_export_file_agent"
+}

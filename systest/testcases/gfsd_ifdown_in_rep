@@ -1,0 +1,69 @@
+#
+# Test case for check behavior when gfsd network interface is down
+# in replicating files
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# FILE_SIZE:	Size of a file to be created
+# SLEEP_SEC:	Second to sleep before make network interface down
+test_gfsd_ifdown_in_rep()
+{
+	RESULT=$RESULT_PASS
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: make a file
+	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE \
+		gfmd1 gfsd1
+
+	# step: replicate a file in background
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2 &
+	REP_PID=$!
+
+	# wait a bit for a process starts replicating a file
+	sleep $SLEEP_SEC
+
+	# step: make network interface down
+	$GFSERVICE $DEBUG ifdown gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	wait $REP_PID
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to replicate a file"
+		RESULT=$RESULT_XPASS
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	# step: replicate a file
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to replicate file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# cleanup: remove a file
+	$GFSERVICE $DEBUG gfcmd client1 gfrm -r $GFARM_FILE
+
+	return $RESULT
+}

@@ -33,4 +33,17 @@ dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	make_file \
 	make_dir \
 	copy_file \
-	copy_dir
+	copy_dir \
+	gfmd_ifdown \
+	operation_in_gfmd_ifdown \
+	pgsql_down \
+	operation_in_pgsql_down \
+	client_ifdown \
+	operation_in_client_ifdown \
+	gfsd_ifdown \
+	operation_in_gfsd_ifdown \
+	append_in_gfsd_ifdown \
+	delete_in_gfsd_ifdown \
+	rename_in_gfsd_ifdown \
+	copy_in_gfsd_ifdown \
+	append_immediately_in_gfsd_ifdown
