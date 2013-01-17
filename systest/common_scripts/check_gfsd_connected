@@ -1,0 +1,17 @@
+#
+# Check gfsd on given host is connected to gfmd
+#
+check_gfsd_connected()
+{
+	TARGET_HOST=`$GFSERVICE $DEBUG get-config-gfsd-param $1 GFSD_HOSTNAME`
+	[ X$TARGET_HOST = X ] && return 1
+
+	for HOST in `$GFSERVICE $DEBUG gfcmd $2 gfhost -M | awk '{print $3}'`;
+	do
+		if [ X$HOST = X$TARGET_HOST ]; then
+			return 0
+		fi
+	done
+
+	return 1
+}

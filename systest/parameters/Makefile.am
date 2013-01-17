@@ -46,4 +46,13 @@ dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	delete_in_gfsd_ifdown \
 	rename_in_gfsd_ifdown \
 	copy_in_gfsd_ifdown \
-	append_immediately_in_gfsd_ifdown
+	append_immediately_in_gfsd_ifdown \
+	gfmd_failover \
+	write_in_gfmd_failover \
+	read_in_gfmd_failover \
+	useradd_in_gfmd_failover \
+	userlist_in_gfmd_failover \
+	userdel_in_gfmd_failover \
+	start_gfsd_in_gfmd_failover \
+	mount_in_gfmd_failover \
+	rep_in_gfmd_failover

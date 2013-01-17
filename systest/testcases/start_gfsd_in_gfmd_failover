@@ -1,0 +1,81 @@
+#
+# Test case for check behavior when started gfsd in gfmd failing over
+#
+load	"check_gfsd_connected" \
+	"check_journal_seqnum_max" \
+	"check_gfmd_master" \
+	"failback"
+
+#
+# Test parameters
+#
+# SLEEP_SEC:	Second to sleep before make gfmd fail over
+# TIMEOUT:	  timeout sec for starting/stopping gfmd
+# RETRY_COUNT:	  retry number to check master/slave
+test_start_gfsd_in_gfmd_failover()
+{
+	RESULT=$RESULT_PASS
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfmd2 gfsd1 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: stop gfsd
+	$GFSERVICE $DEBUG stop-gfsd gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to stop gfsd"
+		return $RESULT_FATAL
+	fi
+
+	# step: stop gfmd on gfmd1
+	$GFSERVICE $DEBUG stop-gfmd gfmd1
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to stop gfmd on gfmd1"
+
+	# step: start gfsd
+	$GFSERVICE $DEBUG start-gfsd gfsd1 &
+	START_GFSD_PID=$!
+
+	# wait a bit for a process starts making files
+	sleep $SLEEP_SEC
+
+	# step: promote gfmd on gfmd2
+	$GFSERVICE $DEBUG promote-gfmd gfmd2
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to promote gfmd on gfmd2"
+
+	# step: set gfmd on gfmd1 to be slave
+	$GFSERVICE $DEBUG -t $TIMEOUT start-gfmd-slave gfmd1
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to start gfmd on gfmd1" \
+		"as slave"
+
+	wait $START_GFSD_PID
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to start gfsd"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check gfsd is running
+	check_gfsd_connected gfsd1 client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd is not connected to gfmd"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	# step: check whether journal seqnum max is same
+	check_journal_seqnum_max gfmd1 gfmd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: journal seqnum max is not same"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# cleanup: failback
+	failback gfmd1 gfmd2 client1 $TIMEOUT $RETRY_COUNT
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to make gfmd on gfmd1" \
+		"as master"
+
+	return $RESULT
+}

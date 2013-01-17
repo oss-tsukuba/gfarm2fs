@@ -15,4 +15,5 @@ dist_common_scripts_DATA = calc_checksum \
 	remove_files_each_mntpnts \
 	rmdir_n \
 	umount_n \
-	wait_for_gfsd_disconnect
+	wait_for_gfsd_disconnect \
+	check_gfsd_connected
