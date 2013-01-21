@@ -55,4 +55,5 @@ dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	userdel_in_gfmd_failover \
 	start_gfsd_in_gfmd_failover \
 	mount_in_gfmd_failover \
-	rep_in_gfmd_failover
+	rep_in_gfmd_failover \
+	continuous_operation

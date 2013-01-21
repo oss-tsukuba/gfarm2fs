@@ -1,0 +1,103 @@
+#
+# Test case for continuous operation
+#
+
+#
+# log message with timestamp
+#
+log_with_time()
+{
+	echo "$PROGRAM: [`date +"%y/%m/%d %H:%M"`] $@" 1>&2
+	return 0
+}
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# WRITE_SIZE:	Size to write to a file at a time
+# INTERVAL:	Interval(sec) of operation
+test_continuous_operation()
+{
+	RESULT=$RESULT_PASS
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+
+	# file count
+	I=0
+
+	# file name
+	FILE_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_%d.txt"
+
+	while true; do
+		FILE_PATH=`printf $FILE_TMPL $I`
+
+		# step: create a file
+		$GFSERVICE $DEBUG make_file client1 $FILE_PATH $WRITE_SIZE
+		if [ $? -eq 0 ]; then
+			log_with_time "succeeded to create a file: $FILE_PATH"
+		else
+			log_with_time "failed to create a file: $FILE_PATH"
+			RESULT=$RESULT_FAIL
+		fi
+
+		# step: append to a file
+		$GFSERVICE $DEBUG append_file client1 $FILE_PATH $WRITE_SIZE
+		if [ $? -eq 0 ]; then
+			log_with_time "succeeded to append to a file:" \
+				"$FILE_PATH"
+		else
+			log_with_time "failed to append to a file: $FILE_PATH"
+			RESULT=$RESULT_FAIL
+		fi
+
+		# step: read a file
+		$GFSERVICE $DEBUG read_file client1 $FILE_PATH
+		if [ $? -eq 0 ]; then
+			log_with_time "succeeded to read a file: $FILE_PATH"
+		else
+			log_with_time "failed to read a file: $FILE_PATH"
+			RESULT=$RESULT_FAIL
+		fi
+
+		# step: remove a file
+		$GFSERVICE $DEBUG exec_ssh client1 rm -f $FILE_PATH
+		if [ $? -eq 0 ]; then
+			log_with_time "succeeded to remove a file: $FILE_PATH"
+		else
+			log_with_time "failed to remove a file: $FILE_PATH"
+			RESULT=$RESULT_FAIL
+		fi
+
+		$GFSERVICE $DEBUG exec_ssh client1 "test -f $MOUNT_POINT/stop" \
+			2> /dev/null
+		[ $? -eq 0 ] && break
+
+		sleep $INTERVAL
+		I=`expr $I + 1`
+	done
+
+	# cleanup: remove file
+	$GFSERVICE $DEBUG exec_ssh client1 rm -f $MOUNT_POINT/stop
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+
+	# cleanup: remove mount point
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}

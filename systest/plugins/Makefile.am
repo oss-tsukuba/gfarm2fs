@@ -19,4 +19,5 @@ dist_gfservice_DATA = check_files \
 	ifup \
 	ifdown \
 	export_file \
-	replicate_file
+	replicate_file \
+	append_file

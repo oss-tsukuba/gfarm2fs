@@ -1,0 +1,6 @@
+#
+# Test parameters for continuous operation
+#
+GFARM_HOME=${GFARM_HOME-"/"}
+WRITE_SIZE=${WRITE_SIZE="512K"}
+INTERVAL=${INTERVAL-"10"}

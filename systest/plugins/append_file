@@ -1,0 +1,61 @@
+#
+# Dependencies of this sub-command
+#
+append_file_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: append file
+#
+subcmd_append_file()
+{
+	log_debug "subcmd_append_file"
+
+	check_argc $# 2
+	check_hostid $HOSTID
+	exec_client_host_agent $HOSTID - append_file "$@"
+	[ $? -ne 0 ] && log_error "gfservice append_file failed"
+
+	log_debug "end subcmd_append_file"
+}
+
+append_file()
+{
+	FILE_PATH=$1
+	FILE_SIZE=$2
+
+	if [ "X$FILE_SIZE" = X1G ]; then
+		DD_OPT="bs=64M count=16"
+	else
+		DD_OPT="bs=$FILE_SIZE count=1"
+	fi
+
+	dd if=/dev/zero $DD_OPT 2> /dev/null | tr "\000" "a" >> $FILE_PATH
+	[ $? -ne 0 ] && log_error "failed to append file: $PROGHOST:$FILE_PATH"
+	log_debug "$PROGHOST appends $FILE_PATH done"
+}
+
+#
+# Dependencies of this sub-command agent
+#
+append_file_agent_depends()
+{
+	echo ""
+}
+
+#
+# Sub-command: append_file
+# Make file in given path.
+#
+subcmd_append_file_agent()
+{
+	log_debug "subcmd_append_file_agent FILE_PATH=$1 FILE_SIZE=$2"
+
+	append_file "$@"
+
+	log_debug "end subcmd_append_files_agent"
+
+	return 0
+}

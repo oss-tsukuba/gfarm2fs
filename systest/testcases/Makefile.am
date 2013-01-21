@@ -37,4 +37,5 @@ dist_testcases_DATA = read_files \
 	userdel_in_gfmd_failover \
 	start_gfsd_in_gfmd_failover \
 	mount_in_gfmd_failover \
-	rep_in_gfmd_failover
+	rep_in_gfmd_failover \
+	continuous_operation
