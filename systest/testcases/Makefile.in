@@ -226,6 +226,14 @@ dist_testcases_DATA = read_files \
 	rename_in_gfsd_ifdown \
 	copy_in_gfsd_ifdown \
 	append_immediately_in_gfsd_ifdown \
+	two_gfsd_ifdown_in_write \
+	two_gfsd_ifdown_in_read \
+	two_gfsd_ifdown_in_rep \
+	operation_in_two_gfsd_ifdown \
+	append_in_two_gfsd_ifdown \
+	delete_in_two_gfsd_ifdown \
+	rename_in_two_gfsd_ifdown \
+	copy_in_two_gfsd_ifdown \
 	gfmd_failover_in_write \
 	gfmd_failover_in_read \
 	write_in_gfmd_failover \
@@ -236,6 +244,7 @@ dist_testcases_DATA = read_files \
 	start_gfsd_in_gfmd_failover \
 	mount_in_gfmd_failover \
 	rep_in_gfmd_failover \
+	operation_after_gfmd_failover \
 	continuous_operation
 
 all: all-am
