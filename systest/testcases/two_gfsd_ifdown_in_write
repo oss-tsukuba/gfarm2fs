@@ -1,0 +1,142 @@
+#
+# Test case for check behavior when network interface of two gfsd node is
+# down in writing files
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# FILE_SIZE:	Size of a file to be created
+# SLEEP_SEC:	Second to sleep before make network interface down
+test_two_gfsd_ifdown_in_write()
+{
+	RESULT=$RESULT_PASS
+
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	FILE_SIZE=${FILE_SIZE-"100M"}
+	SLEEP_SEC=${SLEEP_SEC-"3"}
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# step: make files in background
+	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE1 \
+		gfmd1 gfsd1 &
+	MAKE_PID1=$!
+
+	# step: make files in background
+	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE2 \
+		gfmd1 gfsd2 &
+	MAKE_PID2=$!
+
+	# wait a bit for a process starts making files
+	sleep $SLEEP_SEC
+
+	# step: make network interface down
+	$GFSERVICE $DEBUG ifdown gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd1"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG ifdown gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	wait $MAKE_PID1
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to make a file" \
+			"on gfsd1"
+		RESULT=$RESULT_XPASS
+	fi
+
+	wait $MAKE_PID2
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to make a file" \
+			"on gfsd2"
+		RESULT=$RESULT_XPASS
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG ifup gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	# step: make files
+	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
+	echo ${TEST_EXEC_ID}_3 | $GFSERVICE $DEBUG read_and_register client1 \
+		$GFARM_FILE3 gfmd1 gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to write files to gfsd1"
+		RESULT=$RESULT_FAIL
+	fi
+
+	GFARM_FILE4=$GFARM_HOME/${TEST_EXEC_ID}_4
+	echo ${TEST_EXEC_ID}_4 | $GFSERVICE $DEBUG read_and_register client1 \
+		$GFARM_FILE4 gfmd1 gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to write files to gfsd2"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: compare check sum of spool file
+	CHECKSUM_3=`echo ${TEST_EXEC_ID}_3 | openssl md5 | awk '{ print $2 }'`
+	SPOOL_PATH3=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE3`
+	if [ X$SPOOL_PATH3 = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		RESULT=$RESULT_FAIL
+	fi
+
+	CHECKSUM_GFSD1=`$GFSERVICE $DEBUG spool_file_checksum gfsd1 \
+		$SPOOL_PATH3`
+
+	if [ X$CHECKSUM_GFSD1 != X$CHECKSUM_3 ]; then
+		log_warn "$TESTNAME: checksum of a file is different from" \
+			"original one"
+		RESULT=$RESULT_FAIL
+	fi
+
+	CHECKSUM_4=`echo ${TEST_EXEC_ID}_4 | openssl md5 | awk '{ print $2 }'`
+	SPOOL_PATH4=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE4`
+	if [ X$SPOOL_PATH4 = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		RESULT=$RESULT_FAIL
+	fi
+
+	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 \
+		$SPOOL_PATH4`
+
+	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM_4 ]; then
+		log_warn "$TESTNAME: checksum of a file is different from" \
+			"original one"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# cleanup: remove files
+	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2 \
+		$GFARM_FILE3 $GFARM_FILE4
+
+	return $RESULT
+}

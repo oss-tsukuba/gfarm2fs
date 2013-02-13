@@ -55,7 +55,7 @@ test_userdel_in_gfmd_failover()
 
 	wait $GFCMD_PID
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to add a user"
+		log_warn "$TESTNAME: failed to delete a user"
 		NEED_USERDEL=true
 		RESULT=$RESULT_XFAIL
 	fi

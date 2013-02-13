@@ -1,7 +1,8 @@
 #
-# Test case for check behavior when gfsd network interface is down
-# in writing files
+# Test case for check behavior when network interface of two gfsd node is
+# down in reading files
 #
+load	"calc_checksum"
 
 #
 # Test parameters
@@ -9,7 +10,7 @@
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # FILE_SIZE:	Size of a file to be created
 # SLEEP_SEC:	Second to sleep before make network interface down
-test_gfsd_ifdown_in_write()
+test_two_gfsd_ifdown_in_read()
 {
 	RESULT=$RESULT_PASS
 
@@ -19,7 +20,7 @@ test_gfsd_ifdown_in_write()
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 client1"
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
 	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
@@ -27,20 +28,36 @@ test_gfsd_ifdown_in_write()
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi
 
+	# prepare: calc checksum
+	CHECKSUM=`calc_checksum $FILE_SIZE`
+
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
 	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
 	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
 
-	# step: make files in background
+	# prepare: make file
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
 	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
 		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE1 \
-		gfmd1 gfsd1 &
-	MAKE_PID=$!
+		gfmd1 gfsd1
 
-	# wait a bit for a process starts making files
+	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE2 \
+		gfmd1 gfsd2
+
+	# step: read files in background
+	FILE_PATH1=$MOUNT_POINT/${TEST_EXEC_ID}_1
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH1 &
+	READ_PID1=$!
+
+	FILE_PATH2=$MOUNT_POINT/${TEST_EXEC_ID}_2
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH2 &
+	READ_PID2=$!
+
+	# wait a bit for a process starts reading files
 	sleep $SLEEP_SEC
 
 	# step: make network interface down
@@ -50,9 +67,23 @@ test_gfsd_ifdown_in_write()
 		return $RESULT_FATAL
 	fi
 
-	wait $MAKE_PID
+	$GFSERVICE $DEBUG ifdown gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	wait $READ_PID1
 	if [ $? -eq 0 ]; then
-		log_warn "$TESTNAME: unexpectedly suceeded to make a file"
+		log_warn "$TESTNAME: unexpectedly suceeded to read a file" \
+			"on gfsd1"
+		RESULT=$RESULT_XPASS
+	fi
+
+	wait $READ_PID2
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to read a file" \
+			"on gfsd2"
 		RESULT=$RESULT_XPASS
 	fi
 
@@ -63,25 +94,27 @@ test_gfsd_ifdown_in_write()
 		return $RESULT_FATAL
 	fi
 
-	# step: make files
-	GFARM_FILE2=$MOUNT_POINT/${TEST_EXEC_ID}_2
-	$GFSERVICE $DEBUG make_file client1 $GFARM_FILE2 $FILE_SIZE
+	$GFSERVICE $DEBUG ifup gfsd2
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to write files"
+		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	# step: read files
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH1 $CHECKSUM
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to read files from gfsd1"
 		RESULT=$RESULT_FAIL
 	fi
 
-	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
-		$GFARM_FILE3 gfmd1 gfsd1
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH2 $CHECKSUM
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to write files"
+		log_warn "$TESTNAME: failed to read files from gfsd2"
 		RESULT=$RESULT_FAIL
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG exec_ssh client1 rm -f $GFARM_FILE2
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE3
+	$GFSERVICE $DEBUG exec_ssh client1 rm -r $FILE_PATH
 
 	# cleanup: unmount
 	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT

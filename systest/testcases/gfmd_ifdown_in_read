@@ -2,6 +2,7 @@
 # Test case for check behavior when gfmd network interface is down
 # in reading files
 #
+load	"calc_checksum"
 
 #
 # Test parameters
@@ -27,6 +28,9 @@ test_gfmd_ifdown_in_read()
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi
 
+	# prepare: calc checksum
+	CHECKSUM_EXPECT=`calc_checksum $FILE_SIZE`
+
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
 	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
@@ -38,7 +42,7 @@ test_gfmd_ifdown_in_read()
 	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
 
 	# step: read files in background
-	$GFSERVICE $DEBUG read_file client1 $FILE_PATH &
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT &
 	READ_PID=$!
 
 	# wait a bit for a process starts making files
@@ -79,7 +83,7 @@ test_gfmd_ifdown_in_read()
 	fi
 
 	# step: read files
-	$GFSERVICE $DEBUG read_file client1 $FILE_PATH
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files"
 		RESULT=$RESULT_FAIL

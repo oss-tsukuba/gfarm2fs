@@ -1,7 +1,8 @@
 #
 # Test case for check behavior when wrote a file in gfmd failing over
 #
-load	"check_journal_seqnum_max" \
+load	"check_metadata_filesize" \
+	"check_journal_seqnum_max" \
 	"check_gfmd_master" \
 	"failback"
 
@@ -83,6 +84,14 @@ test_write_in_gfmd_failover()
 			RESULT=$RESULT_XFAIL
 		fi
 	done
+
+	# step: check metadata filesize
+	check_metadata_filesize client1 $GFARM_PATH gfmd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: file size of metadata is not same to" \
+			"actual one"
+		RESULT=$RESULT_XFAIL
+	fi
 
 	# step: check whether journal seqnum max is same
 	check_journal_seqnum_max gfmd1 gfmd2

@@ -1,7 +1,8 @@
 #
 # Test case for check behavior when read a file in gfmd failing over
 #
-load	"check_journal_seqnum_max" \
+load	"calc_checksum" \
+	"check_journal_seqnum_max" \
 	"check_gfmd_master" \
 	"failback"
 
@@ -33,6 +34,9 @@ test_read_in_gfmd_failover()
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi
 
+	# prepare: calc checksum
+	CHECKSUM_EXPECT=`calc_checksum $FILE_SIZE`
+
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
 	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
@@ -49,7 +53,7 @@ test_read_in_gfmd_failover()
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to stop gfmd on gfmd1"
 
 	# step: read files
-	$GFSERVICE $DEBUG read_file client1 $FILE_PATH &
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT &
 	READ_PID=$!
 
 	# wait a bit for a process starts making files

@@ -1,0 +1,241 @@
+#
+# Test case for renaming a file which has replication, when network
+# interface of two gfsd node is down
+#
+load	"calc_checksum" \
+	"wait_for_gfsd_disconnect" \
+	"check_replica_num" \
+	"check_file_location"
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# FILE_SIZE:	Size of a file to be created
+# RETRY_COUNT:		Retry number to check gfsd connection or number of
+#			replicas
+# RETRY_INTERVAL:	Retry interval(sec) to check gfsd connection
+test_rename_in_two_gfsd_ifdown()
+{
+	RESULT=$RESULT_PASS
+
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	FILE_SIZE=${FILE_SIZE-"100M"}
+	RETRY_COUNT=${RETRY_COUNT-"10"}
+	RETRY_INTERVAL=${RETRY_INTERVAL-"10"}
+
+	# prepare: check whether required hosts are defined
+	$GFSERVICE $DEBUG check_hostids_defined - \
+		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+
+	# prepare: make a file with replica
+	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 \
+		$GFARM_FILE1 gfmd1 gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to register file on gfsd1"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE1 gfsd3
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to replicate file on gfsd3"
+		return $RESULT_FATAL
+	fi
+
+	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 \
+		$GFARM_FILE2 gfmd1 gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to register file on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE2 gfsd3
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to replicate file on gfsd3"
+		return $RESULT_FATAL
+	fi
+
+	# prepare: calc checksum
+	CHECKSUM=`calc_checksum $FILE_SIZE`
+
+	# prepare: get spool file path
+	SPOOL_PATH1=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE1`
+	SPOOL_PATH2=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE2`
+
+	# prepare: make network interface down
+	$GFSERVICE $DEBUG ifdown gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd1"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG ifdown gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	# step: wait until gfsd1 get disconnected
+	wait_for_gfsd_disconnect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: gfsd1 is available unexpectedly"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_disconnect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: gfsd2 is available unexpectedly"
+		return $RESULT_FATAL
+	fi
+
+	# step: rename a file
+	MOUNT_FILE1=$MOUNT_POINT/${TEST_EXEC_ID}_1
+	MOUNT_FILE2=$MOUNT_POINT/${TEST_EXEC_ID}_2
+	$GFSERVICE $DEBUG exec_ssh client1 "mv $MOUNT_FILE1 ${MOUNT_FILE1}_dst"
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to rename a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	$GFSERVICE $DEBUG exec_ssh client1 "mv $MOUNT_FILE2 ${MOUNT_FILE2}_dst"
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to rename a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check number of replicas
+	check_replica_num client1 ${GFARM_FILE1}_dst 2 $RETRY_COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: number of file replica is not enough"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	check_replica_num client1 ${GFARM_FILE2}_dst 2 $RETRY_COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: number of file replica is not enough"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	# step: compare check sum of spool file
+	for HOST in `$GFSERVICE $DEBUG gfcmd client gfwhere $GFARM_FILE1`; do
+		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOST \
+			$SPOOL_PATH1`
+		if [ X$CHECKSUM_SPOOL = X ]; then
+			log_warn "$TESTNAME: fail to get checksum of a spool"
+				"file"
+			RESULT=$RESULT_FAIL
+		fi
+
+		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
+			log_warn "$TESTNAME: checksum of file is different to"
+				"original"
+			RESULT=$RESULT_FAIL
+		fi
+	done
+
+	for HOST in `$GFSERVICE $DEBUG gfcmd client gfwhere $GFARM_FILE2`; do
+		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOST \
+			$SPOOL_PATH2`
+		if [ X$CHECKSUM_SPOOL = X ]; then
+			log_warn "$TESTNAME: fail to get checksum of a spool"
+				"file"
+			RESULT=$RESULT_FAIL
+		fi
+
+		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
+			log_warn "$TESTNAME: checksum of file is different to"
+				"original"
+			RESULT=$RESULT_FAIL
+		fi
+	done
+
+	# step: check original replica is there
+	check_file_location ${GFARM_FILE1}_dst gfsd1 client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: replica disappeared from gfsd1"
+		RESULT=$RESULT_FAIL
+	fi
+
+	check_file_location ${GFARM_FILE1}_dst gfsd3 client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: replica disappeared from gfsd3"
+		RESULT=$RESULT_FAIL
+	fi
+
+	check_file_location ${GFARM_FILE2}_dst gfsd2 client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: replica disappeared from gfsd2"
+		RESULT=$RESULT_FAIL
+	fi
+
+	check_file_location ${GFARM_FILE2}_dst gfsd3 client1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: replica disappeared from gfsd3"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG ifup gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	# step: check original spool file is there
+	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: cannot find spool file on gfsd1"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	$GFSERVICE $DEBUG spool_file_exists gfsd3 $SPOOL_PATH1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: cannot find spool file on gfsd3"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: cannot find spool file on gfsd2"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	$GFSERVICE $DEBUG spool_file_exists gfsd3 $SPOOL_PATH2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: cannot find spool file on gfsd3"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	# cleanup: remove files
+	$GFSERVICE $DEBUG gfcmd client1 gfrm -f ${GFARM_FILE1}_dst \
+		${GFARM_FILE2}_dst
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+
+	return $RESULT
+}

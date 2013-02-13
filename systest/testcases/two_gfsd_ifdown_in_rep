@@ -1,0 +1,149 @@
+#
+# Test case for check behavior when network interface of two gfsd node is
+# down in replicating files
+#
+load	"calc_checksum" \
+	"check_replica_num"
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# FILE_SIZE:	Size of a file to be created
+# SLEEP_SEC:	Second to sleep before make network interface down
+# RETRY_COUNT:	Retry number to check number of replicas
+test_two_gfsd_ifdown_in_rep()
+{
+	RESULT=$RESULT_PASS
+
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	FILE_SIZE=${FILE_SIZE-"100M"}
+	SLEEP_SEC=${SLEEP_SEC-"3"}
+	RETRY_COUNT=${RETRY_COUNT-"10"}
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 gfsd3 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: calc checksum
+	CHECKSUM=`calc_checksum $FILE_SIZE`
+
+	# prepare: make a file
+	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
+	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
+		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE \
+		gfmd1 gfsd1
+
+	# step: replicate a file in background
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2 &
+	REP_PID1=$!
+
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd3 &
+	REP_PID2=$!
+
+	# wait a bit for a process starts replicating a file
+	sleep $SLEEP_SEC
+
+	# step: make network interface down
+	$GFSERVICE $DEBUG ifdown gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG ifdown gfsd3
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifdown on gfsd3"
+		return $RESULT_FATAL
+	fi
+
+	wait $REP_PID1
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to replicate a" \
+			"file to gfsd2"
+		RESULT=$RESULT_XPASS
+	fi
+
+	wait $REP_PID2
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly suceeded to replicate a" \
+			"file to gfsd3"
+		RESULT=$RESULT_XPASS
+	fi
+
+	# step: replicate a file
+	$GFSERVICE $DEBUG gfcmd client1 gfrep -N 2 $GFARM_FILE
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute gfrep"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check number of replicas
+	check_replica_num client1 $GFARM_FILE 2 $RETRY_COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: number of file replica is not enough"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	# step: make network interface up
+	$GFSERVICE $DEBUG ifup gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
+		return $RESULT_FATAL
+	fi
+
+	$GFSERVICE $DEBUG ifup gfsd3
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to execute ifup on gfsd3"
+		return $RESULT_FATAL
+	fi
+
+	# step: replicate a file
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to replicate a file to gfsd2"
+		RESULT=$RESULT_FAIL
+	fi
+
+	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd3
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to replicate a file to gfsd3"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: compare check sum of spool file
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE`
+	if [ X$SPOOL_PATH = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		RESULT=$RESULT_FAIL
+	fi
+
+	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 \
+		$SPOOL_PATH`
+
+	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM ]; then
+		log_warn "$TESTNAME: checksum of a file is different from" \
+			"original one"
+		RESULT=$RESULT_FAIL
+	fi
+
+	CHECKSUM_GFSD3=`$GFSERVICE $DEBUG spool_file_checksum gfsd3 \
+		$SPOOL_PATH`
+
+	if [ X$CHECKSUM_GFSD3 != X$CHECKSUM ]; then
+		log_warn "$TESTNAME: checksum of a file is different from" \
+			"original one"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# cleanup: remove a file
+	$GFSERVICE $DEBUG gfcmd client1 gfrm -r $GFARM_FILE
+
+	return $RESULT
+}

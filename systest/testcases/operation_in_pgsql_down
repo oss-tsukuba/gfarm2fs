@@ -1,6 +1,7 @@
 #
 # Test case for operation when backend db is down
 #
+load	"check_metadata_filesize"
 
 #
 # Test parameters
@@ -22,6 +23,9 @@ test_operation_in_pgsql_down()
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi
+
+	# prepare: calc checksum
+	CHECKSUM_EXPECT=`echo $TEST_EXEC_ID | openssl md5 | awk '{ print $2 }`
 
 	# prepare: create mount point
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
@@ -58,10 +62,49 @@ test_operation_in_pgsql_down()
 		RESULT=$RESULT_FAIL
 	fi
 
+	# step: compare check sum of spool file
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE2`
+	if [ X$SPOOL_PATH = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		return $RESULT_FATAL
+	fi
+
+	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE2`; do
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
+			 $SPOOL_PATH`
+		if [ X$CHECKSUM_ACTUAL = X ]; then
+			log_warn "$TESTNAME: fail to get checksum of a spool" \
+				"file on $HOST"
+			RESULT=$RESULT_FAIL
+		fi
+
+		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
+			log_warn "$TESTNAME: checksum of file is different to" \
+				"original one"
+			RESULT=$RESULT_FAIL
+		fi
+	done
+
+	# step: check metadata filesize
+	check_metadata_filesize client1 $GFARM_FILE gfmd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: file size of metadata is not same to" \
+			"actual one"
+		RESULT=$RESULT_FAIL
+	fi
+
 	# step: read file with gfexport
-	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1
+	CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 \
+		gfmd1 | openssl md5 | awk '{ print $2 }'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
+		log_warn "$TESTNAME: checksum of file is different to" \
+			"original one"
 		RESULT=$RESULT_FAIL
 	fi
 
@@ -122,10 +165,49 @@ test_operation_in_pgsql_down()
 		RESULT=$RESULT_FAIL
 	fi
 
-	# step: read file with gfexport
-	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1
+	# step: compare check sum of spool file
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE2`
+	if [ X$SPOOL_PATH = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		return $RESULT_FATAL
+	fi
+
+	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE2`; do
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
+			 $SPOOL_PATH`
+		if [ X$CHECKSUM_ACTUAL = X ]; then
+			log_warn "$TESTNAME: fail to get checksum of a spool" \
+				"file on $HOST"
+			RESULT=$RESULT_FAIL
+		fi
+
+		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
+			log_warn "$TESTNAME: checksum of file is different to" \
+				"original one"
+			RESULT=$RESULT_FAIL
+		fi
+	done
+
+	# step: check metadata filesize
+	check_metadata_filesize client1 $GFARM_FILE gfmd1
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to read files"
+		log_warn "$TESTNAME: file size of metadata is not same to" \
+			"actual one"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: read file with gfexport
+	CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 \
+		gfmd1 | openssl md5 | awk '{ print $2 }'`
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to read a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
+		log_warn "$TESTNAME: checksum of file is different to" \
+			"original one"
 		RESULT=$RESULT_FAIL
 	fi
 

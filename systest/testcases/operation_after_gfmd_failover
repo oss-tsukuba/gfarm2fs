@@ -1,0 +1,200 @@
+#
+# Test case for operation after gfmd failed over
+#
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# FILE_SIZE:	Size of a file to be created
+# TIMEOUT:	  timeout sec for starting/stopping gfmd
+# RETRY_COUNT:	  retry number to check number of replica
+test_operation_after_gfmd_failover()
+{
+	RESULT=$RESULT_PASS
+
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	FILE_SIZE=${FILE_SIZE-"100M"}
+	TIMEOUT=${TIMEOUT-"10"}
+	RETRY_COUNT=${RETRY_COUNT-"10"}
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - \
+		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
+		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: calc checksum
+	CHECKSUM_EXPECT=`calc_checksum $FILE_SIZE`
+
+	# prepare: stop gfsd
+	$GFSERVICE $DEBUG stop-gfsd gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to stop gfsd"
+		return $RESULT_FATAL
+	fi
+
+	# prepare: mount
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+	MOUNT_POINT2=mnt_${TEST_EXEC_ID}_2
+	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT $MOUNT_POINT2
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+		-o subdir=$GFARM_HOME
+
+	# step: stop gfmd on gfmd1
+	$GFSERVICE $DEBUG stop-gfmd gfmd1
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to stop gfmd on gfmd1"
+
+	# step: promote gfmd on gfmd2
+	$GFSERVICE $DEBUG promote-gfmd gfmd2
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to promote gfmd on gfmd2"
+
+	# step: set gfmd on gfmd1 to be slave
+	$GFSERVICE $DEBUG -t $TIMEOUT start-gfmd-slave gfmd1
+	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to start gfmd on gfmd1" \
+		"as slave"
+
+	# step: make files
+	FILE_NAME=$TEST_EXEC_ID
+	FILE_PATH=$MOUNT_POINT/$FILE_NAME
+	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to write a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check spool file
+	GFARM_PATH=$GFARM_HOME/$FILE_NAME
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
+	if [ X$SPOOL_PATH = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		RESULT=$RESULT_FAIL
+	fi
+
+	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`; do
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
+		if [ $? -ne 0 ]; then
+			log_warn "$TESTNAME: failed to find spool file"
+			RESULT=$RESULT_FAIL
+		fi
+	done
+
+	# step: check metadata filesize
+	check_metadata_filesize client1 $GFARM_PATH gfmd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: file size of metadata is not same to" \
+			"actual one"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	# step: read files
+	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to read a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: add user
+	$GFSERVICE $DEBUG gfcmd client1 gfuser -c $TEST_EXEC_ID \
+		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\"" &
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to add a user"
+		RESULT=$EXIT_FAIL
+	fi
+
+	# step: list user
+	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to list users"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: delete user
+	$GFSERVICE $DEBUG gfcmd client1 gfuser -d $TEST_EXEC_ID &
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to delete a user"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: start gfsd
+	$GFSERVICE $DEBUG start-gfsd gfsd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to start gfsd"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: mount
+	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT2 -o modules=subdir \
+		-o subdir=$GFARM_HOME &
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to mount Gfarm file system"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check Gfarm is mounted
+	FOUND=1
+	DIRS=`$GFSERVICE $DEBUG exec_ssh client1 df | \
+		awk '/gfarm2fs/ {print $6}'`
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to check mount point"
+		RESULT=$RESULT_FAIL
+	fi
+
+	for DIR in $DIRS; do
+		if [ X$DIR = $MOUNT_POINT2 ]; then
+			FOUND=0
+			break
+		fi
+	done
+	if [ ! $FOUND ]; then
+		log_warn "$TESTNAME: failed to check mount point"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: replicate file
+	$GFSERVICE $DEBUG gfcmd client1 gfrep -N 2 $GFARM_PATH
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to replicate a file"
+		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check number of replicas
+	check_replica_num client1 $GFARM_PATH 2 $RETRY_COUNT
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: number of file replica is not enough"
+		RESULT=$RESULT_XFAIL
+	fi
+
+	# step: check spool file
+	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
+	if [ X$SPOOL_PATH = X ]; then
+		log_warn "$TESTNAME: failed to get spool path"
+		RESULT=$RESULT_FAIL
+	fi
+
+	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`; do
+		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
+		if [ $? -ne 0 ]; then
+			log_warn "$TESTNAME: failed to find spool file"
+			RESULT=$RESULT_FAIL
+		fi
+	done
+
+	# cleanup: remove files
+	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_PATH
+
+	# cleanup: unmount
+	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+
+	# cleanup: remove mount point
+	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT $MOUNT_POINT2
+
+	return $RESULT
+}

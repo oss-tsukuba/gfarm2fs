@@ -30,11 +30,19 @@ test_make_dir()
 	fi
 
 	# step: gfchown
-	$GFSERVICE $DEBUG gfcmd client1 gfchown `id -un`:gfarmadm \
+	$GFSERVICE $DEBUG gfcmd client1 gfchown `id -un` \
 		$GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchown failed"
 		RESULT=$RESULT_FAIL
+	fi
+
+	# step: gfchgrp
+	$GFSERVICE $DEBUG gfcmd client1 gfchgrp gfarmadm \
+		$GFARM_HOME/$TEST_EXEC_ID
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfchgrp failed"
+		RESULT=1
 	fi
 
 	# step: gfchmod

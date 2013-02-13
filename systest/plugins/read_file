@@ -13,7 +13,7 @@ subcmd_read_file()
 {
 	log_debug "subcmd_read_file"
 
-	check_argc $# 1
+	check_argc $# 1 +
 	check_hostid $HOSTID
 	exec_client_host_agent $HOSTID - read_file "$@"
 	[ $? -ne 0 ] && log_error "gfservice read_file failed"
@@ -24,9 +24,18 @@ subcmd_read_file()
 read_file()
 {
 	FILE_PATH=$1
+	CHECKSUM_EXPECTED=$2
 
-	dd if=$FILE_PATH of=/dev/null 2>/dev/null
-	[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
+	if [ X$CHECKSUM_EXPECTED = X ]; then
+		dd if=$FILE_PATH of=/dev/null 2>/dev/null
+		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
+	else
+		CHECKSUM_ACTUAL`dd if=$FILE_PATH | openssl md5`
+		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
+		[ $CHECKSUM_ACTUAL != $CHECKSUM_EXPECTED ] \
+			log_error "checksum of a file $FILE_PATH is not same" \
+				"to expected one"
+	fi
 	log_debug "$PROGHOST read $FILE_PATH done"
 }
 

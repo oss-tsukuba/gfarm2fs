@@ -2,6 +2,7 @@
 # Test case for check behavior when gfmd failed over in writing files
 #
 load	"calc_checksum" \
+	"check_metadata_filesize" \
 	"check_gfmd_master" \
 	"check_journal_seqnum_max" \
 	"failback"
@@ -94,6 +95,14 @@ test_gfmd_failover_in_write()
 	if [ X$CHECKSUM_ACTUAL != X$CHECKSUM_EXPECT ]; then
 		log_warn "$TESTNAME: checksum of file did not match"
 		RESULT=$RESULT_FAIL
+	fi
+
+	# step: check metadata filesize
+	check_metadata_filesize client1 $GFARM_FILE gfmd1
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: file size of metadata is not same to" \
+			"actual one"
+		RESULT=$RESULT_XFAIL
 	fi
 
 	# step: check whether journal seqnum max is same

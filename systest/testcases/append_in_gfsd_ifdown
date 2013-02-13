@@ -125,7 +125,7 @@ test_append_in_gfsd_ifdown()
 	# step: make network interface up
 	$GFSERVICE $DEBUG ifup gfsd1
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to execute ifup on client1"
+		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
 		return $RESULT_FATAL
 	fi
 
