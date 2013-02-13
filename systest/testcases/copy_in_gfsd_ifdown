@@ -19,6 +19,12 @@ test_copy_in_gfsd_ifdown()
 {
 	RESULT=$RESULT_PASS
 
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	FILE_SIZE=${FILE_SIZE-"100M"}
+	RETRY_COUNT=${RETRY_COUNT-"10"}
+	RETRY_INTERVAL=${RETRY_INTERVAL-"5"}
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED

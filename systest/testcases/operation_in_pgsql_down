@@ -10,6 +10,9 @@ test_operation_in_pgsql_down()
 {
 	RESULT=$RESULT_PASS
 
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+
 	# prepare: check whether required host is defined
 	$GFSERVICE $DEBUG check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"

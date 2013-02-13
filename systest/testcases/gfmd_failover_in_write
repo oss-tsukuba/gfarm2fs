@@ -18,6 +18,13 @@ test_gfmd_failover_in_write()
 {
 	RESULT=$RESULT_PASS
 
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	FILE_SIZE=${FILE_SIZE-"100M"}
+	SLEEP_SEC=${SLEEP_SEC-"3"}
+	TIMEOUT=${TIMEOUT-"10"}
+	RETRY_COUNT=${RETRY_COUNT-"10"}
+
 	# prepare: check whether required host is defined
 	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED

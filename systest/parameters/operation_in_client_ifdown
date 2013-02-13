@@ -1,4 +1,0 @@
-#
-# Test parameters for operation when client network interface is down
-#
-GFARM_HOME=${GFARM_HOME-"/"}

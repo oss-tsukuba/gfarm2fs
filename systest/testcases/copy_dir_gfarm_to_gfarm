@@ -9,9 +9,17 @@
 # NUM_DIRS:	Number of directories created
 test_copy_dir_gfarm_to_gfarm()
 {
-	RESULT=0
+	RESULT=$RESULT_PASS
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	NUM_DIRS=${NUM_DIRS-"3"}
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi
@@ -55,7 +63,7 @@ test_copy_dir_gfarm_to_gfarm()
 			$DST_FILE
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: contents of $SRC_FILE is not same"
-			RESULT=1
+			RESULT=$RESULT_FAIL
 		fi
 	done
 
@@ -75,7 +83,7 @@ test_copy_dir_gfarm_to_gfarm()
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: $DST_FILE in spool directory" \
 				"is not same"
-			RESULT=1
+			RESULT=$RESULT_FAIL
 		fi
 
 		# step: remove src file
@@ -90,7 +98,7 @@ test_copy_dir_gfarm_to_gfarm()
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 1 ]; then
 			log_warn "$TESTNAME: $SRC_FILE in spool directory remains"
-			RESULT=1
+			RESULT=$RESULT_FAIL
 		fi
 	done
 

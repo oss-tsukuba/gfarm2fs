@@ -8,9 +8,16 @@
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 test_make_dir()
 {
-	RESULT=0
+	RESULT=$RESULT_PASS
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+
+	# prepare: check whether required host is defined
+	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 client1"
+	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
+
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi
@@ -19,7 +26,7 @@ test_make_dir()
 	$GFSERVICE $DEBUG gfcmd client1 gfmkdir $GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfmkdir failed"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# step: gfchown
@@ -27,14 +34,14 @@ test_make_dir()
 		$GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchown failed"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# step: gfchmod
 	$GFSERVICE $DEBUG gfcmd client1 gfchmod 775 $GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchmod failed"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# step: gfls
@@ -42,7 +49,7 @@ test_make_dir()
 	FILES=`$GFSERVICE $DEBUG gfcmd client1 gfls $GFARM_HOME`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfls failed"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 	for FILE in $FILES; do
 		if [ X$FILE = X$TEST_EXEC_ID ]; then
@@ -51,7 +58,7 @@ test_make_dir()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: directory is not created"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# step: mount
@@ -61,7 +68,7 @@ test_make_dir()
 		-o subdir=$GFARM_HOME
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount gfarm"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# step: df
@@ -76,7 +83,7 @@ test_make_dir()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to find mount point"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# step: mkdir
@@ -93,7 +100,7 @@ test_make_dir()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to find directory"
-		RESULT=1
+		RESULT=$RESULT_FAIL
 	fi
 
 	# cleanup: remove directory

@@ -21,11 +21,16 @@ test_continuous_operation()
 {
 	RESULT=$RESULT_PASS
 
+	# default parameter
+	GFARM_HOME=${GFARM_HOME-"/"}
+	WRITE_SIZE=${WRITE_SIZE="512K"}
+	INTERVAL=${INTERVAL-"10"}
+
 	# prepare: check whether required host is defined
 	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get_auth_type gfmd1`
+	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
 	fi

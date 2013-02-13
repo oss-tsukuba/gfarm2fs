@@ -1,6 +1,0 @@
-#
-# Test parameters for check behavior when listing user in gfmd failing over
-#
-SLEEP_SEC=${SLEEP_SEC-"3"}
-TIMEOUT=${TIMEOUT-"10"}
-RETRY_COUNT=${RETRY_COUNT-"10"}

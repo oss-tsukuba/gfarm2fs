@@ -30,30 +30,3 @@ dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	write_files_each_mntpnts_4c_250m_1000f_100M \
 	write_files_each_mntpnts_4c_250m_1000f_1G \
 	write_files_each_mntpnts_4c_250m_1000f_1M \
-	make_file \
-	make_dir \
-	copy_file \
-	copy_dir \
-	gfmd_ifdown \
-	operation_in_gfmd_ifdown \
-	pgsql_down \
-	operation_in_pgsql_down \
-	client_ifdown \
-	operation_in_client_ifdown \
-	gfsd_ifdown \
-	operation_in_gfsd_ifdown \
-	append_in_gfsd_ifdown \
-	delete_in_gfsd_ifdown \
-	rename_in_gfsd_ifdown \
-	copy_in_gfsd_ifdown \
-	append_immediately_in_gfsd_ifdown \
-	gfmd_failover \
-	write_in_gfmd_failover \
-	read_in_gfmd_failover \
-	useradd_in_gfmd_failover \
-	userlist_in_gfmd_failover \
-	userdel_in_gfmd_failover \
-	start_gfsd_in_gfmd_failover \
-	mount_in_gfmd_failover \
-	rep_in_gfmd_failover \
-	continuous_operation

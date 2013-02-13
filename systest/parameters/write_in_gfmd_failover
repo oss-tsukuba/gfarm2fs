@@ -1,8 +1,0 @@
-#
-# Test parameters for check behavior when write a file in gfmd failing over
-#
-GFARM_HOME=${GFARM_HOME-"/"}
-FILE_SIZE=${FILE_SIZE-"100M"}
-SLEEP_SEC=${SLEEP_SEC-"3"}
-TIMEOUT=${TIMEOUT-"10"}
-RETRY_COUNT=${RETRY_COUNT-"10"}
