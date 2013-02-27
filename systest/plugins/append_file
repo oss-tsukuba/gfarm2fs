@@ -21,19 +21,51 @@ subcmd_append_file()
 	log_debug "end subcmd_append_file"
 }
 
+#
+# calculate numeric size from human friendly format
+#
+calc_numeric_size()
+{
+	case $1 in
+	*K)
+		NUMERIC_SIZE=`expr "$1" : "\([1-9][0-9]*\)K"`
+		NUMERIC_SIZE=`expr $NUMERIC_SIZE \* 1024`
+		;;
+	*M)
+		NUMERIC_SIZE=`expr "$1" : "\([1-9][0-9]*\)M"`
+		NUMERIC_SIZE=`expr $NUMERIC_SIZE \* 1024 \* 1024`
+		;;
+	*G)
+		NUMERIC_SIZE=`expr "$1" : "\([1-9][0-9]*\)G"`
+		NUMERIC_SIZE=`expr $NUMERIC_SIZE \* 1024 \* 1024 \* 1024`
+		;;
+	*)
+		NUMERIC_SIZE=$1
+	esac
+
+	echo $NUMERIC_SIZE
+
+	return 0
+}
+
 append_file()
 {
 	FILE_PATH=$1
 	FILE_SIZE=$2
 
-	if [ "X$FILE_SIZE" = X1G ]; then
-		DD_OPT="bs=64M count=16"
-	else
-		DD_OPT="bs=$FILE_SIZE count=1"
-	fi
+	NUMERIC_SIZE=`calc_numeric_size $FILE_SIZE`
+	BLOCK_SIZE=65536
+	BLOCKS=`expr $NUMERIC_SIZE / $BLOCK_SIZE`
+	REMAINDER=`expr $NUMERIC_SIZE % $BLOCK_SIZE`
 
-	dd if=/dev/zero $DD_OPT 2> /dev/null | tr "\000" "a" >> $FILE_PATH
+	dd if=/dev/zero bs=$BLOCK_SIZE count=$BLOCKS 2> /dev/null | \
+		tr "\000" "a" >> $FILE_PATH
 	[ $? -ne 0 ] && log_error "failed to append file: $PROGHOST:$FILE_PATH"
+
+	dd if=/dev/zero bs=$REMAINDER count=1 2> /dev/null | \
+		tr "\000" "a" >> $FILE_PATH
+	[ $? -ne 0 ] && log_error "failed to append file: $PROGHOST:$FILE_PATH"
+
 	log_debug "$PROGHOST appends $FILE_PATH done"
 }
 

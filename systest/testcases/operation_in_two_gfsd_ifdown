@@ -1,6 +1,7 @@
 #
 # Test case for operation when network interface of two gfsd node is down
 #
+load	"generate_testdata"
 
 #
 # Test parameters
@@ -41,12 +42,10 @@ test_operation_in_two_gfsd_ifdown()
 	# prepare: make a file
 	READ_GFARM_PATH1=$GFARM_PATH3/${TEST_EXEC_ID}_1
 	READ_GFARM_PATH2=$GFARM_PATH3/${TEST_EXEC_ID}_2
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $READ_GFARM_PATH1 \
-		gfmd1 gfsd1
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $READ_GFARM_PATH2 \
-		gfmd1 gfsd3
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $READ_GFARM_PATH1 gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $READ_GFARM_PATH2 gfmd1 gfsd3
 
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
@@ -149,9 +148,8 @@ test_operation_in_two_gfsd_ifdown()
 
 	# step: write file
 	WRITE_GFARM_PATH3=$GFARM_PATH3/${TEST_EXEC_ID}_3
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 \
-		$GFARM_FILE4 $WRITE_GFARM_PATH3 gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE4 $WRITE_GFARM_PATH3 gfmd1 gfsd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: wrote file unexpectedly to gfsd1"
 		RESULT=$RESULT_XPASS

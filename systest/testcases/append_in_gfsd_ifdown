@@ -3,6 +3,7 @@
 # interface is down
 #
 load	"calc_checksum" \
+	"generate_testdata" \
 	"wait_for_gfsd_disconnect" \
 	"check_replica_num" \
 	"check_file_location"
@@ -42,9 +43,8 @@ test_append_in_gfsd_ifdown()
 
 	# prepare: make a file with replica
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 \
-		$GFARM_FILE gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd1"
 		return $RESULT_FATAL
@@ -97,7 +97,7 @@ test_append_in_gfsd_ifdown()
 	# step: compare check sum of file
 	TMP_FILE=/tmp/gfservice.$$
 	trap "rm -f $TMP_FILE; exit 1" 1 2 3 15
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" > $TMP_FILE
+	generate_testdata $FILE_SIZE > $TMP_FILE
 	echo $TEST_EXEC_ID >> $TMP_FILE
 	CHECKSUM_AFTER=`openssl md5 $TMP_FILE | awk '{print $2}'`
 	rm -f $TMP_FILE

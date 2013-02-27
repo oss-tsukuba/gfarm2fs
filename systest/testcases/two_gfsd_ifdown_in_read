@@ -2,7 +2,8 @@
 # Test case for check behavior when network interface of two gfsd node is
 # down in reading files
 #
-load	"calc_checksum"
+load	"calc_checksum" \
+	"generate_testdata"
 
 #
 # Test parameters
@@ -39,14 +40,12 @@ test_two_gfsd_ifdown_in_read()
 
 	# prepare: make file
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE1 \
-		gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE1 gfmd1 gfsd1
 
 	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE2 \
-		gfmd1 gfsd2
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE2 gfmd1 gfsd2
 
 	# step: read files in background
 	FILE_PATH1=$MOUNT_POINT/${TEST_EXEC_ID}_1

@@ -1,6 +1,7 @@
 #
 # Test case for operation when gfsd network interface is down
 #
+load	"generate_testdata"
 
 #
 # Test parameters
@@ -27,12 +28,10 @@ test_operation_in_gfsd_ifdown()
 	# prepare: make a file
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
 	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE1 \
-		gfmd1 gfsd1
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE2 \
-		gfmd1 gfsd2
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE1 gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE2 gfmd1 gfsd2
 
 	# prepare: make network interface down
 	$GFSERVICE $DEBUG ifdown gfsd1
@@ -43,9 +42,8 @@ test_operation_in_gfsd_ifdown()
 
 	# step: write file
 	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE3 \
-		gfmd1 gfsd2
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE3 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to make a file on gfsd2"
 		RESULT=$RESULT_FAIL
@@ -60,9 +58,8 @@ test_operation_in_gfsd_ifdown()
 
 	# step: write file
 	GFARM_FILE4=$GFARM_HOME/${TEST_EXEC_ID}_4
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE4 \
-		gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE4 gfmd1 gfsd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: wrote file unexpectedly to gfsd1"
 		RESULT=$RESULT_XPASS

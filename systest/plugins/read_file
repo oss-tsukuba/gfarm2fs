@@ -15,7 +15,7 @@ subcmd_read_file()
 
 	check_argc $# 1 +
 	check_hostid $HOSTID
-	exec_client_host_agent $HOSTID - read_file "$@"
+	exec_client_host_agent $HOSTID - read_file "file-path=$1" "checksum=$2"
 	[ $? -ne 0 ] && log_error "gfservice read_file failed"
 
 	log_debug "end subcmd_read_file"
@@ -30,9 +30,9 @@ read_file()
 		dd if=$FILE_PATH of=/dev/null 2>/dev/null
 		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
 	else
-		CHECKSUM_ACTUAL`dd if=$FILE_PATH | openssl md5`
+		CHECKSUM_ACTUAL=`dd if=$FILE_PATH | openssl md5`
 		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
-		[ $CHECKSUM_ACTUAL != $CHECKSUM_EXPECTED ] \
+		[ $CHECKSUM_ACTUAL != $CHECKSUM_EXPECTED ] && \
 			log_error "checksum of a file $FILE_PATH is not same" \
 				"to expected one"
 	fi
@@ -53,9 +53,12 @@ read_file_agent_depends()
 #
 subcmd_read_file_agent()
 {
-	log_debug "subcmd_read_file_agent FILE_PATH=$1"
+	log_debug "subcmd_read_file_agent"
 
-	read_file "$@"
+	FILE_PATH=`get_param file-path`
+	CHECKSUM=`get_param checksum`
+
+	read_file $FILE_PATH $CHECKSUM
 
 	log_debug "end subcmd_read_file_agent"
 

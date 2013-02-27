@@ -2,6 +2,7 @@
 # Test case for check behavior when replicated a file in gfmd failing over
 #
 load	"calc_checksum" \
+	"generate_testdata" \
 	"check_replica_num" \
 	"check_journal_seqnum_max" \
 	"check_gfmd_master" \
@@ -38,9 +39,8 @@ test_rep_in_gfmd_failover()
 
 	# prepare: make a file
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE \
-		gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
 		return $RESULT_FATAL

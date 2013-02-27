@@ -3,6 +3,7 @@
 # down in replicating files
 #
 load	"calc_checksum" \
+	"generate_testdata" \
 	"check_replica_num"
 
 #
@@ -36,9 +37,8 @@ test_two_gfsd_ifdown_in_rep()
 
 	# prepare: make a file
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE \
-		gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE gfmd1 gfsd1
 
 	# step: replicate a file in background
 	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2 &

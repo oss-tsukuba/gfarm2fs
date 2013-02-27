@@ -2,6 +2,7 @@
 # Test case for check behavior when gfsd network interface is down
 # in writing files
 #
+load	"generate_testdata"
 
 #
 # Test parameters
@@ -35,9 +36,8 @@ test_gfsd_ifdown_in_write()
 
 	# step: make files in background
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 $GFARM_FILE1 \
-		gfmd1 gfsd1 &
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE1 gfmd1 gfsd1 &
 	MAKE_PID=$!
 
 	# wait a bit for a process starts making files

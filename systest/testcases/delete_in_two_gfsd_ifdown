@@ -2,7 +2,8 @@
 # Test case for deleting a file which has replication, when network
 # interface of two gfsd node is down
 #
-load	"wait_for_gfsd_disconnect"
+load	"generate_testdata" \
+	"wait_for_gfsd_disconnect"
 
 #
 # Test parameters
@@ -34,9 +35,8 @@ test_delete_in_two_gfsd_ifdown()
 
 	# prepare: make a file with replica
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 \
-		$GFARM_FILE1 gfmd1 gfsd1
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE1 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd1"
 		return $RESULT_FATAL
@@ -49,9 +49,8 @@ test_delete_in_two_gfsd_ifdown()
 	fi
 
 	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	dd if=/dev/zero bs=$FILE_SIZE count=1 | tr "\000" "a" | \
-		$GFSERVICE $DEBUG read_and_register client1 \
-		$GFARM_FILE2 gfmd1 gfsd2
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+		client1 $GFARM_FILE2 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd2"
 		return $RESULT_FATAL
