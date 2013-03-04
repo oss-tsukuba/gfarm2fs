@@ -36,6 +36,8 @@ make_files()
 		make_file "$TARGET_DIR/$TESTFILE" $FILE_SIZE
 		[ -f stop ] && log_error "stopped."
 	done
+
+	return 0
 }
 
 #
