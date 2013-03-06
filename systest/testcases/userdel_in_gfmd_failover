@@ -57,14 +57,14 @@ test_userdel_in_gfmd_failover()
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to delete a user"
 		NEED_USERDEL=true
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check whether journal seqnum max is same
 	check_journal_seqnum_max gfmd1 gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: journal seqnum max is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: failback

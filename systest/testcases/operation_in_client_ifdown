@@ -47,14 +47,14 @@ test_operation_in_client_ifdown()
 		"echo ${TEST_EXEC_ID}_2 > $GFARM_FILE2"
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to write a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: read file
 	$GFSERVICE $DEBUG exec_ssh client1 "cat $GFARM_FILE1"
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to read a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up
@@ -70,14 +70,14 @@ test_operation_in_client_ifdown()
 		"echo ${TEST_EXEC_ID}_3 > $GFARM_FILE3"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: read file
 	$GFSERVICE $DEBUG exec_ssh client1 "cat $GFARM_FILE1"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

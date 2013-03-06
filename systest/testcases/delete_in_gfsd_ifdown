@@ -68,14 +68,14 @@ test_delete_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to remove a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check spool file
 	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: a spool file remains"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
@@ -89,7 +89,7 @@ test_delete_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find a spool file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	return $RESULT

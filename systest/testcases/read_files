@@ -21,7 +21,7 @@ load 	"exec_on_multiple_clients" \
 test_read_files()
 {
 	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
-	RESULT=0
+	RESULT=$RESULT_PASS
 
 	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false ${TEST_EXEC_ID}_ \
 		$NUM_MOUNT
@@ -36,7 +36,7 @@ test_read_files()
 		${TEST_EXEC_ID}_ $NUM_MOUNT $NUM_FILES $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files"
-		RESULT=1
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	log_view client1

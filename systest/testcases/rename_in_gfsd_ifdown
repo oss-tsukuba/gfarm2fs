@@ -82,7 +82,7 @@ test_rename_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG exec_ssh client1 "mv $MOUNT_FILE_SRC $MOUNT_FILE_DST"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to rename a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replicas
@@ -90,43 +90,43 @@ test_rename_in_gfsd_ifdown()
 	check_replica_num client1 $GFARM_FILE_DST 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: compare check sum of spool file
 	CHECKSUM_GFSD1=`$GFSERVICE $DEBUG spool_file_checksum gfsd1 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD1 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD2 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	if [ X$CHECKSUM_GFSD1 != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of file is different to original"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of file is different to original"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check original replica is there
 	check_file_location $GFARM_FILE_DST gfsd1 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd1"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	check_file_location $GFARM_FILE_DST gfsd2 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
@@ -140,13 +140,13 @@ test_rename_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd1"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd2"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# cleanup: remove files

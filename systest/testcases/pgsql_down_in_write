@@ -62,7 +62,7 @@ test_pgsql_down_in_write()
 	wait $MAKE_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to make a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start backend-db
@@ -94,13 +94,13 @@ test_pgsql_down_in_write()
 		if [ X$CHECKSUM_ACTUAL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file on $HOST"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to" \
 				"original one"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -109,14 +109,14 @@ test_pgsql_down_in_write()
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make files
 	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to make a files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: compare check sum of spool file
@@ -133,13 +133,13 @@ test_pgsql_down_in_write()
 		if [ X$CHECKSUM_ACTUAL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file on $HOST"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to" \
 				"original one"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -148,7 +148,7 @@ test_pgsql_down_in_write()
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

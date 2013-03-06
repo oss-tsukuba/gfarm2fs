@@ -122,27 +122,27 @@ test_append_in_two_gfsd_ifdown()
 	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID >> $MOUNT_FILE1"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to append to a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	MOUNT_FILE2=$MOUNT_POINT/${TEST_EXEC_ID}_2
 	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID >> $MOUNT_FILE2"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to append to a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replicas
 	check_replica_num client1 $GFARM_FILE1 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	check_replica_num client1 $GFARM_FILE2 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: compare check sum of file
@@ -158,12 +158,12 @@ test_append_in_two_gfsd_ifdown()
 
 	if [ X$CHECKSUM_ACTUAL1 = X$CHECKSUM_BEFORE ]; then
 		log_warn "$TESTNAME: checksum of file is same to original"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	if [ X$CHECKSUM_ACTUAL1 != X$CHECKSUM_AFTER ]; then
 		log_warn "$TESTNAME: checksum of file is different to expected"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_ACTUAL2=`$GFSERVICE $DEBUG exec_ssh client1 \
@@ -171,25 +171,25 @@ test_append_in_two_gfsd_ifdown()
 
 	if [ X$CHECKSUM_ACTUAL1 = X$CHECKSUM_BEFORE ]; then
 		log_warn "$TESTNAME: checksum of file is same to original"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	if [ X$CHECKSUM_ACTUAL1 != X$CHECKSUM_AFTER ]; then
 		log_warn "$TESTNAME: checksum of file is different to expected"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check original replica is there
 	check_file_location $GFARM_FILE1 gfsd3 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd3"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	check_file_location $GFARM_FILE2 gfsd3 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd3"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
@@ -209,26 +209,26 @@ test_append_in_two_gfsd_ifdown()
 	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check replica is not avaliable
 	check_file_location $GFARM_FILE1 gfsd1 client1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: replica remains"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	check_file_location $GFARM_FILE2 gfsd2 client1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: replica remains"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# cleanup: remove files

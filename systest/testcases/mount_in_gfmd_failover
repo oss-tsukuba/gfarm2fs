@@ -57,7 +57,7 @@ test_mount_in_gfmd_failover()
 	wait $MOUNT_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check Gfarm is mounted
@@ -66,7 +66,7 @@ test_mount_in_gfmd_failover()
 		awk '/gfarm2fs/ {print $6}'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to check mount point"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	for DIR in $DIRS; do
@@ -77,14 +77,14 @@ test_mount_in_gfmd_failover()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to check mount point"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check whether journal seqnum max is same
 	check_journal_seqnum_max gfmd1 gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: journal seqnum max is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: failback

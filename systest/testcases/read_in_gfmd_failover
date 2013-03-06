@@ -71,7 +71,7 @@ test_read_in_gfmd_failover()
 	wait $READ_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check spool file
@@ -79,7 +79,7 @@ test_read_in_gfmd_failover()
 	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`; do
@@ -87,7 +87,7 @@ test_read_in_gfmd_failover()
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: failed to find spool file"
-			RESULT=$RESULT_XFAIL
+			set_result RESULT $RESULT_XFAIL
 		fi
 	done
 
@@ -95,7 +95,7 @@ test_read_in_gfmd_failover()
 	check_journal_seqnum_max gfmd1 gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: journal seqnum max is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: failback

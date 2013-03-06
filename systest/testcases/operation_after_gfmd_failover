@@ -65,7 +65,7 @@ test_operation_after_gfmd_failover()
 	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check spool file
@@ -73,7 +73,7 @@ test_operation_after_gfmd_failover()
 	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`; do
@@ -81,7 +81,7 @@ test_operation_after_gfmd_failover()
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: failed to find spool file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -90,14 +90,14 @@ test_operation_after_gfmd_failover()
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: read files
 	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: add user
@@ -105,28 +105,28 @@ test_operation_after_gfmd_failover()
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\"" &
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to add a user"
-		RESULT=$EXIT_FAIL
+		set_result RESULT $EXIT_FAIL
 	fi
 
 	# step: list user
 	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to list users"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: delete user
 	$GFSERVICE $DEBUG gfcmd client1 gfuser -d $TEST_EXEC_ID &
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to delete a user"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start gfsd
 	$GFSERVICE $DEBUG start-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
@@ -134,7 +134,7 @@ test_operation_after_gfmd_failover()
 		-o subdir=$GFARM_HOME &
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check Gfarm is mounted
@@ -143,7 +143,7 @@ test_operation_after_gfmd_failover()
 		awk '/gfarm2fs/ {print $6}'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to check mount point"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	for DIR in $DIRS; do
@@ -154,28 +154,28 @@ test_operation_after_gfmd_failover()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to check mount point"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: replicate file
 	$GFSERVICE $DEBUG gfcmd client1 gfrep -N 2 $GFARM_PATH
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replicas
 	check_replica_num client1 $GFARM_PATH 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check spool file
 	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`; do
@@ -183,7 +183,7 @@ test_operation_after_gfmd_failover()
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: failed to find spool file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 

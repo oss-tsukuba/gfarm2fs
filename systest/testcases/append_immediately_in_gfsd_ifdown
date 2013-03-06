@@ -72,14 +72,14 @@ test_append_immediately_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID >> $MOUNT_FILE"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to append to a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replicas
 	check_replica_num client1 $GFARM_FILE 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: compare check sum of file
@@ -101,13 +101,13 @@ test_append_immediately_in_gfsd_ifdown()
 		if [ X$CHECKSUM_SPOOL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool"
 				"file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM_MOD ]; then
 			log_warn "$TESTNAME: checksum of file is different to"
 				"expected one"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 

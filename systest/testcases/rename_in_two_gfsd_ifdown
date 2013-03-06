@@ -110,26 +110,26 @@ test_rename_in_two_gfsd_ifdown()
 	$GFSERVICE $DEBUG exec_ssh client1 "mv $MOUNT_FILE1 ${MOUNT_FILE1}_dst"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to rename a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	$GFSERVICE $DEBUG exec_ssh client1 "mv $MOUNT_FILE2 ${MOUNT_FILE2}_dst"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to rename a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replicas
 	check_replica_num client1 ${GFARM_FILE1}_dst 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	check_replica_num client1 ${GFARM_FILE2}_dst 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: compare check sum of spool file
@@ -139,13 +139,13 @@ test_rename_in_two_gfsd_ifdown()
 		if [ X$CHECKSUM_SPOOL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool"
 				"file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to"
 				"original"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -155,13 +155,13 @@ test_rename_in_two_gfsd_ifdown()
 		if [ X$CHECKSUM_SPOOL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool"
 				"file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to"
 				"original"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -169,25 +169,25 @@ test_rename_in_two_gfsd_ifdown()
 	check_file_location ${GFARM_FILE1}_dst gfsd1 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd1"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	check_file_location ${GFARM_FILE1}_dst gfsd3 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd3"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	check_file_location ${GFARM_FILE2}_dst gfsd2 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	check_file_location ${GFARM_FILE2}_dst gfsd3 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd3"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
@@ -207,25 +207,25 @@ test_rename_in_two_gfsd_ifdown()
 	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd1"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd3 $SPOOL_PATH1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd3"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd2"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd3 $SPOOL_PATH2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd3"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# cleanup: remove files

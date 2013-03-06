@@ -46,14 +46,14 @@ test_operation_in_gfsd_ifdown()
 		client1 $GFARM_FILE3 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to make a file on gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: read file
 	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE2 gfmd1 > /dev/null
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file on gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: write file
@@ -62,14 +62,14 @@ test_operation_in_gfsd_ifdown()
 		client1 $GFARM_FILE4 gfmd1 gfsd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: wrote file unexpectedly to gfsd1"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: read file
 	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1 > /dev/null
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: read a file unexpectedly from gfsd1"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# cleanup: make network interface up

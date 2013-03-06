@@ -60,14 +60,14 @@ test_two_gfsd_ifdown_in_write()
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to make a file" \
 			"on gfsd1"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	wait $MAKE_PID2
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to make a file" \
 			"on gfsd2"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up
@@ -89,7 +89,7 @@ test_two_gfsd_ifdown_in_write()
 		$GFARM_FILE3 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files to gfsd1"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	GFARM_FILE4=$GFARM_HOME/${TEST_EXEC_ID}_4
@@ -97,7 +97,7 @@ test_two_gfsd_ifdown_in_write()
 		$GFARM_FILE4 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files to gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: compare check sum of spool file
@@ -105,7 +105,7 @@ test_two_gfsd_ifdown_in_write()
 	SPOOL_PATH3=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE3`
 	if [ X$SPOOL_PATH3 = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_GFSD1=`$GFSERVICE $DEBUG spool_file_checksum gfsd1 \
@@ -114,14 +114,14 @@ test_two_gfsd_ifdown_in_write()
 	if [ X$CHECKSUM_GFSD1 != X$CHECKSUM_3 ]; then
 		log_warn "$TESTNAME: checksum of a file is different from" \
 			"original one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_4=`echo ${TEST_EXEC_ID}_4 | openssl md5 | awk '{ print $2 }'`
 	SPOOL_PATH4=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE4`
 	if [ X$SPOOL_PATH4 = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 \
@@ -130,7 +130,7 @@ test_two_gfsd_ifdown_in_write()
 	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM_4 ]; then
 		log_warn "$TESTNAME: checksum of a file is different from" \
 			"original one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

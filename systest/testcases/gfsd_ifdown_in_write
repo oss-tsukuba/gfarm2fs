@@ -53,7 +53,7 @@ test_gfsd_ifdown_in_write()
 	wait $MAKE_PID
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to make a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up
@@ -68,7 +68,7 @@ test_gfsd_ifdown_in_write()
 	$GFSERVICE $DEBUG make_file client1 $GFARM_FILE2 $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
@@ -76,7 +76,7 @@ test_gfsd_ifdown_in_write()
 		$GFARM_FILE3 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

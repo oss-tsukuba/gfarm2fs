@@ -55,21 +55,21 @@ test_useradd_in_gfmd_failover()
 		NEED_USERDEL=true
 	else
 		log_warn "$TESTNAME: failed to add a user"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check user is added
 	USER=`$GFSERVICE $DEBUG gfcmd client1 gfuser -l | grep $TEST_EXEC_ID`
 	if [ X$USER = X ]; then
 		log_warn "$TESTNAME: failed to find a user"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check whether journal seqnum max is same
 	check_journal_seqnum_max gfmd1 gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: journal seqnum max is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: failback

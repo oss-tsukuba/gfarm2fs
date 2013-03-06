@@ -76,14 +76,14 @@ test_two_gfsd_ifdown_in_read()
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to read a file" \
 			"on gfsd1"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	wait $READ_PID2
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to read a file" \
 			"on gfsd2"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up
@@ -103,13 +103,13 @@ test_two_gfsd_ifdown_in_read()
 	$GFSERVICE $DEBUG read_file client1 $FILE_PATH1 $CHECKSUM
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files from gfsd1"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	$GFSERVICE $DEBUG read_file client1 $FILE_PATH2 $CHECKSUM
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files from gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

@@ -62,7 +62,7 @@ test_copy_dir_local_to_gfarm()
 			$DST_FILE
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: contents of $SRC_FILE is not same"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -78,7 +78,7 @@ test_copy_dir_local_to_gfarm()
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: $DST_FILE in spool directory" \
 				"is not same"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 

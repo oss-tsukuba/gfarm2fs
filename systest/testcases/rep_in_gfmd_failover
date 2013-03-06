@@ -72,14 +72,14 @@ test_rep_in_gfmd_failover()
 	wait $REP_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate a file"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check number of replicas
 	check_replica_num client1 $GFARM_FILE 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: compare check sum of spool file
@@ -88,31 +88,31 @@ test_rep_in_gfmd_failover()
 	if [ X$CHECKSUM_GFSD1 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file" \
 			"on gfsd1"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD2 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file" \
 			"on gfsd2"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	if [ X$CHECKSUM_GFSD1 != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of file is different to original"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of file is different to original"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: check whether journal seqnum max is same
 	check_journal_seqnum_max gfmd1 gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: journal seqnum max is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: failback

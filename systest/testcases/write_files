@@ -24,7 +24,7 @@ test_write_files()
 {
 	CHKSUM=`calc_checksum $FILE_SIZE`
 	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
-	RESULT=0
+	RESULT=$RESULT_PASS
 
 	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false ${TEST_EXEC_ID}_ \
 		$NUM_MOUNT
@@ -36,7 +36,7 @@ test_write_files()
 		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to make files"
-		RESULT=1
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	gfwhere_check client1 $GFARM_HOME
@@ -44,7 +44,7 @@ test_write_files()
 	check_files client1 ${TEST_EXEC_ID}_ $TARGET_DIR $NUM_FILES $CHKSUM
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file checksum is not expected one"
-		RESULT=1
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	log_view client1

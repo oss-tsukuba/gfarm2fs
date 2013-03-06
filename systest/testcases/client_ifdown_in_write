@@ -51,7 +51,7 @@ test_client_ifdown_in_write()
 	wait $MAKE_PID
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly succeeded to make a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up
@@ -65,7 +65,7 @@ test_client_ifdown_in_write()
 	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

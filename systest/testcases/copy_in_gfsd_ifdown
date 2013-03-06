@@ -90,7 +90,7 @@ test_copy_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG exec_ssh client1 cp $SRC_DIR/$TEST_EXEC_ID $DST_DIR
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to copy a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: get spool file path
@@ -102,7 +102,7 @@ test_copy_in_gfsd_ifdown()
 	check_replica_num client1 $GFARM_FILE_DST 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: compare check sum of file
@@ -114,13 +114,13 @@ test_copy_in_gfsd_ifdown()
 		if [ X$CHECKSUM_SPOOL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool"
 				"file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to"
 				"original"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -128,7 +128,7 @@ test_copy_in_gfsd_ifdown()
 	check_file_location $GFARM_FILE_SRC gfsd2 client1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: replica disappeared from gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
@@ -142,13 +142,13 @@ test_copy_in_gfsd_ifdown()
 	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH_SRC
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH_SRC
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove work directory

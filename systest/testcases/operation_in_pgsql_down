@@ -59,7 +59,7 @@ test_operation_in_pgsql_down()
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: compare check sum of spool file
@@ -76,13 +76,13 @@ test_operation_in_pgsql_down()
 		if [ X$CHECKSUM_ACTUAL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file on $HOST"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to" \
 				"original one"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -91,7 +91,7 @@ test_operation_in_pgsql_down()
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: read file with gfexport
@@ -99,13 +99,13 @@ test_operation_in_pgsql_down()
 		gfmd1 | openssl md5 | awk '{ print $2 }'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of file is different to" \
 			"original one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: add an user with gfuser
@@ -113,28 +113,28 @@ test_operation_in_pgsql_down()
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create a user"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: show users with gfuser
 	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to list users"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start gfsd
 	$GFSERVICE $DEBUG start-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
 	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start backend-db
@@ -162,7 +162,7 @@ test_operation_in_pgsql_down()
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: compare check sum of spool file
@@ -179,13 +179,13 @@ test_operation_in_pgsql_down()
 		if [ X$CHECKSUM_ACTUAL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file on $HOST"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of file is different to" \
 				"original one"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -194,7 +194,7 @@ test_operation_in_pgsql_down()
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: read file with gfexport
@@ -202,13 +202,13 @@ test_operation_in_pgsql_down()
 		gfmd1 | openssl md5 | awk '{ print $2 }'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	if [ X$CHECKSUM_ACTUAL != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of file is different to" \
 			"original one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: add an user with gfuser
@@ -216,28 +216,28 @@ test_operation_in_pgsql_down()
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to add user"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: show users with gfuser
 	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to show user"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: restart gfsd
 	$GFSERVICE $DEBUG restart-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
 	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount gfarm"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: create file
@@ -245,7 +245,7 @@ test_operation_in_pgsql_down()
 	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

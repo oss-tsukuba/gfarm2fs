@@ -71,7 +71,7 @@ test_gfmd_failover_in_read()
 	wait $READ_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check spool file
@@ -87,7 +87,7 @@ test_gfmd_failover_in_read()
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: failed to find spool file"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -96,14 +96,14 @@ test_gfmd_failover_in_read()
 		"openssl md5 $FILE_PATH" | awk '{print $2}'`
 	if [ X$CHECKSUM_ACTUAL != X$CHECKSUM_EXPECT ]; then
 		log_warn "$TESTNAME: checksum of file did not match"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check whether journal seqnum max is same
 	check_journal_seqnum_max gfmd1 gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: journal seqnum max is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: failback

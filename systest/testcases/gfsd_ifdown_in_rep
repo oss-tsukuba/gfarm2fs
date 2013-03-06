@@ -50,7 +50,7 @@ test_gfsd_ifdown_in_rep()
 	wait $REP_PID
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to replicate a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up
@@ -64,7 +64,7 @@ test_gfsd_ifdown_in_rep()
 	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove a file

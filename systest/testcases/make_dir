@@ -26,7 +26,7 @@ test_make_dir()
 	$GFSERVICE $DEBUG gfcmd client1 gfmkdir $GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfmkdir failed"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: gfchown
@@ -34,7 +34,7 @@ test_make_dir()
 		$GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchown failed"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: gfchgrp
@@ -42,14 +42,14 @@ test_make_dir()
 		$GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchgrp failed"
-		RESULT=1
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: gfchmod
 	$GFSERVICE $DEBUG gfcmd client1 gfchmod 775 $GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchmod failed"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: gfls
@@ -57,7 +57,7 @@ test_make_dir()
 	FILES=`$GFSERVICE $DEBUG gfcmd client1 gfls $GFARM_HOME`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfls failed"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 	for FILE in $FILES; do
 		if [ X$FILE = X$TEST_EXEC_ID ]; then
@@ -66,7 +66,7 @@ test_make_dir()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: directory is not created"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
@@ -76,7 +76,7 @@ test_make_dir()
 		-o subdir=$GFARM_HOME
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount gfarm"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: df
@@ -91,7 +91,7 @@ test_make_dir()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to find mount point"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mkdir
@@ -108,7 +108,7 @@ test_make_dir()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to find directory"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove directory

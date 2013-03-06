@@ -64,7 +64,7 @@ test_pgsql_down_in_read()
 	wait $READ_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start backend-db
@@ -85,7 +85,7 @@ test_pgsql_down_in_read()
 	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

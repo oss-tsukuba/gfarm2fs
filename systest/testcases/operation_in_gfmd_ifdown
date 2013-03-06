@@ -55,14 +55,14 @@ test_operation_in_gfmd_ifdown()
 		$GFARM_FILE2 gfmd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to write a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: read file with gfexport
 	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to read a file"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: add an user with gfuser
@@ -70,28 +70,28 @@ test_operation_in_gfmd_ifdown()
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to create a user"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: show users with gfuser
 	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to list users"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: start gfsd
 	$GFSERVICE $DEBUG start-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
 	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
@@ -116,14 +116,14 @@ test_operation_in_gfmd_ifdown()
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: read file with gfexport
 	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: add an user with gfuser
@@ -131,28 +131,28 @@ test_operation_in_gfmd_ifdown()
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to add user"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: show users with gfuser
 	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to show user"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: restart gfsd
 	$GFSERVICE $DEBUG restart-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
 	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount gfarm"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: create file
@@ -160,7 +160,7 @@ test_operation_in_gfmd_ifdown()
 	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files

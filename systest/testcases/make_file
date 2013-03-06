@@ -50,21 +50,21 @@ test_make_file()
 	done
 	if [ ! $FOUND ]; then
 		log_warn "$TESTNAME: failed to find file"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: cat
 	CONTENTS=`$GFSERVICE $DEBUG exec_ssh client1 cat $FILE_PATH`
 	if [ X$CONTENTS != Xtest_$TEST_EXEC_ID ]; then
 		log_warn "$TESTNAME: contents of file is not same"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replica files
 	check_replica_num client1 $GFARM_PATH 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of replica files did not match"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check spool
@@ -76,7 +76,7 @@ test_make_file()
 			$HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: file in spool directory is not same"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 

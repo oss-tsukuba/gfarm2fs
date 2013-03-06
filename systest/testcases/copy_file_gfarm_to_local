@@ -58,7 +58,7 @@ test_copy_file_gfarm_to_local()
 			$DST_FILE
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: contents of $SRC_FILE is not same"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 
@@ -77,7 +77,7 @@ test_copy_file_gfarm_to_local()
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: $DST_FILE in spool directory" \
 				"is not same"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 
 		# step: remove src file
@@ -87,7 +87,7 @@ test_copy_file_gfarm_to_local()
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 1 ]; then
 			log_warn "$TESTNAME: $SRC_FILE in spool directory remains"
-			RESULT=$RESULT_FAIL
+			set_result RESULT $RESULT_FAIL
 		fi
 	done
 

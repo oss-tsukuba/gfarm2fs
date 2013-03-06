@@ -67,28 +67,28 @@ test_two_gfsd_ifdown_in_rep()
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to replicate a" \
 			"file to gfsd2"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	wait $REP_PID2
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to replicate a" \
 			"file to gfsd3"
-		RESULT=$RESULT_XPASS
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: replicate a file
 	$GFSERVICE $DEBUG gfcmd client1 gfrep -N 2 $GFARM_FILE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute gfrep"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check number of replicas
 	check_replica_num client1 $GFARM_FILE 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
-		RESULT=$RESULT_XFAIL
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: make network interface up
@@ -108,20 +108,20 @@ test_two_gfsd_ifdown_in_rep()
 	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate a file to gfsd2"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate a file to gfsd3"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: compare check sum of spool file
 	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 \
@@ -130,7 +130,7 @@ test_two_gfsd_ifdown_in_rep()
 	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of a file is different from" \
 			"original one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	CHECKSUM_GFSD3=`$GFSERVICE $DEBUG spool_file_checksum gfsd3 \
@@ -139,7 +139,7 @@ test_two_gfsd_ifdown_in_rep()
 	if [ X$CHECKSUM_GFSD3 != X$CHECKSUM ]; then
 		log_warn "$TESTNAME: checksum of a file is different from" \
 			"original one"
-		RESULT=$RESULT_FAIL
+		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove a file
