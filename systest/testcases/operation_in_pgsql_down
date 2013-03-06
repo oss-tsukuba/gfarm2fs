@@ -25,7 +25,7 @@ test_operation_in_pgsql_down()
 	fi
 
 	# prepare: calc checksum
-	CHECKSUM_EXPECT=`echo $TEST_EXEC_ID | openssl md5 | awk '{ print $2 }`
+	CHECKSUM=`echo $TEST_EXEC_ID | openssl md5 | awk '{ print $2 }'`
 
 	# prepare: create mount point
 	MOUNT_POINT=mnt_$TEST_EXEC_ID

@@ -44,7 +44,7 @@ test_rename_in_two_gfsd_ifdown()
 
 	# prepare: make a file with replica
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	generate_testdata $FILE_SIZE $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
 		client1 $GFARM_FILE1 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd1"
@@ -133,7 +133,7 @@ test_rename_in_two_gfsd_ifdown()
 	fi
 
 	# step: compare check sum of spool file
-	for HOST in `$GFSERVICE $DEBUG gfcmd client gfwhere $GFARM_FILE1`; do
+	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE1`; do
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOST \
 			$SPOOL_PATH1`
 		if [ X$CHECKSUM_SPOOL = X ]; then
@@ -149,7 +149,7 @@ test_rename_in_two_gfsd_ifdown()
 		fi
 	done
 
-	for HOST in `$GFSERVICE $DEBUG gfcmd client gfwhere $GFARM_FILE2`; do
+	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE2`; do
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOST \
 			$SPOOL_PATH2`
 		if [ X$CHECKSUM_SPOOL = X ]; then

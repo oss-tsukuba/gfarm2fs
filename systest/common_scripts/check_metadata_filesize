@@ -5,14 +5,14 @@ check_metadata_filesize()
 {
 	SIZE_METADATA=`$GFSERVICE $DEBUG gfcmd $1 gfls -l $2 | \
 		awk '{ print $5 }'`
-	if [ $? -ne 0 ]; then
+	if [ X$SIZE_METADATA = X ]; then
 		log_warn "check_metadata_filesize: failed to get file size" \
 			"from metadata"
 		return 1
 	fi
 
-	SIZE_ACTUAL=`$GFSERVICE $DEBUG export_file $2 $3 | wc -c`
-	if [ $? -ne 0 ]; then
+	SIZE_ACTUAL=`$GFSERVICE $DEBUG export_file $1 $2 $3 | wc -c`
+	if [ X$SIZE_ACTUAL = X ]; then
 		log_warn "check_metadata_filesize: failed to get actual file" \
 			"size"
 		return 1
@@ -20,7 +20,8 @@ check_metadata_filesize()
 
 	if [ $SIZE_METADATA -ne $SIZE_ACTUAL ]; then
 		log_warn "check_metadata_filesize: file size in metadata and" \
-			"actual one did not match"
+			"actual one did not match. metadata: $SIZE_METADATA," \
+			"actual: $SIZE_ACTUAL"
 		return 1
 	fi
 

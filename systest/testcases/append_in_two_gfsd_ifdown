@@ -180,15 +180,15 @@ test_append_in_two_gfsd_ifdown()
 	fi
 
 	# step: check original replica is there
-	check_file_location $GFARM_FILE1 gfsd2 client1
+	check_file_location $GFARM_FILE1 gfsd3 client1
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: replica disappeared from gfsd2"
+		log_warn "$TESTNAME: replica disappeared from gfsd3"
 		RESULT=$RESULT_FAIL
 	fi
 
-	check_file_location $GFARM_FILE2 gfsd2 client1
+	check_file_location $GFARM_FILE2 gfsd3 client1
 	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: replica disappeared from gfsd2"
+		log_warn "$TESTNAME: replica disappeared from gfsd3"
 		RESULT=$RESULT_FAIL
 	fi
 

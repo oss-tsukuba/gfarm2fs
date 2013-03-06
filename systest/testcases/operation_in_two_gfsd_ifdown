@@ -1,7 +1,8 @@
 #
 # Test case for operation when network interface of two gfsd node is down
 #
-load	"generate_testdata"
+load	"generate_testdata" \
+	"check_replica_num"
 
 #
 # Test parameters
@@ -110,7 +111,7 @@ test_operation_in_two_gfsd_ifdown()
 		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum \
 			$HOSTID $SPOOL_PATH1`
-		if [ X$CHECKSUM_SPOOL != $CHECKSUM ]; then
+		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of a file is different" \
 				"from original one"
 			RESULT=$RESULT_FAIL
@@ -130,7 +131,7 @@ test_operation_in_two_gfsd_ifdown()
 		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum \
 			$HOSTID $SPOOL_PATH2`
-		if [ X$CHECKSUM_SPOOL != $CHECKSUM ]; then
+		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of a file is different" \
 				"from original one"
 			RESULT=$RESULT_FAIL

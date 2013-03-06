@@ -30,7 +30,7 @@ test_gfmd_ifdown_in_write()
 	fi
 
 	# prepare: calc checksum
-	CHECKSUM_EXPECT=`calc_checksum $FILE_SIZE`
+	CHECKSUM=`calc_checksum $FILE_SIZE`
 
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID

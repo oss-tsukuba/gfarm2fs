@@ -30,11 +30,14 @@ read_file()
 		dd if=$FILE_PATH of=/dev/null 2>/dev/null
 		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
 	else
-		CHECKSUM_ACTUAL=`dd if=$FILE_PATH | openssl md5`
+		dd if=$FILE_PATH of=/dev/null 2>/dev/null
 		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
-		[ $CHECKSUM_ACTUAL != $CHECKSUM_EXPECTED ] && \
-			log_error "checksum of a file $FILE_PATH is not same" \
-				"to expected one"
+		CHECKSUM_ACTUAL=`openssl md5 $FILE_PATH | awk '{ print $2 }'`
+		if [ $CHECKSUM_ACTUAL != $CHECKSUM_EXPECTED ]; then
+			log_error "checksum of a file $FILE_PATH is not same." \
+				"expected: $CHECKSUM_EXPECTED actual: " \
+				"$CHECKSUM_ACTUAL"
+		fi
 	fi
 	log_debug "$PROGHOST read $FILE_PATH done"
 }
