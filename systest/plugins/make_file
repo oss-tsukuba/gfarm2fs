@@ -60,15 +60,21 @@ make_file()
 
 	dd if=/dev/zero bs=$BLOCK_SIZE count=$BLOCKS 2> /dev/null | \
 		tr "\000" "a" > $FILE_PATH
-	[ $? -ne 0 ] && log_error "failed to make file" \
-		"[$PROGHOST `date '+%H:%M:%S'`] $FILE_PATH" \
-		"at `gfwhere $FILE_PATH`"
+	if [ $? -ne 0 ]; then
+		set_client_params
+		GFWHERE=`GFARM_CONFIG_FILE=$GFARM_CONF gfwhere $FILE_PATH`
+		log_error "failed to make file" \
+		"[$PROGHOST `date '+%H:%M:%S'`] $FILE_PATH at $GFWHERE"
+	fi
 
 	dd if=/dev/zero bs=$REMAINDER count=1 2> /dev/null | \
 		tr "\000" "a" >> $FILE_PATH
-	[ $? -ne 0 ] && log_error "failed to make file" \
-		"[$PROGHOST `date '+%H:%M:%S'`] $FILE_PATH" \
-		"at `gfwhere $FILE_PATH`"
+	if [ $? -ne 0 ]; then
+		set_client_params
+		GFWHERE=`GFARM_CONFIG_FILE=$GFARM_CONF gfwhere $FILE_PATH`
+		log_error "failed to make file" \
+		"[$PROGHOST `date '+%H:%M:%S'`] $FILE_PATH at $GFWHERE"
+	fi
 
 	log_debug "$PROGHOST makes $FILE_PATH done"
 

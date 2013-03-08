@@ -51,7 +51,7 @@ subcmd_replicate_file_agent()
 
 	log_debug "execute: echo $DEST_HOST | gfrep -H - $FILE_PATH"
 	echo $DEST_HOST | GFARM_CONFIG_FILE=$GFARM_CONF gfrep -H - $FILE_PATH
-	[ $? -ne 0 ] && log_error "gfreg command failed"
+	[ $? -ne 0 ] && log_error "gfrep command failed"
 
 	log_debug "end subcmd_replicate_file_agent"
 }
