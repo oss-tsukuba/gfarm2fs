@@ -17,6 +17,8 @@ create_link()
 GFUSER=`gfwhoami`
 [ X"$GFUSER" = X ] && ABORT 'Who?'
 : ${USER:=`whoami`}
+USERLIST="$GFUSER"
+[ X"$GFUSER" != X"$USER" ] && USERLIST="$USERLIST $USER"
 
 # check proxy cert
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
@@ -37,7 +39,7 @@ fi
 groups=`gfgroup -l | grep $GFUSER | awk -F: '{print $1}'`
 for g in $groups
 do
-    for u in $GFUSER $USER
+    for u in $USERLIST
     do
 	[ -d /gfarm/$g/$u ] && {
 	env GFS_MOUNTDIR=/gfarm/$g/$u GFARMFS_ROOT=/home/$g/$GFUSER mount.gfarm2fs
