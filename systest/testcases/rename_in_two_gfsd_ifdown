@@ -93,13 +93,13 @@ test_rename_in_two_gfsd_ifdown()
 
 	# step: wait until gfsd1 get disconnected
 	wait_for_gfsd_disconnect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
-	if [ $? -eq 0 ]; then
+	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfsd1 is available unexpectedly"
 		return $RESULT_FATAL
 	fi
 
 	wait_for_gfsd_disconnect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
-	if [ $? -eq 0 ]; then
+	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfsd2 is available unexpectedly"
 		return $RESULT_FATAL
 	fi
@@ -137,13 +137,13 @@ test_rename_in_two_gfsd_ifdown()
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOST \
 			$SPOOL_PATH1`
 		if [ X$CHECKSUM_SPOOL = X ]; then
-			log_warn "$TESTNAME: fail to get checksum of a spool"
+			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file"
 			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
-			log_warn "$TESTNAME: checksum of file is different to"
+			log_warn "$TESTNAME: checksum of file is different to"\
 				"original"
 			set_result RESULT $RESULT_FAIL
 		fi
@@ -153,13 +153,13 @@ test_rename_in_two_gfsd_ifdown()
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOST \
 			$SPOOL_PATH2`
 		if [ X$CHECKSUM_SPOOL = X ]; then
-			log_warn "$TESTNAME: fail to get checksum of a spool"
+			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file"
 			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
-			log_warn "$TESTNAME: checksum of file is different to"
+			log_warn "$TESTNAME: checksum of file is different to" \
 				"original"
 			set_result RESULT $RESULT_FAIL
 		fi

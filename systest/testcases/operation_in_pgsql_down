@@ -87,7 +87,7 @@ test_operation_in_pgsql_down()
 	done
 
 	# step: check metadata filesize
-	check_metadata_filesize client1 $GFARM_FILE gfmd1
+	check_metadata_filesize client1 $GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"
@@ -190,7 +190,7 @@ test_operation_in_pgsql_down()
 	done
 
 	# step: check metadata filesize
-	check_metadata_filesize client1 $GFARM_FILE gfmd1
+	check_metadata_filesize client1 $GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file size of metadata is not same to" \
 			"actual one"

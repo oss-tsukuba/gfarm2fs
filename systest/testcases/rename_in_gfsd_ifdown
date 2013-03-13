@@ -71,7 +71,7 @@ test_rename_in_gfsd_ifdown()
 
 	# step: wait until gfsd1 get disconnected
 	wait_for_gfsd_disconnect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
-	if [ $? -eq 0 ]; then
+	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfsd1 is available unexpectedly"
 		return $RESULT_FATAL
 	fi
