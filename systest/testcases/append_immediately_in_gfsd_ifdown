@@ -71,8 +71,9 @@ test_append_immediately_in_gfsd_ifdown()
 	MOUNT_FILE=$MOUNT_POINT/$TEST_EXEC_ID
 	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID >> $MOUNT_FILE"
 	if [ $? -ne 0 ]; then
+		# append may fail when client select disconnected gfsd
 		log_warn "$TESTNAME: failed to append to a file"
-		set_result RESULT $RESULT_FAIL
+		return $RESULT_XFAIL
 	fi
 
 	# step: check number of replicas
@@ -99,13 +100,13 @@ test_append_immediately_in_gfsd_ifdown()
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
 			$SPOOL_PATH_MOD`
 		if [ X$CHECKSUM_SPOOL = X ]; then
-			log_warn "$TESTNAME: fail to get checksum of a spool"
+			log_warn "$TESTNAME: fail to get checksum of a spool" \
 				"file"
 			set_result RESULT $RESULT_FAIL
 		fi
 
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM_MOD ]; then
-			log_warn "$TESTNAME: checksum of file is different to"
+			log_warn "$TESTNAME: checksum of file is different to" \
 				"expected one"
 			set_result RESULT $RESULT_FAIL
 		fi

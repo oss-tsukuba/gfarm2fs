@@ -1,0 +1,24 @@
+#
+# wait until a gfsd get connected to gfmd
+#
+wait_for_gfsd_connect()
+{
+	GFSD_HOSTNAME=`$GFSERVICE $DEBUG get-config-gfsd-param $1 GFSD_HOSTNAME`
+	if [ X$GFSD_HOSTNAME = X ]; then
+		return 1
+	fi
+
+	I=0
+	while [ $I -lt $3 ]; do
+		HOSTS=`$GFSERVICE $DEBUG gfcmd $2 gfsched -M`
+		for HOST in $HOSTS; do
+			if [ X$HOST = X$GFSD_HOSTNAME ]; then
+				return 0
+			fi
+		done
+		sleep $4
+		I=`expr $I + 1`
+	done
+
+	return 1
+}

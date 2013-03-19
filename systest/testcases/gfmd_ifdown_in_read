@@ -63,9 +63,9 @@ test_gfmd_ifdown_in_read()
 	fi
 
 	wait $READ_PID
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to read a file"
-		set_result RESULT $RESULT_FAIL
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: unexpectedly succeeded to read a file"
+		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: make network interface up

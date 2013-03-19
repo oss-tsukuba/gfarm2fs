@@ -4,6 +4,7 @@
 #
 load	"calc_checksum" \
 	"generate_testdata" \
+	"wait_for_gfsd_connect" \
 	"wait_for_gfsd_disconnect" \
 	"check_replica_num" \
 	"check_file_location"
@@ -23,16 +24,36 @@ test_copy_in_gfsd_ifdown()
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
-	RETRY_COUNT=${RETRY_COUNT-"10"}
-	RETRY_INTERVAL=${RETRY_INTERVAL-"5"}
+	RETRY_COUNT=${RETRY_COUNT-"20"}
+	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required hosts are defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
+	$GFSERVICE $DEBUG check_hostids_defined - \
+		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
 	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: wait until gfsd get connected
+	wait_for_gfsd_connect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd1 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd2 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd3 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd3 is unavailable"
+		return $RESULT_FATAL
 	fi
 
 	# prepare: mount

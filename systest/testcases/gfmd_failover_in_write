@@ -67,10 +67,6 @@ test_gfmd_failover_in_write()
 		"as slave"
 
 	wait $MAKE_PID
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to write file"
-		set_result RESULT $RESULT_FAIL
-	fi
 
 	# step: check spool file
 	GFARM_FILE=$GFARM_HOME/$FILE_NAME

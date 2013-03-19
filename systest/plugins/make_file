@@ -67,6 +67,8 @@ make_file()
 		"[$PROGHOST `date '+%H:%M:%S'`] $FILE_PATH at $GFWHERE"
 	fi
 
+	[ $REMAINDER -eq 0 ] && return 0
+
 	dd if=/dev/zero bs=$REMAINDER count=1 2> /dev/null | \
 		tr "\000" "a" >> $FILE_PATH
 	if [ $? -ne 0 ]; then

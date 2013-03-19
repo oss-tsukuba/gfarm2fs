@@ -3,6 +3,7 @@
 # interface of two gfsd node is down
 #
 load	"generate_testdata" \
+	"wait_for_gfsd_connect" \
 	"wait_for_gfsd_disconnect"
 
 #
@@ -20,8 +21,8 @@ test_delete_in_two_gfsd_ifdown()
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
-	RETRY_COUNT=${RETRY_COUNT-"10"}
-	RETRY_INTERVAL=${RETRY_INTERVAL-"10"}
+	RETRY_COUNT=${RETRY_COUNT-"20"}
+	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required hosts are defined
 	$GFSERVICE $DEBUG check_hostids_defined - \
@@ -31,6 +32,25 @@ test_delete_in_two_gfsd_ifdown()
 	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: wait until gfsd get connected
+	wait_for_gfsd_connect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd1 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd2 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd3 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd3 is unavailable"
+		return $RESULT_FATAL
 	fi
 
 	# prepare: make a file with replica
@@ -125,17 +145,17 @@ test_delete_in_two_gfsd_ifdown()
 		return $RESULT_FATAL
 	fi
 
-	# step: check original spool file remains
+	# step: check original spool file is deleted
 	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH1
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: cannot find a spool file"
-		set_result RESULT $RESULT_FAIL
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: a spool file on gfsd1 remains"
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH2
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: cannot find a spool file"
-		set_result RESULT $RESULT_FAIL
+	if [ $? -eq 0 ]; then
+		log_warn "$TESTNAME: a spool file on gfsd2 remains"
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	return $RESULT

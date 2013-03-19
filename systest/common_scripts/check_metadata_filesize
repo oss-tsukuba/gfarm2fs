@@ -12,7 +12,7 @@ check_metadata_filesize()
 	fi
 
 	SIZE_ACTUAL=`$GFSERVICE $DEBUG export_file $1 $2 $3 | wc -c`
-	if [ X$SIZE_ACTUAL = X ]; then
+	if [ $SIZE_ACTUAL -eq 0 ]; then
 		log_warn "check_metadata_filesize: failed to get actual file" \
 			"size"
 		return 1

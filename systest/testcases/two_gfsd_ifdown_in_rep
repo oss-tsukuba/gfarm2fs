@@ -3,6 +3,7 @@
 # down in replicating files
 #
 load	"calc_checksum" \
+	"wait_for_gfsd_connect" \
 	"generate_testdata" \
 	"check_replica_num"
 
@@ -21,7 +22,8 @@ test_two_gfsd_ifdown_in_rep()
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
 	SLEEP_SEC=${SLEEP_SEC-"3"}
-	RETRY_COUNT=${RETRY_COUNT-"10"}
+	RETRY_COUNT=${RETRY_COUNT-"20"}
+	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required host is defined
 	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 gfsd3 client1"
@@ -30,6 +32,25 @@ test_two_gfsd_ifdown_in_rep()
 	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE $DEBUG grid_proxy_init client1
+	fi
+
+	# prepare: wait until gfsd get connected
+	wait_for_gfsd_connect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd1 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd2 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd3 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd3 is unavailable"
+		return $RESULT_FATAL
 	fi
 
 	# prepare: calc checksum
@@ -101,6 +122,19 @@ test_two_gfsd_ifdown_in_rep()
 	$GFSERVICE $DEBUG ifup gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd3"
+		return $RESULT_FATAL
+	fi
+
+	# prepare: wait until gfsd get connected
+	wait_for_gfsd_connect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd2 is unavailable"
+		return $RESULT_FATAL
+	fi
+
+	wait_for_gfsd_connect gfsd3 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd3 is unavailable"
 		return $RESULT_FATAL
 	fi
 
