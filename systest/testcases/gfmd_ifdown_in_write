@@ -61,9 +61,9 @@ test_gfmd_ifdown_in_write()
 	fi
 
 	wait $MAKE_PID
-	if [ $? -eq 0 ]; then
-		log_warn "$TESTNAME: unexpectedly succeeded to make a file"
-		set_result RESULT $RESULT_XPASS
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to make a file"
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: make network interface up
@@ -107,9 +107,9 @@ test_gfmd_ifdown_in_write()
 
 	# step: check metadata filesize
 	check_metadata_filesize client1 $GFARM_FILE gfmd1
-	if [ $? -eq 0 ]; then
-		log_warn "$TESTNAME: unexpectedly metadata is updated"
-		set_result RESULT $RESULT_XPASS
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: metadata is not updated"
+		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# step: make files
