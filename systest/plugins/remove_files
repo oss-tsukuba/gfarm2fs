@@ -46,7 +46,7 @@ subcmd_remove_files_agent()
 		fi
 	done
 
-	rmdir -p $1 2> /dev/null
+	rmdir -p $1
 
 	log_debug "end subcmd_remove_files_agent"
 

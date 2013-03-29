@@ -77,6 +77,13 @@ test_gfsd_ifdown_in_read()
 		return $RESULT_FATAL
 	fi
 
+	# step: wait until gfsd get connected
+	wait_for_gfsd_connect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd1 is unavailable"
+		return $RESULT_FATAL
+	fi
+
 	# step: read files
 	$GFSERVICE $DEBUG read_file client1 $FILE_PATH
 	if [ $? -ne 0 ]; then

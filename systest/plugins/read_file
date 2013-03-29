@@ -27,10 +27,10 @@ read_file()
 	CHECKSUM_EXPECTED=$2
 
 	if [ X$CHECKSUM_EXPECTED = X ]; then
-		dd if=$FILE_PATH of=/dev/null 2>/dev/null
+		dd if=$FILE_PATH of=/dev/null
 		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
 	else
-		dd if=$FILE_PATH of=/dev/null 2>/dev/null
+		dd if=$FILE_PATH of=/dev/null
 		[ $? -ne 0 ] && log_error "failed to read file: $FILE_PATH"
 		CHECKSUM_ACTUAL=`openssl md5 $FILE_PATH | awk '{ print $2 }'`
 		if [ X$CHECKSUM_ACTUAL != X$CHECKSUM_EXPECTED ]; then

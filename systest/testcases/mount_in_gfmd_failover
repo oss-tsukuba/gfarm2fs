@@ -2,6 +2,7 @@
 # Test case for check behavior when mount gfarm in gfmd failing over
 #
 load	"check_journal_seqnum_max" \
+	"check_gfmd_connected" \
 	"check_gfmd_master" \
 	"failback"
 
@@ -19,6 +20,7 @@ test_mount_in_gfmd_failover()
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 	TIMEOUT=${TIMEOUT-"10"}
 	RETRY_COUNT=${RETRY_COUNT-"10"}
+	RETRY_INTERVAL=${RETRY_COUNT-"5"}
 
 	# prepare: check whether required host is defined
 	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfmd2 client1"
@@ -57,6 +59,13 @@ test_mount_in_gfmd_failover()
 	wait $MOUNT_PID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
+		set_result RESULT $RESULT_FAIL
+	fi
+
+	# step: check whether slave gfmd is connected to master
+	check_gfmd_connected gfmd1 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfmd1 is not connected to master"
 		set_result RESULT $RESULT_FAIL
 	fi
 

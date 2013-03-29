@@ -58,12 +58,13 @@ append_file()
 	BLOCKS=`expr $NUMERIC_SIZE / $BLOCK_SIZE`
 	REMAINDER=`expr $NUMERIC_SIZE % $BLOCK_SIZE`
 
-	dd if=/dev/zero bs=$BLOCK_SIZE count=$BLOCKS 2> /dev/null | \
-		tr "\000" "a" >> $FILE_PATH
+	dd if=/dev/zero bs=$BLOCK_SIZE count=$BLOCKS | tr "\000" "a" \
+		>> $FILE_PATH
 	[ $? -ne 0 ] && log_error "failed to append file: $PROGHOST:$FILE_PATH"
 
-	dd if=/dev/zero bs=$REMAINDER count=1 2> /dev/null | \
-		tr "\000" "a" >> $FILE_PATH
+	[ $REMAINDER -eq 0 ] && return 0
+
+	dd if=/dev/zero bs=$REMAINDER count=1 | tr "\000" "a" >> $FILE_PATH
 	[ $? -ne 0 ] && log_error "failed to append file: $PROGHOST:$FILE_PATH"
 
 	log_debug "$PROGHOST appends $FILE_PATH done"

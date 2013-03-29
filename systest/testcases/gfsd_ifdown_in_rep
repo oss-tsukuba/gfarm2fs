@@ -76,6 +76,13 @@ test_gfsd_ifdown_in_rep()
 		return $RESULT_FATAL
 	fi
 
+	# step: wait until gfsd get connected
+	wait_for_gfsd_connect gfsd2 client1 $RETRY_COUNT $RETRY_INTERVAL
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: gfsd2 is unavailable"
+		return $RESULT_FATAL
+	fi
+
 	# step: replicate a file
 	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
 	if [ $? -ne 0 ]; then
