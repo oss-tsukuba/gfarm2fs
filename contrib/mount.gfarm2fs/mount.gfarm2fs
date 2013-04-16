@@ -53,7 +53,7 @@ fi
 getoptvalue()
 {
 	o=$1
-	v=`echo $OPTIONS | sed "s/.*$o=\([0-9a-zA-Z\._]*\).*/\1/"`
+	v=`echo $OPTIONS | sed "s/.*$o=\([0-9a-zA-Z_.-]*\).*/\1/"`
 	echo $v
 }
 : ${GFARMFS_USERNAME:=`getoptvalue username`}
