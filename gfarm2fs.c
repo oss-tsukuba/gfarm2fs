@@ -184,7 +184,6 @@ gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 		sprintf(gfarm2fs_realpath_prefix, "%s/%s",
 		    buf, gfarm_path_prefix);
 	}
-
 	gfarm2fs_path_prefix_len =
 	    strlen(mpoint) + 1 + GFARM_PATH_PREFIX_LEN;
 	gfarm2fs_path_prefix = malloc(gfarm2fs_path_prefix_len + 1);

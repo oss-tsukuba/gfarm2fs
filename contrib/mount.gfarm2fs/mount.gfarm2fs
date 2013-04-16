@@ -17,7 +17,13 @@ When mount.gfarm2fs is installed to /sbin/mount.gfarm2fs, you can
 mount the Gfarm file system by the mount(8) command.
 
 Example of /etc/fstab entries:
-/etc/gfarm2.conf	/gfarm/tatebe	gfarm2fs noauto,user 0 0
+/etc/gfarm2.conf	/gfarm/tatebe	gfarm2fs noauto,user,username=tatebe 0 0
+
+Example of /etc/auto.master entries:
+/gfarm /etc/auto.gfarm
+
+Example of /etc/auto.gfarm entries:
+tatebe -fstype=gfarm2fs,username=tatebe :/etc/gfarm2.conf
 EOF
 	exit 1
 }
@@ -38,11 +44,21 @@ if [ $# -gt 0 ]; then
 	shift
 fi
 if [ $# -gt 0 ]; then
-	# abandon
 	OPTIONS=$*
 fi
 
-: ${GFS_USERNAME:=`gfwhoami 2> /dev/null`}
+getoptvalue()
+{
+	o=$1
+	v=`echo $OPTIONS | sed "s/.*$1=\([a-zA-Z\._]*\).*/\1/"`
+	echo $v
+}
+: ${GFARMFS_USERNAME:=`getoptvalue username`}
+if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
+	SU="sudo -u $GFARMFS_USERNAME"
+fi
+
+: ${GFS_USERNAME:=`$SU gfwhoami 2> /dev/null`}
 : ${GFS_USERNAME:=$USER}
 : ${GFS_USERNAME:=$LOGNAME}
 : ${GFS_USERNAME:=`logname 2> /dev/null`}
@@ -62,10 +78,19 @@ if [ ! -d $GFS_MOUNTDIR ]; then
 		ABORT "cannot create a mount point: " $GFS_MOUNTDIR
 	DELETE_MOUNTDIR_ON_ERROR=1
 fi
-[ -O $GFS_MOUNTDIR ] || ABORT "$GFS_MOUNTDIR: not owned by " $LOGNAME
+[ -w / -o -O $GFS_MOUNTDIR ] || ABORT "$GFS_MOUNTDIR: not owned by " $LOGNAME
+
+# for automount
+if [ -w / ]; then
+	if [ X"$GFARMFS_USERNAME" != X ]; then
+		chown $GFARMFS_USERNAME $GFS_MOUNTDIR
+		chmod +w $GFS_MOUNTDIR
+	fi
+fi
 
 # mount
-gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS
+$SU test -w . || cd /tmp
+$SU gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS
 STATUS=$?
 if [ $STATUS = 0 ]; then
 	echo Mount GfarmFS on $GFS_MOUNTDIR
