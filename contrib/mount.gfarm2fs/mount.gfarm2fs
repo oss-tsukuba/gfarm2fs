@@ -6,6 +6,9 @@ USAGE() {
 cat <<EOF
 mount.gfarm2fs [ configuration_file mount_point options ]
 
+options:
+    username	     effective local user name to mount
+
 Environment variable:
     GFS_USERNAME     global user name in Gfarm
     GFS_MOUNTDIR     mount point
@@ -14,16 +17,16 @@ Environment variable:
     FUSE_OPTIONS     fuse mount options
 
 When mount.gfarm2fs is installed to /sbin/mount.gfarm2fs, you can
-mount the Gfarm file system by the mount(8) command.
+mount the Gfarm file system by mount(8) and automount(8).
 
 Example of /etc/fstab entries:
 /etc/gfarm2.conf	/gfarm/tatebe	gfarm2fs noauto,user,username=tatebe 0 0
 
 Example of /etc/auto.master entries:
-/gfarm /etc/auto.gfarm
+/gfarm	/etc/auto.gfarm
 
 Example of /etc/auto.gfarm entries:
-tatebe -fstype=gfarm2fs,username=tatebe :/etc/gfarm2.conf
+tatebe	-fstype=gfarm2fs,username=tatebe	:/etc/gfarm2.conf
 EOF
 	exit 1
 }
