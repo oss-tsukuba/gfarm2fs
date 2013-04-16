@@ -58,8 +58,10 @@ getoptvalue()
 [ -x /sbin/runuser ] && SU=/sbin/runuser || SU=su
 if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
 	RUN="$SU -l $GFARMFS_USERNAME"
+	RUN_NOSESSION="$SU -l $GFARMFS_USERNAME"
 else
 	RUN=/bin/sh
+	RUN_NOSESSION=
 fi
 
 : ${GFS_USERNAME:=`$RUN -c "gfwhoami 2> /dev/null"`}
@@ -84,7 +86,7 @@ if [ ! -d $GFS_MOUNTDIR ]; then
 fi
 [ -w / -o -O $GFS_MOUNTDIR ] || ABORT "$GFS_MOUNTDIR: not owned by " $LOGNAME
 
-# for automount
+# if username is specified, change the owner of the mount point
 if [ -w / ]; then
 	if [ X"$GFARMFS_USERNAME" != X ]; then
 		chown $GFARMFS_USERNAME $GFS_MOUNTDIR
@@ -93,8 +95,11 @@ if [ -w / ]; then
 fi
 
 # mount
-$RUN -c "test -w ." || cd /tmp
-$RUN --session-command="gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS"
+if [ X"$RUN_NOSESSION" = X ]; then
+	gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS
+else
+	$RUN_NOSESSION --session-command="gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS"
+fi
 STATUS=$?
 if [ $STATUS = 0 ]; then
 	echo Mount GfarmFS on $GFS_MOUNTDIR
