@@ -39,7 +39,7 @@ ABORT() {
 [ x"$1" = x"-h" -o x"$1" = x"--help" ] && USAGE
 
 if [ $# -gt 0 ]; then
-	export GFARM_CONFIG_FILE=$1
+	GFARM_ENV="env GFARM_CONFIG_FILE=$1"
 	shift
 fi
 if [ $# -gt 0 ]; then
@@ -61,7 +61,7 @@ getoptvalue()
 [ -x /sbin/runuser ] && SU=/sbin/runuser || SU=su
 if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
 	RUN="$SU -l $GFARMFS_USERNAME"
-	if $RUN --session-command=hostname; then
+	if $RUN --session-command=hostname >/dev/null 2>&1; then
 		RUN="$RUN --session-command="
 	else
 		RUN="$RUN -c "
@@ -70,18 +70,18 @@ else
 	RUN="/bin/sh -c "
 fi
 
-: ${GFS_USERNAME:=`$RUN"gfwhoami 2> /dev/null"`}
+: ${GFS_USERNAME:=`$RUN"$GFARM_ENV gfwhoami 2>/dev/null"`}
 : ${GFS_USERNAME:=$USER}
 : ${GFS_USERNAME:=$LOGNAME}
-: ${GFS_USERNAME:=`logname 2> /dev/null`}
+: ${GFS_USERNAME:=`logname 2>/dev/null`}
 : ${GFS_MOUNTDIR:=/tmp/$GFS_USERNAME}
-: ${GFARMFS_ROOT:=`$RUN"gfuser -l $GFS_USERNAME 2> /dev/null" | awk -F: '{ print $3 }'`}
+: ${GFARMFS_ROOT:=`$RUN"$GFARM_ENV gfuser -l $GFS_USERNAME 2>/dev/null" | awk -F: '{ print $3 }'`}
 : ${GFARMFS_ROOT:=/}
 : ${GFARMFS_OPTIONS:=}
 : ${FUSE_OPTIONS:=}
 
 # if already mounted, exit
-grep $GFS_MOUNTDIR /etc/mtab > /dev/null &&
+grep $GFS_MOUNTDIR /etc/mtab >/dev/null &&
 ABORT "$GFS_MOUNTDIR: already mounted"
 
 DELETE_MOUNTDIR_ON_ERROR=0
@@ -101,10 +101,10 @@ if [ -w / ]; then
 fi
 
 # mount
-$RUN"gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS"
+$RUN"$GFARM_ENV gfarm2fs -o modules=subdir,subdir=$GFARMFS_ROOT $GFARMFS_OPTIONS $GFS_MOUNTDIR $FUSE_OPTIONS"
 STATUS=$?
 if [ $STATUS = 0 ]; then
-	echo Mount GfarmFS on $GFS_MOUNTDIR
+	[ -w / ] || echo Mount GfarmFS on $GFS_MOUNTDIR
 else
 	[ $DELETE_MOUNTDIR_ON_ERROR = 1 ] && rmdir $GFS_MOUNTDIR
 fi
