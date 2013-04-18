@@ -7,7 +7,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([gfarm2fs.c])
 AC_CONFIG_HEADER([config.h])
-AC_CONFIG_FILES([Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile systest/Makefile systest/testcases/Makefile systest/parameters/Makefile systest/common_scripts/Makefile systest/plugins/Makefile])
+AC_CONFIG_FILES([Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/mount.gfarm2fs/mount.gfarm2fs contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile systest/Makefile systest/testcases/Makefile systest/parameters/Makefile systest/common_scripts/Makefile systest/plugins/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 AC_SYS_LARGEFILE
 

@@ -2,6 +2,10 @@
 #
 # $Id$
 
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+export PATH=@bindir@:$PATH
+
 USAGE() {
 cat <<EOF
 mount.gfarm2fs [ configuration_file mount_point options ]
@@ -60,7 +64,7 @@ getoptvalue()
 
 [ -x /sbin/runuser ] && SU=/sbin/runuser || SU=su
 if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
-	RUN="$SU -l $GFARMFS_USERNAME"
+	RUN="$SU -m $GFARMFS_USERNAME"
 	if $RUN --session-command=hostname >/dev/null 2>&1; then
 		RUN="$RUN --session-command="
 	else
