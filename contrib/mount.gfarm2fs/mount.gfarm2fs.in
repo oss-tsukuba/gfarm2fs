@@ -43,7 +43,7 @@ ABORT() {
 [ x"$1" = x"-h" -o x"$1" = x"--help" ] && USAGE
 
 if [ $# -gt 0 ]; then
-	GFARM_ENV="env GFARM_CONFIG_FILE=$1"
+	GFARM_ENV="env GFARM_CONFIG_FILE=$1 PATH=$PATH"
 	shift
 fi
 if [ $# -gt 0 ]; then
@@ -64,7 +64,7 @@ getoptvalue()
 
 [ -x /sbin/runuser ] && SU=/sbin/runuser || SU=su
 if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
-	RUN="$SU -m $GFARMFS_USERNAME"
+	RUN="$SU -l $GFARMFS_USERNAME"
 	if $RUN --session-command=hostname >/dev/null 2>&1; then
 		RUN="$RUN --session-command="
 	else
