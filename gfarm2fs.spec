@@ -1,6 +1,6 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.8.1
+Version: 1.2.9
 Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
@@ -39,6 +39,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/gfarm/systest
 
 %changelog
+* Mon Apr 22 2013 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.9-1
+- atomic append (O_APPEND) support
+- automount(8) support
+
 * Tue Jan 15 2013 Osamu Tatebe <tatebe@cs.tsukuba.ac.jp> 1.2.8.1-1
 - %{_datadir}/gfarm/{gfservice,systest} are included
 - update mount.hpci to mount /gfarm/GROUP/localaccount

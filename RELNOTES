@@ -1,3 +1,14 @@
+Release note for Gfarm2fs 1.2.9
+===============================
+
+[2013.4.22]
+
+New feature
+* support atomic append (O_APPEND)
+
+Updated feature
+* mount.gfarm2fs - automount(8) support
+
 Release note for Gfarm2fs 1.2.8.1
 =================================
 
