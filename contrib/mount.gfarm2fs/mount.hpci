@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# mount.hpci - mount HPCI shared storage
+#
+# this command assumes to be executed by a normal user not root
 
 ABORT() {
 	[ $# -gt 0 ] && echo 1>&2 $*
@@ -13,12 +17,6 @@ create_link()
     [ -h $LINK ] ||
 	(gfln -s gfarm:///$LINK/$G/$U $LINK && echo create \'$LINK\' symlink)
 }
-
-GFUSER=`gfwhoami`
-[ X"$GFUSER" = X ] && ABORT 'Who?'
-: ${USER:=`whoami`}
-USERLIST="$GFUSER"
-[ X"$GFUSER" != X"$USER" ] && USERLIST="$USERLIST $USER"
 
 # check proxy cert
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
@@ -36,13 +34,22 @@ fi
 # display timeleft of proxy cert
 (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft
 
+GFUSER=`gfwhoami`
+[ X"$GFUSER" = X ] && ABORT 'Who?'
+: ${USER:=`whoami`}
+USERLIST="$GFUSER"
+[ X"$GFUSER" != X"$USER" ] && USERLIST="$USERLIST $USER"
+
+: ${GFARM_CONFIG_FILE:=`gfstatus 2>/dev/null | grep "user config file" | sed 's/user config file  : //'`}
+: ${GFARM_CONFIG_FILE:="$HOME/.gfarm2rc"}
+
 groups=`gfgroup -l | grep $GFUSER | awk -F: '{print $1}'`
 for g in $groups
 do
     for u in $USERLIST
     do
 	[ -d /gfarm/$g/$u ] && {
-	env GFS_MOUNTDIR=/gfarm/$g/$u GFARMFS_ROOT=/home/$g/$GFUSER mount.gfarm2fs
+	env GFARMFS_ROOT=/home/$g/$GFUSER mount.gfarm2fs "$GFARM_CONFIG_FILE" /gfarm/$g/$u
 	# create symlinks
 	test $? -eq 0 && (cd /gfarm/$g/$u && {
 	    create_link www $g $GFUSER
