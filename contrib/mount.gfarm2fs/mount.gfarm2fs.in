@@ -12,6 +12,9 @@ mount.gfarm2fs [ configuration_file mount_point options ]
 
 options:
     username	     effective local user name to mount
+    gfarmfs_root     directory to be mounted in Gfarm
+    allow_root       allow root to access
+    allow_other      allow everyone to access
 
 Environment variable:
     GFS_USERNAME     global user name in Gfarm
@@ -50,17 +53,33 @@ if [ $# -gt 0 ]; then
 	GFS_MOUNTDIR=$1
 	shift
 fi
-if [ $# -gt 0 ]; then
+if [ $# -gt 0 -a x"$1" = x"-o" ]; then
+	shift
 	OPTIONS=$*
 fi
 
-getoptvalue()
-{
-	o=$1
-	v=`echo $OPTIONS | sed "s/.*$o=\([0-9a-zA-Z_.-]*\).*/\1/"`
-	echo $v
-}
-: ${GFARMFS_USERNAME:=`getoptvalue username`}
+SAVE_IFS=$IFS
+IFS=,
+for o in $OPTIONS
+do
+	case $o in
+	# Gfarm options
+	username=*)
+		: ${GFARMFS_USERNAME:=`echo $o | sed -n 's/username=//p'`}
+		;;
+	gfarmfs_root=*)
+		: ${GFARMFS_ROOT:=`echo $o | sed -n 's/gfarmfs_root=//p'`}
+		;;
+
+	# other options
+	*)
+		[ x"$FUSE_OPTIONS" = x ] && FUSE_OPTIONS="-o " ||
+			FUSE_OPTIONS="$FUSE_OPTIONS,"
+		FUSE_OPTIONS="$FUSE_OPTIONS$o"
+		;;
+	esac
+done
+IFS=$SAVE_IFS
 
 [ -x /sbin/runuser ] && SU=/sbin/runuser || SU=su
 if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
@@ -74,6 +93,7 @@ else
 	RUN="/bin/sh -c "
 fi
 
+# default value
 : ${GFS_USERNAME:=`$RUN"$GFARM_ENV gfwhoami 2>/dev/null"`}
 : ${GFS_USERNAME:=$USER}
 : ${GFS_USERNAME:=$LOGNAME}
