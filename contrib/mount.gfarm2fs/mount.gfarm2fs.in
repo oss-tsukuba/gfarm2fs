@@ -63,7 +63,7 @@ IFS=,
 for o in $OPTIONS
 do
 	case $o in
-	# Gfarm options
+	# mount.gfarm2fs options
 	username=*)
 		: ${GFARMFS_USERNAME:=`echo $o | sed -n 's/username=//p'`}
 		;;
@@ -71,8 +71,34 @@ do
 		: ${GFARMFS_ROOT:=`echo $o | sed -n 's/gfarmfs_root=//p'`}
 		;;
 
-	# other options
-	*)
+	# Gfarm2fs options
+	gfs_stat_timeout=*|\
+	syslog=*|loglevel=*|\
+	ncopy=*|copy_limit=*|\
+	genuine_nlink|disable_genuine_nlink|\
+	auto_uid_min=*|auto_uid_max=*|\
+	auto_gid_min=*|auto_gid_max=*)
+		[ x"$GFARMFS_OPTIONS" = x ] && GFARMFS_OPTIONS="-o " ||
+			GFARMFS_OPTIONS="$GFARMFS_OPTIONS,"
+		GFARMFS_OPTIONS="$GFARMFS_OPTIONS$o"
+		;;
+
+	# FUSE options
+	debug|allow_other|allow_root|\
+	nonempty|default_permissions|\
+	fsname=*|subtype=*|\
+	large_read|max_read=*|\
+	hard_remove|use_ino|readdir_ino|\
+	direct_io|kernel_cache|auto_cache|noauto_cache|\
+	umask=*|uid=*|gid=*|\
+	entry_timeout=*|negative_timeout=*|\
+	attr_timeout=*|ac_attr_timeout=*|\
+	intr|intr_signal=*|\
+	modules=*|\
+	max_write=*|max_readahead=*|async_read|sync_read|\
+	atomic_o_trunc|\
+	subdir=*|rellinks|norellinks|\
+	from_code=*|to_code=*)
 		[ x"$FUSE_OPTIONS" = x ] && FUSE_OPTIONS="-o " ||
 			FUSE_OPTIONS="$FUSE_OPTIONS,"
 		FUSE_OPTIONS="$FUSE_OPTIONS$o"
