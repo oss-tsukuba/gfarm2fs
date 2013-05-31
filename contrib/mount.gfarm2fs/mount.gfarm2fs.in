@@ -53,8 +53,8 @@ if [ $# -gt 0 ]; then
 	GFS_MOUNTDIR=$1
 	shift
 fi
-if [ $# -gt 0 -a x"$1" = x"-o" ]; then
-	shift
+if [ $# -gt 0 ]; then
+	[ x"$1" = x"-o" ] && shift
 	OPTIONS=$*
 fi
 
