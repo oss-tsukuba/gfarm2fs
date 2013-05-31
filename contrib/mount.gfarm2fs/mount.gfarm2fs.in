@@ -105,7 +105,7 @@ fi
 : ${FUSE_OPTIONS:=}
 
 # if already mounted, exit
-grep $GFS_MOUNTDIR /etc/mtab >/dev/null &&
+awk '{ print $2 }' /etc/mtab | grep "^$GFS_MOUNTDIR$" >/dev/null &&
 ABORT "$GFS_MOUNTDIR: already mounted"
 
 DELETE_MOUNTDIR_ON_ERROR=0
