@@ -13,7 +13,6 @@ mount.gfarm2fs [ configuration_file mount_point options ]
 options:
     username	     effective local user name to mount
     gfarmfs_root     directory to be mounted in Gfarm
-    shared_key       shared key file (default: ~/.gfarm_shared_key)
     allow_root       allow root to access
     allow_other      allow everyone to access
 
@@ -70,10 +69,6 @@ do
 		;;
 	gfarmfs_root=*)
 		: ${GFARMFS_ROOT:=`echo $o | sed -n 's/gfarmfs_root=//p'`}
-		;;
-	shared_key=*)
-		[ x"$GFARM_ENV" = x ] && GFARM_ENV="env"
-		GFARM_ENV="$GFARM_ENV GFARM_SHARED_KEY=`echo $o | sed -n 's/shared_key=//p'`"
 		;;
 
 	# Gfarm2fs options
