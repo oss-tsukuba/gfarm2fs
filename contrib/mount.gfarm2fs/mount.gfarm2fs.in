@@ -33,7 +33,8 @@ Example of /etc/auto.master entries:
 /gfarm /etc/auto.gfarm
 
 Example of /etc/auto.gfarm entries:
-tatebe -fstype=gfarm2fs,username=tatebe :/etc/gfarm2.conf
+tatebe -fstype=gfarm2fs,username=tatebe :/home/tatebe/.gfarm2rc
+* -fstype=gfarm2fs,username=& :/home/&/.gfarm2rc
 EOF
 	exit 1
 }
