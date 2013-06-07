@@ -71,7 +71,7 @@ test_make_file()
 	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_PATH`
 	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_PATH`
 	for HOST in $HOSTS; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		echo test_$TEST_EXEC_ID | $GFSERVICE $DEBUG compare_spool_file \
 			$HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then

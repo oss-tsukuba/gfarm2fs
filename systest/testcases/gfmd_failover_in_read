@@ -92,7 +92,7 @@ test_gfmd_failover_in_read()
 	fi
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE`; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		$GFSERVICE $DEBUG spool_file_exists $HOSTID $SPOOL_PATH
 		if [ $? -ne 0 ]; then
 			log_warn "$TESTNAME: failed to find spool file"

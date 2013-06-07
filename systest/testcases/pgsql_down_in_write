@@ -88,7 +88,7 @@ test_pgsql_down_in_write()
 	fi
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE`; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
 			 $SPOOL_PATH`
 		if [ X$CHECKSUM_ACTUAL = X ]; then
@@ -127,7 +127,7 @@ test_pgsql_down_in_write()
 	fi
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE`; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
 			 $SPOOL_PATH`
 		if [ X$CHECKSUM_ACTUAL = X ]; then

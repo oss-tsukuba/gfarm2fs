@@ -14,8 +14,8 @@ subcmd_make_files_n_each_mntpnts()
 	log_debug "subcmd_make_files_n_each_mntpnts"
 
 	check_argc $# 5
-	check_hostid $HOSTID
-	exec_client_host_agent $HOSTID - make_files_n_each_mntpnts "$@"
+	check_hostid any $HOSTID
+	exec_remote_host_agent $HOSTID - make_files_n_each_mntpnts "$@"
 	[ $? -ne 0 ] && log_error "gfservice make_files_n_each_mntpnts failed"
 
 	log_debug "end subcmd_make_files_n_each_mntpnts"

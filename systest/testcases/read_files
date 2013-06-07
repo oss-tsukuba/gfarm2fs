@@ -20,6 +20,12 @@ load 	"exec_on_multiple_clients" \
 # FILE_SIZE:	File size of each file to be read
 test_read_files()
 {
+	GFARM_HOME=${GFARM_HOME-"/"}
+	NUM_CLIENTS=${NUM_CLIENTS-"1"}
+	NUM_MOUNT=${NUM_MOUNT-"1"}
+	NUM_FILES=${NUM_FILES-"1000"}
+	FILE_SIZE=${FILE_SIZE-"1M"}
+
 	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
 	RESULT=$RESULT_PASS
 

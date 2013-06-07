@@ -34,9 +34,9 @@ subcmd_log_view()
 {
 	log_debug "subcmd_log_view"
 
-	check_hostid $HOSTID
+	check_hostid any $HOSTID
 	LOG_FILE_PATHS=`get_log_file_paths $HOSTID`
-	exec_client_host_agent $HOSTID root log_view \
+	exec_remote_host_agent $HOSTID root log_view \
 		"log-file-paths=$LOG_FILE_PATHS"
 	[ $? -ne 0 ] && log_error "gfservice log_view failed"
 

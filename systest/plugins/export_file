@@ -14,7 +14,7 @@ subcmd_export_file()
 	log_debug "subcmd_export_file"
 
 	check_argc $# 2 +
-	check_hostid $HOSTID
+	check_hostid any $HOSTID
 	FILE_PATH=$1
 	GFMD=$2
 	GFSD=$3
@@ -22,7 +22,7 @@ subcmd_export_file()
 	#
 	# Get BACKEND_HOSTNAME of the gfmd host.
 	#
-	BACKEND_HOSTNAME=`exec_gfmd_host_agent \
+	BACKEND_HOSTNAME=`exec_remote_host_agent \
 		$GFMD root get-config-gfarm-param param=BACKEND_HOSTNAME`
 	[ "X$BACKEND_HOSTNAME" = X ] \
 		&& log_error "failed to get BACKEND_HOSTNAME of $HOSTID"
@@ -30,7 +30,7 @@ subcmd_export_file()
 	#
 	# Get GFMD_PORT of the gfmd host.
 	#
-	GFMD_PORT=`exec_gfmd_host_agent \
+	GFMD_PORT=`exec_remote_host_agent \
 		$GFMD root get-config-gfarm-param param=GFMD_PORT`
 	[ "X$GFMD_PORT" = X ] \
 		&& log_error "failed to get GFMD_PORT of $HOSTID"
@@ -39,7 +39,7 @@ subcmd_export_file()
 	# Get GFSD_HOSTNAME of the gfsd host.
 	#
 	if [ X$GFSD != X ]; then
-		GFSD_HOSTNAME=`exec_gfsd_host_agent $GFSD root \
+		GFSD_HOSTNAME=`exec_remote_host_agent $GFSD root \
 			get-config-gfsd-param param=GFSD_HOSTNAME`
 		[ "X$GFSD_HOSTNAME" = X ] \
 			&& log_error "failed to get GFSD_HOSTNAME of $HOSTID"

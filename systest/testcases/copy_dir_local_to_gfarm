@@ -70,7 +70,7 @@ test_copy_dir_local_to_gfarm()
 	for I in `seq $NUM_DIRS`; do
 		DST_FILE=`printf $DST_FILE_TMPL $I $I`
 		HOST=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $DST_FILE`
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath \
 			$DST_FILE`
 		echo ${TEST_EXEC_ID}_$I | $GFSERVICE $DEBUG compare_spool_file \

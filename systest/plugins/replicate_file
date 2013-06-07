@@ -14,9 +14,9 @@ subcmd_replicate_file()
 	log_debug "subcmd_replicate_file"
 
 	check_argc $# 2
-	check_hostid $HOSTID
-	check_gfsd_hostid $2
-	DEST_HOST=`exec_gfsd_host_agent $2 root get-config-gfsd-param \
+	check_hostid any $HOSTID
+	check_hostid gfsd $2
+	DEST_HOST=`exec_remote_host_agent $2 root get-config-gfsd-param \
 		"param=GFSD_HOSTNAME"`
 	[ $? -ne 0 ] && \
 		log_error "gfservice replicate_file failed to get hostname"

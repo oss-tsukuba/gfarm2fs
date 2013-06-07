@@ -14,8 +14,8 @@ subcmd_make_files()
 	log_debug "subcmd_make_files"
 
 	check_argc $# 3
-	check_hostid $HOSTID
-	exec_client_host_agent $HOSTID - make_files "$@"
+	check_hostid any $HOSTID
+	exec_remote_host_agent $HOSTID - make_files "$@"
 	[ $? -ne 0 ] && log_error "gfservice make_files failed"
 
 	log_debug "end subcmd_make_files"

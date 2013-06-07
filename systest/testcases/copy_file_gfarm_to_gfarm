@@ -74,7 +74,7 @@ test_copy_file_gfarm_to_gfarm()
 		DST_FILE=`printf $DST_FILE_TMPL $I $I`
 
 		HOST=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $DST_FILE`
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 
 		SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $DST_FILE`
 
@@ -88,7 +88,7 @@ test_copy_file_gfarm_to_gfarm()
 
 		# step: remove src file
 		HOST=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $SRC_FILE`
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 
 		SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $SRC_FILE`
 

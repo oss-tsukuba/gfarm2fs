@@ -67,7 +67,7 @@ test_copy_file_gfarm_to_local()
 		SRC_FILE=`printf $SRC_FILE_TMPL $I`
 
 		HOST=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $SRC_FILE`
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 
 		SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath \
 			$SRC_FILE`

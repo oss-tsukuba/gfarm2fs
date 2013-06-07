@@ -96,7 +96,7 @@ test_append_immediately_in_gfsd_ifdown()
 
 	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE`
 	for HOST in $HOSTS; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
 			$SPOOL_PATH_MOD`
 		if [ X$CHECKSUM_SPOOL = X ]; then

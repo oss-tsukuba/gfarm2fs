@@ -35,7 +35,7 @@ subcmd_ifup()
 	log_debug "subcmd_ifup"
 
 	check_argc $# 0
-	check_hostid $HOSTID
+	check_hostid any $HOSTID
 
 	SSH=`get_ssh $HOSTID`
 	HOST=`get_host $HOSTID`

@@ -14,8 +14,8 @@ subcmd_rmdir_n()
 	log_debug "subcmd_rmdir_n"
 
 	check_argc $# 2
-	check_hostid $HOSTID
-	exec_client_host_agent $HOSTID - rmdir_n "$@"
+	check_hostid any $HOSTID
+	exec_remote_host_agent $HOSTID - rmdir_n "$@"
 	[ $? -ne 0 ] && log_error "gfservice rmdir_n failed"
 
 	log_debug "end subcmd_rmdir_n"

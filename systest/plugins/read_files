@@ -14,8 +14,8 @@ subcmd_read_files()
 	log_debug "subcmd_read_files"
 
 	check_argc $# 2
-	check_hostid $HOSTID
-	exec_client_host_agent $HOSTID - read_files "$@"
+	check_hostid any $HOSTID
+	exec_remote_host_agent $HOSTID - read_files "$@"
 	[ $? -ne 0 ] && log_error "gfservice read_files failed"
 
 	log_debug "end subcmd_read_files"

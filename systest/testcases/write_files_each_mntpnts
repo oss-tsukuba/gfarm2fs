@@ -22,6 +22,12 @@ load	"calc_checksum" \
 # FILE_SIZE:	File size of each file to be written
 test_write_files_each_mntpnts()
 {
+	GFARM_HOME=${GFARM_HOME-"/"}
+	NUM_CLIENTS=${NUM_CLIENTS-"1"}
+	NUM_MOUNT=${NUM_MOUNT-"1"}
+	NUM_FILES=${NUM_FILES-"1000"}
+	FILE_SIZE=${FILE_SIZE-"1M"}
+
 	CHKSUM=`calc_checksum $FILE_SIZE`
 	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
 	RESULT=$RESULT_PASS

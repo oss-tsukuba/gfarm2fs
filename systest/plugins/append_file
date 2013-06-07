@@ -14,8 +14,8 @@ subcmd_append_file()
 	log_debug "subcmd_append_file"
 
 	check_argc $# 2
-	check_hostid $HOSTID
-	exec_client_host_agent $HOSTID - append_file "$@"
+	check_hostid any $HOSTID
+	exec_remote_host_agent $HOSTID - append_file "$@"
 	[ $? -ne 0 ] && log_error "gfservice append_file failed"
 
 	log_debug "end subcmd_append_file"

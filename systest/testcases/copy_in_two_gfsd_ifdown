@@ -182,7 +182,7 @@ test_copy_in_two_gfsd_ifdown()
 	# step: compare check sum of file
 	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE1_DST`
 	for HOST in $HOSTS; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
 			$SPOOL_PATH1_DST`
 		if [ X$CHECKSUM_SPOOL = X ]; then
@@ -200,7 +200,7 @@ test_copy_in_two_gfsd_ifdown()
 
 	HOSTS=`$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE2_DST`
 	for HOST in $HOSTS; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
 			$SPOOL_PATH2_DST`
 		if [ X$CHECKSUM_SPOOL = X ]; then

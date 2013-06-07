@@ -16,7 +16,7 @@ subcmd_exec_ssh()
 	log_debug "subcmd_ssh"
 
 	check_argc $# 1 +
-	check_hostid $HOSTID
+	check_hostid any $HOSTID
 	SSH=`get_ssh $HOSTID`
 	HOST=`get_host $HOSTID`
 

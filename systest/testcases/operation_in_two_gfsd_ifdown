@@ -143,7 +143,7 @@ test_operation_in_two_gfsd_ifdown()
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere \
 		$WRITE_GFARM_PATH1`; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum \
 			$HOSTID $SPOOL_PATH1`
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
@@ -163,7 +163,7 @@ test_operation_in_two_gfsd_ifdown()
 
 	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere \
 		$WRITE_GFARM_PATH2`; do
-		HOSTID=`$GFSERVICE $DEBUG get_hostid $HOST`
+		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
 		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum \
 			$HOSTID $SPOOL_PATH2`
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then

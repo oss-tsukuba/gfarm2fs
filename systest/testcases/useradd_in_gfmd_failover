@@ -68,7 +68,7 @@ test_useradd_in_gfmd_failover()
 	fi
 
 	# step: check user is added
-	USER=`$GFSERVICE $DEBUG gfcmd client1 gfuser -l | grep $TEST_EXEC_ID`
+	USER=`$GFSERVICE $DEBUG gfcmd client1 gfuser | grep $TEST_EXEC_ID`
 	if [ X$USER = X ]; then
 		log_warn "$TESTNAME: failed to find a user"
 		set_result RESULT $RESULT_XFAIL

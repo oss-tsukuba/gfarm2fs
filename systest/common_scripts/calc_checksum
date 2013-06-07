@@ -5,5 +5,12 @@ load	"generate_testdata"
 #
 calc_checksum()
 {
-	generate_testdata $1 | openssl md5 | awk '{print $2}'
+	#
+	# Note that result form of 'openssl md5' may be:
+	#
+	#     f3934c293688e116e5aafb856639b0ca
+	# or
+	#     (stdin)= f3934c293688e116e5aafb856639b0ca
+	#
+	generate_testdata $1 | openssl md5 | sed -e 's/^.*[= ]//'
 }
