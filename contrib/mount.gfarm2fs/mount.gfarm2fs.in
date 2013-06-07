@@ -85,6 +85,7 @@ do
 		;;
 
 	# FUSE options
+	ro|rw|\
 	debug|allow_other|allow_root|\
 	nonempty|default_permissions|\
 	fsname=*|subtype=*|\
