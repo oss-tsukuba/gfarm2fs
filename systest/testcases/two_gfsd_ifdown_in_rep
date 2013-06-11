@@ -2,10 +2,10 @@
 # Test case for check behavior when network interface of two gfsd node is
 # down in replicating files
 #
-load	"calc_checksum" \
-	"wait_for_gfsd_connect" \
-	"generate_testdata" \
-	"check_replica_num"
+load	"gfarm2fs::calc_checksum" \
+	"gfarm2fs::wait_for_gfsd_connect" \
+	"gfarm_v2::generate_testdata" \
+	"gfarm_v2::check_replica_num"
 
 #
 # Test parameters
@@ -26,12 +26,12 @@ test_two_gfsd_ifdown_in_rep()
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 gfsd3 client1"
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 gfsd2 gfsd3 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: wait until gfsd get connected
@@ -58,27 +58,27 @@ test_two_gfsd_ifdown_in_rep()
 
 	# prepare: make a file
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
 
 	# step: replicate a file in background
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2 &
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd2 &
 	REP_PID1=$!
 
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd3 &
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd3 &
 	REP_PID2=$!
 
 	# wait a bit for a process starts replicating a file
 	sleep $SLEEP_SEC
 
 	# step: make network interface down
-	$GFSERVICE $DEBUG ifdown gfsd2
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG ifdown gfsd3
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd3"
 		return $RESULT_FATAL
@@ -99,7 +99,7 @@ test_two_gfsd_ifdown_in_rep()
 	fi
 
 	# step: replicate a file
-	$GFSERVICE $DEBUG gfcmd client1 gfrep -N 2 $GFARM_FILE
+	$GFSERVICE gfcmd client1 gfrep -N 2 $GFARM_FILE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute gfrep"
 		set_result RESULT $RESULT_FAIL
@@ -113,13 +113,13 @@ test_two_gfsd_ifdown_in_rep()
 	fi
 
 	# step: make network interface up
-	$GFSERVICE $DEBUG ifup gfsd2
+	$GFSERVICE systest::gfarm2fs::ifup gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG ifup gfsd3
+	$GFSERVICE systest::gfarm2fs::ifup gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd3"
 		return $RESULT_FATAL
@@ -139,26 +139,26 @@ test_two_gfsd_ifdown_in_rep()
 	fi
 
 	# step: replicate a file
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate a file to gfsd2"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd3
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate a file to gfsd3"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: compare check sum of spool file
-	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE`
+	SPOOL_PATH=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 \
+	CHECKSUM_GFSD2=`$GFSERVICE systest::gfarm2fs::spool_file_checksum gfsd2 \
 		$SPOOL_PATH`
 
 	if [ X$CHECKSUM_GFSD2 != X$CHECKSUM ]; then
@@ -167,7 +167,7 @@ test_two_gfsd_ifdown_in_rep()
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	CHECKSUM_GFSD3=`$GFSERVICE $DEBUG spool_file_checksum gfsd3 \
+	CHECKSUM_GFSD3=`$GFSERVICE systest::gfarm2fs::spool_file_checksum gfsd3 \
 		$SPOOL_PATH`
 
 	if [ X$CHECKSUM_GFSD3 != X$CHECKSUM ]; then
@@ -177,7 +177,7 @@ test_two_gfsd_ifdown_in_rep()
 	fi
 
 	# cleanup: remove a file
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -r $GFARM_FILE
+	$GFSERVICE gfcmd client1 gfrm -r $GFARM_FILE
 
 	return $RESULT
 }

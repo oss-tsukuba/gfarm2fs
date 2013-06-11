@@ -28,7 +28,7 @@ get_ifdown_cmd()
 }
 
 #
-# Sub-command: ifdown
+# Sub-command: systest::gfarm2fs::ifdown
 #
 subcmd_ifdown()
 {
@@ -44,7 +44,7 @@ subcmd_ifdown()
 
 	log_debug "execute $SSH $HOST $SUDO $IFDOWN_CMD"
 	$SSH $HOST $SUDO $IFDOWN_CMD
-	[ $? -ne 0 ] && log_error "gfservice ifdown failed"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::ifdown failed"
 
 	log_debug "end subcmd_ifdown"
 }

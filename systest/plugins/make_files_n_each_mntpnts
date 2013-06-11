@@ -15,8 +15,8 @@ subcmd_make_files_n_each_mntpnts()
 
 	check_argc $# 5
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - make_files_n_each_mntpnts "$@"
-	[ $? -ne 0 ] && log_error "gfservice make_files_n_each_mntpnts failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::make_files_n_each_mntpnts "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::make_files_n_each_mntpnts failed"
 
 	log_debug "end subcmd_make_files_n_each_mntpnts"
 }
@@ -26,11 +26,12 @@ subcmd_make_files_n_each_mntpnts()
 #
 make_files_n_each_mntpnts_agent_depends()
 {
-	echo "make_file make_files"
+	echo "systest::gfarm2fs::make_file"
+	echo "systest::gfarm2fs::make_files"
 }
 
 #
-# Sub-command: make_files_n_each_mntpnts
+# Sub-command: systest::gfarm2fs::make_files_n_each_mntpnts
 # Make files in target dir on each mount points.
 #
 subcmd_make_files_n_each_mntpnts_agent()

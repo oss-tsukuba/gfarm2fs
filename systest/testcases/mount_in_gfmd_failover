@@ -1,10 +1,10 @@
 #
 # Test case for check behavior when mount gfarm in gfmd failing over
 #
-load	"check_journal_seqnum_max" \
-	"check_gfmd_connected" \
-	"check_gfmd_master" \
-	"failback"
+load	"gfarm_v2::check_journal_seqnum_max" \
+	"gfarm_v2::check_gfmd_connected" \
+	"gfarm_v2::check_gfmd_master" \
+	"gfarm_v2::failback"
 
 #
 # Test parameters
@@ -23,24 +23,24 @@ test_mount_in_gfmd_failover()
 	RETRY_INTERVAL=${RETRY_COUNT-"5"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfmd2 client1"
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: create mount point
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 
 	# step: stop gfmd on gfmd1
-	$GFSERVICE $DEBUG stop-gfmd gfmd1
+	$GFSERVICE stop-gfmd gfmd1
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to stop gfmd on gfmd1"
 
 	# step: mount
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME &
 	MOUNT_PID=$!
 
@@ -48,11 +48,11 @@ test_mount_in_gfmd_failover()
 	sleep $SLEEP_SEC
 
 	# step: promote gfmd on gfmd2
-	$GFSERVICE $DEBUG promote-gfmd gfmd2
+	$GFSERVICE promote-gfmd gfmd2
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to promote gfmd on gfmd2"
 
 	# step: set gfmd on gfmd1 to be slave
-	$GFSERVICE $DEBUG -t $TIMEOUT start-gfmd-slave gfmd1
+	$GFSERVICE -t $TIMEOUT start-gfmd-slave gfmd1
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to start gfmd on gfmd1" \
 		"as slave"
 
@@ -71,7 +71,7 @@ test_mount_in_gfmd_failover()
 
 	# step: check Gfarm is mounted
 	FOUND=1
-	DIRS=`$GFSERVICE $DEBUG exec_ssh client1 df | \
+	DIRS=`$GFSERVICE systest::gfarm2fs::exec_ssh client1 df | \
 		awk '/gfarm2fs/ {print $6}'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to check mount point"
@@ -102,8 +102,8 @@ test_mount_in_gfmd_failover()
 		"as master"
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

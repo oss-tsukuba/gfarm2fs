@@ -2,8 +2,8 @@
 # Test case for check behavior when gfsd network interface is down
 # in writing files
 #
-load	"generate_testdata" \
-	"wait_for_gfsd_connect"
+load	"gfarm_v2::generate_testdata" \
+	"gfarm2fs::wait_for_gfsd_connect"
 
 #
 # Test parameters
@@ -23,12 +23,12 @@ test_gfsd_ifdown_in_write()
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 client1"
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: wait until gfsd get connected
@@ -40,13 +40,13 @@ test_gfsd_ifdown_in_write()
 
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
 
 	# step: make files in background
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE1 gfmd1 gfsd1 &
 	MAKE_PID=$!
 
@@ -54,7 +54,7 @@ test_gfsd_ifdown_in_write()
 	sleep $SLEEP_SEC
 
 	# step: make network interface down
-	$GFSERVICE $DEBUG ifdown gfsd1
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd1"
 		return $RESULT_FATAL
@@ -67,7 +67,7 @@ test_gfsd_ifdown_in_write()
 	fi
 
 	# step: make network interface up
-	$GFSERVICE $DEBUG ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
 		return $RESULT_FATAL
@@ -82,14 +82,14 @@ test_gfsd_ifdown_in_write()
 
 	# step: make files
 	GFARM_FILE2=$MOUNT_POINT/${TEST_EXEC_ID}_2
-	$GFSERVICE $DEBUG make_file client1 $GFARM_FILE2 $FILE_SIZE
+	$GFSERVICE systest::gfarm2fs::make_file client1 $GFARM_FILE2 $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE3 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
@@ -97,12 +97,12 @@ test_gfsd_ifdown_in_write()
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG exec_ssh client1 rm -f $GFARM_FILE2
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE3
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $GFARM_FILE2
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE3
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

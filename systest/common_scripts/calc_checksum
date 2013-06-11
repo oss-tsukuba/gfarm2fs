@@ -1,4 +1,4 @@
-load	"generate_testdata"
+load	"gfarm_v2::generate_testdata"
 
 #
 # calculate expected md5sum

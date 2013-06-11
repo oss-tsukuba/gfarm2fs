@@ -15,8 +15,8 @@ subcmd_make_files()
 
 	check_argc $# 3
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - make_files "$@"
-	[ $? -ne 0 ] && log_error "gfservice make_files failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::make_files "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::make_files failed"
 
 	log_debug "end subcmd_make_files"
 }
@@ -45,11 +45,11 @@ make_files()
 #
 make_files_agent_depends()
 {
-	echo "make_file"
+	echo "systest::gfarm2fs::make_file"
 }
 
 #
-# Sub-command: make_files
+# Sub-command: systest::gfarm2fs::make_files
 # Make files in target dir.
 #
 subcmd_make_files_agent()

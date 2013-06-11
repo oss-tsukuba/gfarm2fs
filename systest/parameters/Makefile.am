@@ -1,4 +1,4 @@
-parametersdir = $(datadir)/gfarm/systest/parameters
+parametersdir = $(datadir)/gfarm/systest/parameters/gfarm2fs
 dist_parameters_DATA = read_files_1c_100m_1000f_100M \
 	read_files_1c_100m_1000f_1G \
 	read_files_1c_100m_1000f_1M \

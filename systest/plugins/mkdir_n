@@ -7,7 +7,7 @@ mkdir_n_depends()
 }
 
 #
-# Sub-command: mkdir_n
+# Sub-command: systest::gfarm2fs::mkdir_n
 #
 subcmd_mkdir_n()
 {
@@ -15,8 +15,8 @@ subcmd_mkdir_n()
 
 	check_argc $# 2
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - mkdir_n "$@"
-	[ $? -ne 0 ] && log_error "gfservice mkdir_n failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::mkdir_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::mkdir_n failed"
 
 	log_debug "end subcmd_mkdir_n"
 }
@@ -30,7 +30,7 @@ mkdir_n_agent_depends()
 }
 
 #
-# Sub-command: mkdir_n
+# Sub-command: systest::gfarm2fs::mkdir_n
 # Make directories in target dir.
 #
 subcmd_mkdir_n_agent()

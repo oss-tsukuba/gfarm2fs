@@ -15,8 +15,8 @@ subcmd_check_files_n_each_mntpnts()
 
 	check_argc $# 5
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - check_files_n_each_mntpnts "$@"
-	[ $? -ne 0 ] && log_error "gfservice check_files_n_each_mntpnts failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::check_files_n_each_mntpnts "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::check_files_n_each_mntpnts failed"
 
 	log_debug "end subcmd_check_files_n_each_mntpnts"
 }
@@ -26,11 +26,11 @@ subcmd_check_files_n_each_mntpnts()
 #
 check_files_n_each_mntpnts_agent_depends()
 {
-	echo "check_files"
+	echo "systest::gfarm2fs::check_files"
 }
 
 #
-# Sub-command: check_files_n_each_mntpnts
+# Sub-command: systest::gfarm2fs::check_files_n_each_mntpnts
 # Check files in target dir on each mount points.
 #
 subcmd_check_files_n_each_mntpnts_agent()

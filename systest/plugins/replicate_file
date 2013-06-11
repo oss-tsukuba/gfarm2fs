@@ -7,7 +7,7 @@ replicate_file_depends()
 }
 
 #
-# Sub-command: replicate_file
+# Sub-command: systest::gfarm2fs::replicate_file
 #
 subcmd_replicate_file()
 {
@@ -19,11 +19,11 @@ subcmd_replicate_file()
 	DEST_HOST=`exec_remote_host_agent $2 root get-config-gfsd-param \
 		"param=GFSD_HOSTNAME"`
 	[ $? -ne 0 ] && \
-		log_error "gfservice replicate_file failed to get hostname"
+		log_error "gfservice systest::gfarm2fs::replicate_file failed to get hostname"
 
-	exec_remote_host_agent $HOSTID - replicate_file \
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::replicate_file \
 		"file-path=$1" "dest-host=$DEST_HOST"
-	[ $? -ne 0 ] && log_error "gfservice replicate_file failed"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::replicate_file failed"
 
 	log_debug "end subcmd_replicate_file"
 }
@@ -37,7 +37,7 @@ replicate_file_agent_depends()
 }
 
 #
-# Sub-command: replicate_file
+# Sub-command: systest::gfarm2fs::replicate_file
 # read file from the Gfarm file system and print to stdout
 #
 subcmd_replicate_file_agent()

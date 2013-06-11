@@ -15,8 +15,8 @@ subcmd_remove_files()
 
 	check_argc $# 2
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - remove_files "$@"
-	[ $? -ne 0 ] && log_error "gfservice remove_files failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::remove_files "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::remove_files failed"
 
 	log_debug "end subcmd_remove_files"
 }
@@ -30,7 +30,7 @@ remove_files_agent_depends()
 }
 
 #
-# Sub-command: remove_files
+# Sub-command: systest::gfarm2fs::remove_files
 # Remove files in target dir.
 #
 subcmd_remove_files_agent()

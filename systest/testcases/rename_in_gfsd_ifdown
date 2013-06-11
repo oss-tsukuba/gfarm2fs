@@ -2,12 +2,12 @@
 # Test case for renaming a file which has replication, when gfsd network
 # interface is down
 #
-load	"calc_checksum" \
-	"generate_testdata" \
-	"wait_for_gfsd_connect" \
-	"wait_for_gfsd_disconnect" \
-	"check_replica_num" \
-	"check_file_location"
+load	"gfarm2fs::calc_checksum" \
+	"gfarm_v2::generate_testdata" \
+	"gfarm2fs::wait_for_gfsd_connect" \
+	"gfarm2fs::wait_for_gfsd_disconnect" \
+	"gfarm_v2::check_replica_num" \
+	"gfarm_v2::check_file_location"
 
 #
 # Test parameters
@@ -28,12 +28,12 @@ test_rename_in_gfsd_ifdown()
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required hosts are defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: wait until gfsd get connected
@@ -51,20 +51,20 @@ test_rename_in_gfsd_ifdown()
 
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
 
 	# prepare: make a file with replica
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd1"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate file on gfsd2"
 		return $RESULT_FATAL
@@ -74,10 +74,10 @@ test_rename_in_gfsd_ifdown()
 	CHECKSUM=`calc_checksum $FILE_SIZE`
 
 	# prepare: get spool file path
-	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE`
+	SPOOL_PATH=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE`
 
 	# prepare: make network interface down
-	$GFSERVICE $DEBUG ifdown gfsd1
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd1"
 		return $RESULT_FATAL
@@ -93,7 +93,7 @@ test_rename_in_gfsd_ifdown()
 	# step: rename a file
 	MOUNT_FILE_SRC=$MOUNT_POINT/$TEST_EXEC_ID
 	MOUNT_FILE_DST=$MOUNT_POINT/${TEST_EXEC_ID}_dst
-	$GFSERVICE $DEBUG exec_ssh client1 "mv $MOUNT_FILE_SRC $MOUNT_FILE_DST"
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "mv $MOUNT_FILE_SRC $MOUNT_FILE_DST"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to rename a file"
 		set_result RESULT $RESULT_FAIL
@@ -108,13 +108,13 @@ test_rename_in_gfsd_ifdown()
 	fi
 
 	# step: compare check sum of spool file
-	CHECKSUM_GFSD1=`$GFSERVICE $DEBUG spool_file_checksum gfsd1 $SPOOL_PATH`
+	CHECKSUM_GFSD1=`$GFSERVICE systest::gfarm2fs::spool_file_checksum gfsd1 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD1 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 $SPOOL_PATH`
+	CHECKSUM_GFSD2=`$GFSERVICE systest::gfarm2fs::spool_file_checksum gfsd2 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD2 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file"
 		set_result RESULT $RESULT_FAIL
@@ -145,31 +145,31 @@ test_rename_in_gfsd_ifdown()
 	fi
 
 	# step: make network interface up
-	$GFSERVICE $DEBUG ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
 		return $RESULT_FATAL
 	fi
 
 	# step: check original spool file is there
-	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH
+	$GFSERVICE systest::gfarm2fs::spool_file_exists gfsd1 $SPOOL_PATH
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd1"
 		set_result RESULT $RESULT_XFAIL
 	fi
 
-	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH
+	$GFSERVICE systest::gfarm2fs::spool_file_exists gfsd2 $SPOOL_PATH
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: cannot find spool file on gfsd2"
 		set_result RESULT $RESULT_XFAIL
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE_DST
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE_DST
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

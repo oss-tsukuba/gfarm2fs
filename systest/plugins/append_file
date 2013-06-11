@@ -15,8 +15,8 @@ subcmd_append_file()
 
 	check_argc $# 2
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - append_file "$@"
-	[ $? -ne 0 ] && log_error "gfservice append_file failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::append_file "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::append_file failed"
 
 	log_debug "end subcmd_append_file"
 }
@@ -79,7 +79,7 @@ append_file_agent_depends()
 }
 
 #
-# Sub-command: append_file
+# Sub-command: systest::gfarm2fs::append_file
 # Make file in given path.
 #
 subcmd_append_file_agent()

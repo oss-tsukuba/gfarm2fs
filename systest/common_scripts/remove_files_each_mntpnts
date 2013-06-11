@@ -9,7 +9,7 @@ remove_files_each_mntpnts()
 	TARGET_DIR=$4
 	NFILES=$5
 
-	$GFSERVICE $DEBUG remove_files_each_mntpnts $HOSTID $MNTDIR_PREFIX \
+	$GFSERVICE systest::gfarm2fs::remove_files_each_mntpnts $HOSTID $MNTDIR_PREFIX \
 		$COUNT $TARGET_DIR $NFILES
 	if [ $? -ne 0 ]; then
 		log_warn "gfservice remove_files_each_mntpnts failed $HOSTID" \

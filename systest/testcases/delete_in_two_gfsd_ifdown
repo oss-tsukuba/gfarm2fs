@@ -2,9 +2,9 @@
 # Test case for deleting a file which has replication, when network
 # interface of two gfsd node is down
 #
-load	"generate_testdata" \
-	"wait_for_gfsd_connect" \
-	"wait_for_gfsd_disconnect"
+load	"gfarm_v2::generate_testdata" \
+	"gfarm2fs::wait_for_gfsd_connect" \
+	"gfarm2fs::wait_for_gfsd_disconnect"
 
 #
 # Test parameters
@@ -25,13 +25,13 @@ test_delete_in_two_gfsd_ifdown()
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required hosts are defined
-	$GFSERVICE $DEBUG check_hostids_defined - \
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: wait until gfsd get connected
@@ -55,45 +55,45 @@ test_delete_in_two_gfsd_ifdown()
 
 	# prepare: make a file with replica
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE1 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd1"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE1 gfsd3
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE1 gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate file on gfsd3"
 		return $RESULT_FATAL
 	fi
 
 	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE2 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to register file on gfsd2"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE2 gfsd3
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE2 gfsd3
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to replicate file on gfsd3"
 		return $RESULT_FATAL
 	fi
 
 	# prepare: get spool file path
-	SPOOL_PATH1=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE1`
-	SPOOL_PATH2=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE2`
+	SPOOL_PATH1=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE1`
+	SPOOL_PATH2=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE2`
 
 	# prepare: make network interface down
-	$GFSERVICE $DEBUG ifdown gfsd1
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd1"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG ifdown gfsd2
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
 		return $RESULT_FATAL
@@ -113,46 +113,46 @@ test_delete_in_two_gfsd_ifdown()
 	fi
 
 	# step: remove file
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to remove a file"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: check spool file
-	$GFSERVICE $DEBUG spool_file_exists gfsd3 $SPOOL_PATH1
+	$GFSERVICE systest::gfarm2fs::spool_file_exists gfsd3 $SPOOL_PATH1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: a spool file remains"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	$GFSERVICE $DEBUG spool_file_exists gfsd3 $SPOOL_PATH2
+	$GFSERVICE systest::gfarm2fs::spool_file_exists gfsd3 $SPOOL_PATH2
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: a spool file remains"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
-	$GFSERVICE $DEBUG ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG ifup gfsd2
+	$GFSERVICE systest::gfarm2fs::ifup gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
 		return $RESULT_FATAL
 	fi
 
 	# step: check original spool file is deleted
-	$GFSERVICE $DEBUG spool_file_exists gfsd1 $SPOOL_PATH1
+	$GFSERVICE systest::gfarm2fs::spool_file_exists gfsd1 $SPOOL_PATH1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: a spool file on gfsd1 remains"
 		set_result RESULT $RESULT_XFAIL
 	fi
 
-	$GFSERVICE $DEBUG spool_file_exists gfsd2 $SPOOL_PATH2
+	$GFSERVICE systest::gfarm2fs::spool_file_exists gfsd2 $SPOOL_PATH2
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: a spool file on gfsd2 remains"
 		set_result RESULT $RESULT_XFAIL

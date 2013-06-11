@@ -9,7 +9,7 @@ umount_n()
 
 	for I in `seq $COUNT` ; do
 		MNT=`printf $MNTDIR_PREFIX%04d $I`
-		$GFSERVICE $DEBUG umount $HOSTID $MNT
+		$GFSERVICE umount $HOSTID $MNT
 		if [ $? -ne 0 ]; then
 			log_warn "gfservice umount failed $HOSTID mnt$I"
 			return 1

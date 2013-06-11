@@ -7,7 +7,7 @@ spool_file_exists_depends()
 }
 
 #
-# Sub-command: spool_file_exists
+# Sub-command: systest::gfarm2fs::spool_file_exists
 #
 subcmd_spool_file_exists()
 {
@@ -15,8 +15,8 @@ subcmd_spool_file_exists()
 
 	check_argc $# 1
 	check_hostid gfsd $HOSTID
-	exec_remote_host_agent $HOSTID root spool_file_exists "$@"
-	[ $? -ne 0 ] && log_error "gfservice spool_file_exists failed"
+	exec_remote_host_agent $HOSTID root systest::gfarm2fs::spool_file_exists "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::spool_file_exists failed"
 
 	log_debug "end subcmd_spool_file_exists"
 }
@@ -30,7 +30,7 @@ spool_file_exists_agent_depends()
 }
 
 #
-# Sub-command: spool_file_exists
+# Sub-command: systest::gfarm2fs::spool_file_exists
 # check whether spool file exists
 #
 subcmd_spool_file_exists_agent()

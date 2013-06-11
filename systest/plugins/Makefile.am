@@ -1,4 +1,4 @@
-gfservicedir = $(datadir)/gfarm/gfservice
+gfservicedir = $(datadir)/gfarm/gfservice/systest/gfarm2fs
 dist_gfservice_DATA = check_files \
 	check_files_n_each_mntpnts \
 	log_view \

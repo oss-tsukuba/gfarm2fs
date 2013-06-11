@@ -15,8 +15,8 @@ subcmd_read_files_n()
 
 	check_argc $# 4
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - read_files_n "$@"
-	[ $? -ne 0 ] && log_error "gfservice read_files_n failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::read_files_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::read_files_n failed"
 
 	log_debug "end subcmd_read_files_n"
 }
@@ -26,11 +26,12 @@ subcmd_read_files_n()
 #
 read_files_n_agent_depends()
 {
-	echo "read_file read_files"
+	echo "systest::gfarm2fs::read_file"
+	echo "systest::gfarm2fs::read_files"
 }
 
 #
-# Sub-command: read_files_n
+# Sub-command: systest::gfarm2fs::read_files_n
 # Read files in target dir.
 #
 subcmd_read_files_n_agent()

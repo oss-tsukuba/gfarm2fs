@@ -7,7 +7,7 @@ spool_file_checksum_depends()
 }
 
 #
-# Sub-command: spool_file_checksum
+# Sub-command: systest::gfarm2fs::spool_file_checksum
 #
 subcmd_spool_file_checksum()
 {
@@ -15,8 +15,8 @@ subcmd_spool_file_checksum()
 
 	check_argc $# 1
 	check_hostid gfsd $HOSTID
-	exec_remote_host_agent $HOSTID root spool_file_checksum "$@"
-	[ $? -ne 0 ] && log_error "gfservice spool_file_checksum failed"
+	exec_remote_host_agent $HOSTID root systest::gfarm2fs::spool_file_checksum "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::spool_file_checksum failed"
 
 	log_debug "end subcmd_spool_file_checksum"
 }
@@ -30,7 +30,7 @@ spool_file_checksum_agent_depends()
 }
 
 #
-# Sub-command: spool_file_checksum
+# Sub-command: systest::gfarm2fs::spool_file_checksum
 # get checksum of specified spool file
 #
 subcmd_spool_file_checksum_agent()

@@ -6,7 +6,7 @@ gfwhere_check()
 	HOSTID=$1
 	DIR=$2
 
-	$GFSERVICE $DEBUG gfcmd $HOSTID "gfwhere" "-alr $DIR"
+	$GFSERVICE gfcmd $HOSTID "gfwhere" "-alr $DIR"
 	if [ $? -ne 0 ]; then
 		log_warn "gfservice gfcmd failed $HOSTID $DIR"
 		return 1

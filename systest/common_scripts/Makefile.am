@@ -1,4 +1,4 @@
-common_scriptsdir = $(datadir)/gfarm/systest/common_scripts
+common_scriptsdir = $(datadir)/gfarm/systest/common_scripts/gfarm2fs
 dist_common_scripts_DATA = calc_checksum \
 	check_files \
 	check_files_each_mntpnts \

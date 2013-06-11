@@ -1,10 +1,10 @@
 #
 # Test case for operation when network interface of two gfsd node is down
 #
-load	"generate_testdata" \
-	"wait_for_gfsd_connect" \
-	"wait_for_gfsd_disconnect" \
-	"check_replica_num"
+load	"gfarm_v2::generate_testdata" \
+	"gfarm2fs::wait_for_gfsd_connect" \
+	"gfarm2fs::wait_for_gfsd_disconnect" \
+	"gfarm_v2::check_replica_num"
 
 #
 # Test parameters
@@ -23,13 +23,13 @@ test_operation_in_two_gfsd_ifdown()
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
 	# prepare: check whether required hosts are defined
-	$GFSERVICE $DEBUG check_hostids_defined - \
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: wait until gfsd get connected
@@ -55,35 +55,35 @@ test_operation_in_two_gfsd_ifdown()
 	GFARM_PATH1=$GFARM_HOME/${TEST_EXEC_ID}_1
 	GFARM_PATH2=$GFARM_HOME/${TEST_EXEC_ID}_2
 	GFARM_PATH3=$GFARM_HOME/${TEST_EXEC_ID}_3
-	$GFSERVICE $DEBUG gfcmd client1 gfmkdir $GFARM_PATH1 $GFARM_PATH2 \
+	$GFSERVICE gfcmd client1 gfmkdir $GFARM_PATH1 $GFARM_PATH2 \
 		$GFARM_PATH3
 
 	# prepare: set number of replica to be created
-	$GFSERVICE $DEBUG gfcmd client1 gfncopy -s 2 $GFARM_PATH1
-	$GFSERVICE $DEBUG gfcmd client1 gfncopy -s 2 $GFARM_PATH2
+	$GFSERVICE gfcmd client1 gfncopy -s 2 $GFARM_PATH1
+	$GFSERVICE gfcmd client1 gfncopy -s 2 $GFARM_PATH2
 
 	# prepare: make a file
 	READ_GFARM_PATH1=$GFARM_PATH3/${TEST_EXEC_ID}_1
 	READ_GFARM_PATH2=$GFARM_PATH3/${TEST_EXEC_ID}_2
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $READ_GFARM_PATH1 gfmd1 gfsd1
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $READ_GFARM_PATH2 gfmd1 gfsd3
 
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
 
 	# prepare: make network interface down
-	$GFSERVICE $DEBUG ifdown gfsd1
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd1"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG ifdown gfsd2
+	$GFSERVICE systest::gfarm2fs::ifdown gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
 		return $RESULT_FATAL
@@ -105,13 +105,13 @@ test_operation_in_two_gfsd_ifdown()
 	# step: write file
 	WRITE_PATH1=$MOUNT_POINT/${TEST_EXEC_ID}_1/$TEST_EXEC_ID
 	WRITE_PATH2=$MOUNT_POINT/${TEST_EXEC_ID}_2/$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID > $WRITE_PATH1"
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo $TEST_EXEC_ID > $WRITE_PATH1"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write a file $WRITE_PATH1"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID > $WRITE_PATH2"
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo $TEST_EXEC_ID > $WRITE_PATH2"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write a file $WRITE_PATH2"
 		set_result RESULT $RESULT_FAIL
@@ -134,17 +134,17 @@ test_operation_in_two_gfsd_ifdown()
 
 	# step: compare check sum of spool file
 	CHECKSUM=`echo $TEST_EXEC_ID | openssl md5 | awk '{ print $2 }'`
-	SPOOL_PATH1=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath \
+	SPOOL_PATH1=`$GFSERVICE gfcmd client1 gfspoolpath \
 		$WRITE_GFARM_PATH1`
 	if [ X$SPOOL_PATH1 = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere \
+	for HOST in `$GFSERVICE gfcmd client1 gfwhere \
 		$WRITE_GFARM_PATH1`; do
-		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
-		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum \
+		HOSTID=`$GFSERVICE systest::gfarm_v2::get_gfsd_hostid_by_name $HOST`
+		CHECKSUM_SPOOL=`$GFSERVICE systest::gfarm2fs::spool_file_checksum \
 			$HOSTID $SPOOL_PATH1`
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of a file is different" \
@@ -154,17 +154,17 @@ test_operation_in_two_gfsd_ifdown()
 		fi
 	done
 
-	SPOOL_PATH2=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath \
+	SPOOL_PATH2=`$GFSERVICE gfcmd client1 gfspoolpath \
 		$WRITE_GFARM_PATH2`
 	if [ X$SPOOL_PATH2 = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
 		set_result RESULT $RESULT_FAIL
 	fi
 
-	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere \
+	for HOST in `$GFSERVICE gfcmd client1 gfwhere \
 		$WRITE_GFARM_PATH2`; do
-		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
-		CHECKSUM_SPOOL=`$GFSERVICE $DEBUG spool_file_checksum \
+		HOSTID=`$GFSERVICE systest::gfarm_v2::get_gfsd_hostid_by_name $HOST`
+		CHECKSUM_SPOOL=`$GFSERVICE systest::gfarm2fs::spool_file_checksum \
 			$HOSTID $SPOOL_PATH2`
 		if [ X$CHECKSUM_SPOOL != X$CHECKSUM ]; then
 			log_warn "$TESTNAME: checksum of a file is different" \
@@ -175,7 +175,7 @@ test_operation_in_two_gfsd_ifdown()
 	done
 
 	# step: read file
-	$GFSERVICE $DEBUG export_file client1 $READ_GFARM_PATH2 gfmd1 \
+	$GFSERVICE systest::gfarm2fs::export_file client1 $READ_GFARM_PATH2 gfmd1 \
 		> /dev/null
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file from gfsd3"
@@ -184,7 +184,7 @@ test_operation_in_two_gfsd_ifdown()
 
 	# step: write file
 	WRITE_GFARM_PATH3=$GFARM_PATH3/${TEST_EXEC_ID}_3
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE4 $WRITE_GFARM_PATH3 gfmd1 gfsd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: wrote file unexpectedly to gfsd1"
@@ -192,7 +192,7 @@ test_operation_in_two_gfsd_ifdown()
 	fi
 
 	# step: read file
-	$GFSERVICE $DEBUG export_file client1 $READ_GFARM_PATH1 gfmd1 \
+	$GFSERVICE systest::gfarm2fs::export_file client1 $READ_GFARM_PATH1 gfmd1 \
 		> /dev/null
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: read a file unexpectedly from gfsd1"
@@ -200,30 +200,30 @@ test_operation_in_two_gfsd_ifdown()
 	fi
 
 	# cleanup: make network interface up
-	$GFSERVICE $DEBUG ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
 		return $RESULT_FATAL
 	fi
 
-	$GFSERVICE $DEBUG ifup gfsd2
+	$GFSERVICE systest::gfarm2fs::ifup gfsd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
 		return $RESULT_FATAL
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $READ_GFARM_PATH1 \
+	$GFSERVICE gfcmd client1 gfrm -f $READ_GFARM_PATH1 \
 		$READ_GFARM_PATH2 $WRITE_GFARM_PATH1 $WRITE_GFARM_PATH2 \
 		$WRITE_GFARM_PATH3
 
 	# cleanup: remove dir
-	$GFSERVICE $DEBUG gfcmd client1 gfrmdir $GFARM_PATH1 $GFARM_PATH2 \
+	$GFSERVICE gfcmd client1 gfrmdir $GFARM_PATH1 $GFARM_PATH2 \
 		$GFARM_PATH3
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

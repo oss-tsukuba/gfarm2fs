@@ -14,36 +14,36 @@ test_operation_in_gfmd_ifdown()
 	GFARM_HOME=${GFARM_HOME-"/"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - \
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: create mount point
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 
 	# prepare: write file with gfreg
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE1 gfmd1 gfsd2
 
 	# prepare: stop gfsd
-	$GFSERVICE $DEBUG stop-gfsd gfsd1
+	$GFSERVICE stop-gfsd gfsd1
 
 	# prepare: make network interface down
-	$GFSERVICE $DEBUG ifdown gfmd1
+	$GFSERVICE systest::gfarm2fs::ifdown gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfmd1"
 		return $RESULT_FATAL
 	fi
 
 	# prepare: make network interface down
-	$GFSERVICE $DEBUG ifdown gfmd2
+	$GFSERVICE systest::gfarm2fs::ifdown gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifdown on gfmd2"
 		return $RESULT_FATAL
@@ -51,7 +51,7 @@ test_operation_in_gfmd_ifdown()
 
 	# step: write file with gfreg
 	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE2 gfmd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to write a file"
@@ -59,14 +59,14 @@ test_operation_in_gfmd_ifdown()
 	fi
 
 	# step: read file with gfexport
-	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1
+	$GFSERVICE systest::gfarm2fs::export_file client1 $GFARM_FILE1 gfmd1
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to read a file"
 		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: add an user with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -c $TEST_EXEC_ID \
+	$GFSERVICE gfcmd client1 gfuser -c $TEST_EXEC_ID \
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to create a user"
@@ -74,45 +74,45 @@ test_operation_in_gfmd_ifdown()
 	fi
 
 	# step: show users with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
+	$GFSERVICE gfcmd client1 gfuser -l
 	if [ $? -eq 0 ]; then
 		log_warn "$TESTNAME: unexpectedly suceeded to list users"
 		set_result RESULT $RESULT_XPASS
 	fi
 
 	# step: start gfsd
-	$GFSERVICE $DEBUG start-gfsd gfsd1
+	$GFSERVICE start-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: make network interface up
-	$GFSERVICE $DEBUG ifup gfmd1
+	$GFSERVICE systest::gfarm2fs::ifup gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfmd1"
 		return $RESULT_FATAL
 	fi
 
 	# step: make network interface up
-	$GFSERVICE $DEBUG ifup gfmd2
+	$GFSERVICE systest::gfarm2fs::ifup gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to execute ifup on gfmd2"
 		return $RESULT_FATAL
 	fi
 
 	# step: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
 
 	# step: write file with gfreg
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
@@ -120,14 +120,14 @@ test_operation_in_gfmd_ifdown()
 	fi
 
 	# step: read file with gfexport
-	$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 gfmd1
+	$GFSERVICE systest::gfarm2fs::export_file client1 $GFARM_FILE1 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: add an user with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -c $TEST_EXEC_ID \
+	$GFSERVICE gfcmd client1 gfuser -c $TEST_EXEC_ID \
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to add user"
@@ -135,21 +135,21 @@ test_operation_in_gfmd_ifdown()
 	fi
 
 	# step: show users with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
+	$GFSERVICE gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to show user"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: restart gfsd
-	$GFSERVICE $DEBUG restart-gfsd gfsd1
+	$GFSERVICE restart-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount gfarm"
 		set_result RESULT $RESULT_FAIL
@@ -157,24 +157,24 @@ test_operation_in_gfmd_ifdown()
 
 	# step: create file
 	GFARM_FILE3=$MOUNT_POINT/${TEST_EXEC_ID}_3
-	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create file"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
-	$GFSERVICE $DEBUG exec_ssh client1 rm -f $GFARM_FILE3
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $GFARM_FILE3
 
 	# cleanup: delete user
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -d $TEST_EXEC_ID
+	$GFSERVICE gfcmd client1 gfuser -d $TEST_EXEC_ID
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
 
 	# cleanup: remove mount point
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

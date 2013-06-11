@@ -1,13 +1,13 @@
 #
 # Test case for check behavior when replicated a file in gfmd failing over
 #
-load	"calc_checksum" \
-	"generate_testdata" \
-	"check_replica_num" \
-	"check_journal_seqnum_max" \
-	"check_gfmd_connected" \
-	"check_gfmd_master" \
-	"failback"
+load	"gfarm2fs::calc_checksum" \
+	"gfarm_v2::generate_testdata" \
+	"gfarm_v2::check_replica_num" \
+	"gfarm_v2::check_journal_seqnum_max" \
+	"gfarm_v2::check_gfmd_connected" \
+	"gfarm_v2::check_gfmd_master" \
+	"gfarm_v2::failback"
 
 #
 # Test parameters
@@ -30,18 +30,18 @@ test_rep_in_gfmd_failover()
 	RETRY_INTERVAL=${RETRY_COUNT-"5"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - \
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: make a file
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
-	generate_testdata $FILE_SIZE | $GFSERVICE $DEBUG read_and_register \
+	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
@@ -52,22 +52,22 @@ test_rep_in_gfmd_failover()
 	CHECKSUM=`calc_checksum $FILE_SIZE`
 
 	# step: stop gfmd on gfmd1
-	$GFSERVICE $DEBUG stop-gfmd gfmd1
+	$GFSERVICE stop-gfmd gfmd1
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to stop gfmd on gfmd1"
 
 	# step: replicate file
-	$GFSERVICE $DEBUG replicate_file client1 $GFARM_FILE gfsd2 &
+	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd2 &
 	REP_PID=$!
 
 	# wait a bit for a process starts making files
 	sleep $SLEEP_SEC
 
 	# step: promote gfmd on gfmd2
-	$GFSERVICE $DEBUG promote-gfmd gfmd2
+	$GFSERVICE promote-gfmd gfmd2
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to promote gfmd on gfmd2"
 
 	# step: set gfmd on gfmd1 to be slave
-	$GFSERVICE $DEBUG -t $TIMEOUT start-gfmd-slave gfmd1
+	$GFSERVICE -t $TIMEOUT start-gfmd-slave gfmd1
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to start gfmd on gfmd1" \
 		"as slave"
 
@@ -92,15 +92,15 @@ test_rep_in_gfmd_failover()
 	fi
 
 	# step: compare check sum of spool file
-	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE`
-	CHECKSUM_GFSD1=`$GFSERVICE $DEBUG spool_file_checksum gfsd1 $SPOOL_PATH`
+	SPOOL_PATH=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE`
+	CHECKSUM_GFSD1=`$GFSERVICE systest::gfarm2fs::spool_file_checksum gfsd1 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD1 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file" \
 			"on gfsd1"
 		set_result RESULT $RESULT_XFAIL
 	fi
 
-	CHECKSUM_GFSD2=`$GFSERVICE $DEBUG spool_file_checksum gfsd2 $SPOOL_PATH`
+	CHECKSUM_GFSD2=`$GFSERVICE systest::gfarm2fs::spool_file_checksum gfsd2 $SPOOL_PATH`
 	if [ X$CHECKSUM_GFSD2 = X ]; then
 		log_warn "$TESTNAME: fail to get checksum of a spool file" \
 			"on gfsd2"
@@ -130,7 +130,7 @@ test_rep_in_gfmd_failover()
 		"as master"
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE
 
 	return $RESULT
 }

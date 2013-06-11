@@ -15,8 +15,8 @@ subcmd_read_file()
 
 	check_argc $# 1 +
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - read_file "file-path=$1" "checksum=$2"
-	[ $? -ne 0 ] && log_error "gfservice read_file failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::read_file "file-path=$1" "checksum=$2"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::read_file failed"
 
 	log_debug "end subcmd_read_file"
 }
@@ -51,7 +51,7 @@ read_file_agent_depends()
 }
 
 #
-# Sub-command: read_file
+# Sub-command: systest::gfarm2fs::read_file
 # Read given files.
 #
 subcmd_read_file_agent()

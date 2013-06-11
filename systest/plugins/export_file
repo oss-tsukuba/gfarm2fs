@@ -7,7 +7,7 @@ export_file_depends()
 }
 
 #
-# Sub-command: export_file
+# Sub-command: systest::gfarm2fs::export_file
 #
 subcmd_export_file()
 {
@@ -45,10 +45,10 @@ subcmd_export_file()
 			&& log_error "failed to get GFSD_HOSTNAME of $HOSTID"
 	fi
 
-	exec_remote_host_agent $HOSTID - export_file \
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::export_file \
 		"gfarm-url=gfarm://${BACKEND_HOSTNAME}:${GFMD_PORT}/${FILE_PATH}" \
 		"filesystem-node=$GFSD_HOSTNAME"
-	[ $? -ne 0 ] && log_error "gfservice export_file failed"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::export_file failed"
 
 	log_debug "end subcmd_export_file"
 }
@@ -62,7 +62,7 @@ export_file_agent_depends()
 }
 
 #
-# Sub-command: export_file
+# Sub-command: systest::gfarm2fs::export_file
 # read file from the Gfarm file system and print to stdout
 #
 subcmd_export_file_agent()

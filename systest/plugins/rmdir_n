@@ -7,7 +7,7 @@ rmdir_n_depends()
 }
 
 #
-# Sub-command: rmdir_n
+# Sub-command: systest::gfarm2fs::rmdir_n
 #
 subcmd_rmdir_n()
 {
@@ -15,8 +15,8 @@ subcmd_rmdir_n()
 
 	check_argc $# 2
 	check_hostid any $HOSTID
-	exec_remote_host_agent $HOSTID - rmdir_n "$@"
-	[ $? -ne 0 ] && log_error "gfservice rmdir_n failed"
+	exec_remote_host_agent $HOSTID - systest::gfarm2fs::rmdir_n "$@"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::rmdir_n failed"
 
 	log_debug "end subcmd_rmdir_n"
 }
@@ -30,7 +30,7 @@ rmdir_n_agent_depends()
 }
 
 #
-# Sub-command: rmdir_n
+# Sub-command: systest::gfarm2fs::rmdir_n
 # Remove directories in target dir.
 #
 subcmd_rmdir_n_agent()

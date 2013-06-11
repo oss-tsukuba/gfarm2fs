@@ -28,7 +28,7 @@ get_ifup_cmd()
 }
 
 #
-# Sub-command: ifup
+# Sub-command: systest::gfarm2fs::ifup
 #
 subcmd_ifup()
 {
@@ -44,7 +44,7 @@ subcmd_ifup()
 
 	log_debug "execute $SSH $HOST $SUDO $IFUP_CMD"
 	$SSH $HOST $SUDO $IFUP_CMD
-	[ $? -ne 0 ] && log_error "gfservice ifup failed"
+	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::ifup failed"
 
 	log_debug "end subcmd_ifup"
 }

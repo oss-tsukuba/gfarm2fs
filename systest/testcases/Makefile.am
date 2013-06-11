@@ -1,4 +1,4 @@
-testcasesdir = $(datadir)/gfarm/systest/testcases
+testcasesdir = $(datadir)/gfarm/systest/testcases/gfarm2fs
 dist_testcases_DATA = read_files \
 	write_files \
 	write_files_each_mntpnts \

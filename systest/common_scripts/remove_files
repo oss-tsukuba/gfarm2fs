@@ -9,7 +9,7 @@ remove_files()
 	NFILES=$4
 
 	MNT=`printf $MNTDIR_PREFIX%04d 1`
-	$GFSERVICE $DEBUG remove_files $HOSTID "$MNT/$TARGET_DIR" $NFILES
+	$GFSERVICE systest::gfarm2fs::remove_files $HOSTID "$MNT/$TARGET_DIR" $NFILES
 	if [ $? -ne 0 ]; then
 		log_warn "gfservice remove_files failed $HOSTID $NFILES"
 		return 1

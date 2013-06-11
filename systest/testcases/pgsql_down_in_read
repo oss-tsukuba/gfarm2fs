@@ -1,7 +1,7 @@
 #
 # Test case for check behavior when backend db is down in reading files
 #
-load	"calc_checksum"
+load	"gfarm2fs::calc_checksum"
 
 #
 # Test parameters
@@ -19,12 +19,12 @@ test_pgsql_down_in_read()
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - "gfmd1 gfmd2 client1"
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: calc checksum
@@ -32,30 +32,30 @@ test_pgsql_down_in_read()
 
 	# prepare: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT -o modules=subdir \
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
 
 	# prepare: make files
 	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
-	$GFSERVICE $DEBUG make_file client1 $FILE_PATH $FILE_SIZE
+	$GFSERVICE systest::gfarm2fs::make_file client1 $FILE_PATH $FILE_SIZE
 
 	# step: read files in background
-	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT &
+	$GFSERVICE systest::gfarm2fs::read_file client1 $FILE_PATH $CHECKSUM_EXPECT &
 	READ_PID=$!
 
 	# wait a bit for a process starts making files
 	sleep $SLEEP_SEC
 
 	# step: stop backend-db
-	$GFSERVICE $DEBUG stop-backend-db gfmd1
+	$GFSERVICE stop-backend-db gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to stop backend db on gfmd1"
 		return $RESULT_FATAL
 	fi
 
 	# step: stop backend-db
-	$GFSERVICE $DEBUG stop-backend-db gfmd2
+	$GFSERVICE stop-backend-db gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to stop backend db on gfmd2"
 		return $RESULT_FATAL
@@ -68,32 +68,32 @@ test_pgsql_down_in_read()
 	fi
 
 	# step: start backend-db
-	$GFSERVICE $DEBUG start-backend-db gfmd1
+	$GFSERVICE start-backend-db gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start backend db on gfmd1"
 		return $RESULT_FATAL
 	fi
 
 	# step: start backend-db
-	$GFSERVICE $DEBUG start-backend-db gfmd2
+	$GFSERVICE start-backend-db gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start backend db on gfmd2"
 		return $RESULT_FATAL
 	fi
 
 	# step: read files
-	$GFSERVICE $DEBUG read_file client1 $FILE_PATH $CHECKSUM_EXPECT
+	$GFSERVICE systest::gfarm2fs::read_file client1 $FILE_PATH $CHECKSUM_EXPECT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read files"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG exec_ssh client1 rm -f $FILE_PATH
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $FILE_PATH
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

@@ -1,7 +1,7 @@
 #
 # Test case for operation when backend db is down
 #
-load	"check_metadata_filesize"
+load	"gfarm2fs::check_metadata_filesize"
 
 #
 # Test parameters
@@ -15,13 +15,13 @@ test_operation_in_pgsql_down()
 	GFARM_HOME=${GFARM_HOME-"/"}
 
 	# prepare: check whether required host is defined
-	$GFSERVICE $DEBUG check_hostids_defined - \
+	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE $DEBUG get-config-gfarm-param gfmd1 AUTH_TYPE`
+	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE $DEBUG grid_proxy_init client1
+		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
 	# prepare: calc checksum
@@ -29,25 +29,25 @@ test_operation_in_pgsql_down()
 
 	# prepare: create mount point
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
-	$GFSERVICE $DEBUG exec_ssh client1 mkdir $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 
 	# prepare: write file with gfreg
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE1 gfmd1 gfsd2
 
 	# prepare: stop gfsd
-	$GFSERVICE $DEBUG stop-gfsd gfsd1
+	$GFSERVICE stop-gfsd gfsd1
 
 	# step: stop backend-db
-	$GFSERVICE $DEBUG stop-backend-db gfmd1
+	$GFSERVICE stop-backend-db gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to stop backend db on gfmd1"
 		return $RESULT_FATAL
 	fi
 
 	# step: stop backend-db
-	$GFSERVICE $DEBUG stop-backend-db gfmd2
+	$GFSERVICE stop-backend-db gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to stop backend db on gfmd2"
 		return $RESULT_FATAL
@@ -55,7 +55,7 @@ test_operation_in_pgsql_down()
 
 	# step: write file with gfreg
 	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write a file"
@@ -63,15 +63,15 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: compare check sum of spool file
-	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE2`
+	SPOOL_PATH=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE2`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
 		return $RESULT_FATAL
 	fi
 
-	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE2`; do
-		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
-		CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
+	for HOST in `$GFSERVICE gfcmd client1 gfwhere $GFARM_FILE2`; do
+		HOSTID=`$GFSERVICE systest::gfarm_v2::get_gfsd_hostid_by_name $HOST`
+		CHECKSUM_ACTUAL=`$GFSERVICE systest::gfarm2fs::spool_file_checksum $HOSTID \
 			 $SPOOL_PATH`
 		if [ X$CHECKSUM_ACTUAL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool" \
@@ -95,7 +95,7 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: read file with gfexport
-	CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 \
+	CHECKSUM_ACTUAL=`$GFSERVICE systest::gfarm2fs::export_file client1 $GFARM_FILE1 \
 		gfmd1 | openssl md5 | awk '{ print $2 }'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
@@ -109,7 +109,7 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: add an user with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -c $TEST_EXEC_ID \
+	$GFSERVICE gfcmd client1 gfuser -c $TEST_EXEC_ID \
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create a user"
@@ -117,48 +117,48 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: show users with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
+	$GFSERVICE gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to list users"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start gfsd
-	$GFSERVICE $DEBUG start-gfsd gfsd1
+	$GFSERVICE start-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount Gfarm file system"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: start backend-db
-	$GFSERVICE $DEBUG start-backend-db gfmd1
+	$GFSERVICE start-backend-db gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start backend db on gfmd1"
 		return $RESULT_FATAL
 	fi
 
 	# step: start backend-db
-	$GFSERVICE $DEBUG start-backend-db gfmd2
+	$GFSERVICE start-backend-db gfmd2
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start backend db on gfmd2"
 		return $RESULT_FATAL
 	fi
 
 	# step: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
 
 	# step: delete created user
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -d $TEST_EXEC_ID
+	$GFSERVICE gfcmd client1 gfuser -d $TEST_EXEC_ID
 
 	# step: write file with gfreg
-	echo $TEST_EXEC_ID | $GFSERVICE $DEBUG read_and_register client1 \
+	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write files"
@@ -166,15 +166,15 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: compare check sum of spool file
-	SPOOL_PATH=`$GFSERVICE $DEBUG gfcmd client1 gfspoolpath $GFARM_FILE2`
+	SPOOL_PATH=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_FILE2`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"
 		return $RESULT_FATAL
 	fi
 
-	for HOST in `$GFSERVICE $DEBUG gfcmd client1 gfwhere $GFARM_FILE2`; do
-		HOSTID=`$GFSERVICE $DEBUG get_gfsd_hostid_by_name $HOST`
-		CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG spool_file_checksum $HOSTID \
+	for HOST in `$GFSERVICE gfcmd client1 gfwhere $GFARM_FILE2`; do
+		HOSTID=`$GFSERVICE systest::gfarm_v2::get_gfsd_hostid_by_name $HOST`
+		CHECKSUM_ACTUAL=`$GFSERVICE systest::gfarm2fs::spool_file_checksum $HOSTID \
 			 $SPOOL_PATH`
 		if [ X$CHECKSUM_ACTUAL = X ]; then
 			log_warn "$TESTNAME: fail to get checksum of a spool" \
@@ -198,7 +198,7 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: read file with gfexport
-	CHECKSUM_ACTUAL=`$GFSERVICE $DEBUG export_file client1 $GFARM_FILE1 \
+	CHECKSUM_ACTUAL=`$GFSERVICE systest::gfarm2fs::export_file client1 $GFARM_FILE1 \
 		gfmd1 | openssl md5 | awk '{ print $2 }'`
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to read a file"
@@ -212,7 +212,7 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: add an user with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -c $TEST_EXEC_ID \
+	$GFSERVICE gfcmd client1 gfuser -c $TEST_EXEC_ID \
 		"\"user create by test\"" "/home/$TEST_EXEC_ID" "\"\""
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to add user"
@@ -220,21 +220,21 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: show users with gfuser
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -l
+	$GFSERVICE gfcmd client1 gfuser -l
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to show user"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: restart gfsd
-	$GFSERVICE $DEBUG restart-gfsd gfsd1
+	$GFSERVICE restart-gfsd gfsd1
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to start gfsd"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# step: mount
-	$GFSERVICE $DEBUG mount client1 $MOUNT_POINT
+	$GFSERVICE mount client1 $MOUNT_POINT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to mount gfarm"
 		set_result RESULT $RESULT_FAIL
@@ -242,24 +242,24 @@ test_operation_in_pgsql_down()
 
 	# step: create file
 	GFARM_FILE3=$MOUNT_POINT/${TEST_EXEC_ID}_3
-	$GFSERVICE $DEBUG exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create file"
 		set_result RESULT $RESULT_FAIL
 	fi
 
 	# cleanup: remove files
-	$GFSERVICE $DEBUG gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
-	$GFSERVICE $DEBUG exec_ssh client1 rm -f $GFARM_FILE3
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $GFARM_FILE3
 
 	# cleanup: delete user
-	$GFSERVICE $DEBUG gfcmd client1 gfuser -d $TEST_EXEC_ID
+	$GFSERVICE gfcmd client1 gfuser -d $TEST_EXEC_ID
 
 	# cleanup: unmount
-	$GFSERVICE $DEBUG umount client1 $MOUNT_POINT
+	$GFSERVICE umount client1 $MOUNT_POINT
 
 	# cleanup: remove mount point
-	$GFSERVICE $DEBUG exec_ssh client1 rmdir $MOUNT_POINT
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
 	return $RESULT
 }

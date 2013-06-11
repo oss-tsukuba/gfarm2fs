@@ -14,7 +14,7 @@ make_files_single()
 	fi
 
 	MNT=`printf $MNTDIR_PREFIX%04d 1`
-	$GFSERVICE $DEBUG make_files $HOSTID "$MNT/$TARGET_DIR" $NFILES $SIZE
+	$GFSERVICE systest::gfarm2fs::make_files $HOSTID "$MNT/$TARGET_DIR" $NFILES $SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "gfservice make_files failed $HOSTID $NFILES $SIZE"
 		return 1
