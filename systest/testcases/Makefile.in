@@ -196,7 +196,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
-testcasesdir = $(datadir)/gfarm/systest/testcases
+testcasesdir = $(datadir)/gfarm/systest/testcases/gfarm2fs
 dist_testcases_DATA = read_files \
 	write_files \
 	write_files_each_mntpnts \
