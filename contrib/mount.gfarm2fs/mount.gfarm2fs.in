@@ -15,6 +15,7 @@ options:
     gfarmfs_root     directory to be mounted in Gfarm
     allow_root       allow root to access
     allow_other      allow everyone to access
+    ro               mount the file system read-only
 
 Environment variable:
     GFS_USERNAME     global user name in Gfarm
