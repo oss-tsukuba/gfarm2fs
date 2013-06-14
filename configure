@@ -2777,7 +2777,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-ac_config_files="$ac_config_files Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/mount.gfarm2fs/mount.gfarm2fs contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile systest/Makefile systest/testcases/Makefile systest/parameters/Makefile systest/common_scripts/Makefile systest/plugins/Makefile"
+ac_config_files="$ac_config_files Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/mount.gfarm2fs/mount.gfarm2fs contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile systest/Makefile systest/testcases/Makefile systest/scenarios/Makefile systest/common_scripts/Makefile systest/plugins/Makefile"
 
 
 DEPDIR="${am__leading_dot}deps"
@@ -13606,7 +13606,7 @@ do
     "contrib/gfarm2fs-proxy-info/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/gfarm2fs-proxy-info/Makefile" ;;
     "systest/Makefile") CONFIG_FILES="$CONFIG_FILES systest/Makefile" ;;
     "systest/testcases/Makefile") CONFIG_FILES="$CONFIG_FILES systest/testcases/Makefile" ;;
-    "systest/parameters/Makefile") CONFIG_FILES="$CONFIG_FILES systest/parameters/Makefile" ;;
+    "systest/scenarios/Makefile") CONFIG_FILES="$CONFIG_FILES systest/scenarios/Makefile" ;;
     "systest/common_scripts/Makefile") CONFIG_FILES="$CONFIG_FILES systest/common_scripts/Makefile" ;;
     "systest/plugins/Makefile") CONFIG_FILES="$CONFIG_FILES systest/plugins/Makefile" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
