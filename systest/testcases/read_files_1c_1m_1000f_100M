@@ -1,0 +1,11 @@
+#
+# Test parameters for reading files(1client, 1mountpoint, 1000files, 100M size)
+# (Test case No. 1-1-1-2)
+#
+
+load	"gfarm2fs::test_read_files_common"
+
+test_read_files_1c_1m_1000f_100M()
+{
+	test_read_files_common "/" 1 1 1000 100M
+}

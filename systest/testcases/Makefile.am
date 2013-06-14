@@ -1,50 +1,82 @@
 testcasesdir = $(datadir)/gfarm/systest/testcases/gfarm2fs
-dist_testcases_DATA = read_files \
-	write_files \
-	write_files_each_mntpnts \
-	make_file \
-	make_dir \
-	copy_file_local_to_gfarm \
-	copy_file_gfarm_to_gfarm \
-	copy_file_gfarm_to_local \
-	copy_dir_local_to_gfarm \
+dist_testcases_DATA = \
+	append_immediately_in_gfsd_ifdown \
+	append_in_gfsd_ifdown \
+	append_in_two_gfsd_ifdown \
+	client_ifdown_in_read \
+	client_ifdown_in_write \
+	continuous_operation \
 	copy_dir_gfarm_to_gfarm \
 	copy_dir_gfarm_to_local \
-	gfmd_ifdown_in_write \
+	copy_dir_local_to_gfarm \
+	copy_file_gfarm_to_gfarm \
+	copy_file_gfarm_to_local \
+	copy_file_local_to_gfarm \
+	copy_in_gfsd_ifdown \
+	copy_in_two_gfsd_ifdown \
+	delete_in_gfsd_ifdown \
+	delete_in_two_gfsd_ifdown \
+	gfmd_failover_in_read \
+	gfmd_failover_in_write \
 	gfmd_ifdown_in_read \
-	operation_in_gfmd_ifdown \
-	pgsql_down_in_write \
-	pgsql_down_in_read \
-	operation_in_pgsql_down \
-	client_ifdown_in_write \
-	client_ifdown_in_read \
-	operation_in_client_ifdown \
-	gfsd_ifdown_in_write \
+	gfmd_ifdown_in_write \
 	gfsd_ifdown_in_read \
 	gfsd_ifdown_in_rep \
+	gfsd_ifdown_in_write \
+	make_dir \
+	make_file \
+	mount_in_gfmd_failover \
+	operation_after_gfmd_failover \
+	operation_in_client_ifdown \
+	operation_in_gfmd_ifdown \
 	operation_in_gfsd_ifdown \
-	append_in_gfsd_ifdown \
-	delete_in_gfsd_ifdown \
+	operation_in_pgsql_down \
+	operation_in_two_gfsd_ifdown \
+	pgsql_down_in_read \
+	pgsql_down_in_write \
+	read_files \
+	read_files_1c_100m_1000f_100M \
+	read_files_1c_100m_1000f_1G \
+	read_files_1c_100m_1000f_1M \
+	read_files_1c_1m_1000f_100M \
+	read_files_1c_1m_1000f_1G \
+	read_files_1c_1m_1000f_1M \
+	read_files_4c_100m_1000f_100M \
+	read_files_4c_100m_1000f_1G \
+	read_files_4c_100m_1000f_1M \
+	read_files_4c_100m_1f_1G \
+	read_files_4c_250m_1000f_100M \
+	read_files_4c_250m_1000f_1G \
+	read_files_4c_250m_1000f_1M \
+	read_files_4c_250m_1f_1G \
+	read_in_gfmd_failover \
 	rename_in_gfsd_ifdown \
-	copy_in_gfsd_ifdown \
-	append_immediately_in_gfsd_ifdown \
-	two_gfsd_ifdown_in_write \
+	rename_in_two_gfsd_ifdown \
+	rep_in_gfmd_failover \
+	start_gfsd_in_gfmd_failover \
 	two_gfsd_ifdown_in_read \
 	two_gfsd_ifdown_in_rep \
-	operation_in_two_gfsd_ifdown \
-	append_in_two_gfsd_ifdown \
-	delete_in_two_gfsd_ifdown \
-	rename_in_two_gfsd_ifdown \
-	copy_in_two_gfsd_ifdown \
-	gfmd_failover_in_write \
-	gfmd_failover_in_read \
-	write_in_gfmd_failover \
-	read_in_gfmd_failover \
+	two_gfsd_ifdown_in_write \
 	useradd_in_gfmd_failover \
-	userlist_in_gfmd_failover \
 	userdel_in_gfmd_failover \
-	start_gfsd_in_gfmd_failover \
-	mount_in_gfmd_failover \
-	rep_in_gfmd_failover \
-	operation_after_gfmd_failover \
-	continuous_operation
+	userlist_in_gfmd_failover \
+	write_files \
+	write_files_1c_100m_1000f_100M \
+	write_files_1c_100m_1000f_1G \
+	write_files_1c_100m_1000f_1M \
+	write_files_1c_1m_1000f_100M \
+	write_files_1c_1m_1000f_1G \
+	write_files_1c_1m_1000f_1M \
+	write_files_4c_100m_1000f_100M \
+	write_files_4c_100m_1000f_1G \
+	write_files_4c_100m_1000f_1M \
+	write_files_4c_100m_1f_1G \
+	write_files_4c_250m_1000f_100M \
+	write_files_4c_250m_1000f_1G \
+	write_files_4c_250m_1000f_1M \
+	write_files_4c_250m_1f_1G \
+	write_files_each_mntpnts \
+	write_files_each_mntpnts_4c_250m_1000f_100M \
+	write_files_each_mntpnts_4c_250m_1000f_1G \
+	write_files_each_mntpnts_4c_250m_1000f_1M \
+	write_in_gfmd_failover

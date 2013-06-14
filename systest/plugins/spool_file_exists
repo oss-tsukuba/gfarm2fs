@@ -16,7 +16,7 @@ subcmd_spool_file_exists()
 	check_argc $# 1
 	check_hostid gfsd $HOSTID
 	exec_remote_host_agent $HOSTID root systest::gfarm2fs::spool_file_exists "$@"
-	[ $? -ne 0 ] && log_error "gfservice systest::gfarm2fs::spool_file_exists failed"
+	[ $? -eq 0 ] || exit 1
 
 	log_debug "end subcmd_spool_file_exists"
 }

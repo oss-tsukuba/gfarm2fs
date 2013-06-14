@@ -1,1 +1,1 @@
-SUBDIRS = testcases parameters common_scripts plugins
+SUBDIRS = testcases common_scripts plugins scenarios

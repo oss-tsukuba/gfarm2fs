@@ -1,0 +1,12 @@
+#
+# Test parameters for writing files on each mount point
+# (4client, 250mountpoint, 100files, 100M size)
+# (Test case No. 2-2-3-2)
+#
+
+load	"gfarm2fs::test_write_files_each_mntpnts_common"
+
+test_write_files_each_mntpnts_4c_250m_1000f_100M()
+{
+	test_write_files_each_mntpnts_common "/" 4 250 100 100M
+}

@@ -1,0 +1,80 @@
+#
+# Test case for reading files
+#
+load 	"gfarm2fs::exec_on_multiple_clients" \
+	"gfarm2fs::mkdir_n" \
+	"gfarm2fs::mount_n" \
+	"gfarm2fs::make_files_single" \
+	"gfarm2fs::log_view" \
+	"gfarm2fs::remove_files" \
+	"gfarm2fs::umount_n" \
+	"gfarm2fs::rmdir_n"
+
+#
+# read files
+#
+read_files()
+{
+	HOSTID=$1
+	MNTDIR_PREFIX=$2
+	COUNT=$3
+	NFILES=$4
+	SIZE=$5
+
+	$GFSERVICE systest::gfarm2fs::read_files_n $HOSTID $MNTDIR_PREFIX $COUNT \
+		test_${COUNT}_${NFILES}_${SIZE} $NFILES 
+	if [ $? -ne 0 ]; then
+		log_warn "gfservice read_files_n failed $HOSTID $NFILES"
+		return 1
+	fi
+
+	return 0
+}
+
+#
+# Test parameters
+#
+# GFARM_HOME:	A directory path of Gfarm which this test will be executed
+# NUM_CLIENTS:	Number of clients used
+# NUM_MOUNT:	Number of mount points
+# NUM_FILES:	Number of files to read
+# FILE_SIZE:	File size of each file to be read
+test_read_files_common()
+{
+	GFARM_HOME="$1"
+	NUM_CLIENTS="$2"
+	NUM_MOUNT="$3"
+	NUM_FILES="$4"
+	FILE_SIZE="$5"
+
+	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
+	RESULT=$RESULT_PASS
+
+	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	exec_on_multiple_clients $NUM_CLIENTS mount_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT $GFARM_HOME
+
+	make_files_single client1 ${TEST_EXEC_ID}_ $TARGET_DIR $NUM_FILES \
+		$FILE_SIZE
+
+	exec_on_multiple_clients $NUM_CLIENTS read_files true \
+		${TEST_EXEC_ID}_ $NUM_MOUNT $NUM_FILES $FILE_SIZE
+	if [ $? -ne 0 ]; then
+		log_warn "$TESTNAME: failed to read files"
+		set_result RESULT $RESULT_FAIL
+	fi
+
+	log_view client1
+
+	remove_files client1 ${TEST_EXEC_ID}_ $TARGET_DIR $NUM_FILES
+
+	exec_on_multiple_clients $NUM_CLIENTS umount_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	exec_on_multiple_clients $NUM_CLIENTS rmdir_n false ${TEST_EXEC_ID}_ \
+		$NUM_MOUNT
+
+	return $RESULT
+}

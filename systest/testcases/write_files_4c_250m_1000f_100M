@@ -1,0 +1,11 @@
+#
+# Test parameters for writing files(4client, 250mountpoint, 1000files, 100M size)
+# (Test case No. 2-2-2-2)
+#
+
+load	"gfarm2fs::test_write_files_common"
+
+test_write_files_4c_250m_1000f_100M()
+{
+	test_write_files_common "/" 4 250 1000 100M
+}
