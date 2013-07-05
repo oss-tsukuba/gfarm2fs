@@ -215,7 +215,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
-configdir = $(datadir)/gfarm/systest/scenarios
+configdir = $(datadir)/gfarm/systest/scenarios/gfarm2fs
 dist_config_DATA = gfarm2fs
 all: all-am
 
