@@ -1,0 +1,3 @@
+gfarm2fs::operation_in_pgsql_down
+gfarm2fs::pgsql_down_in_read
+gfarm2fs::pgsql_down_in_write

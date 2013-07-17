@@ -1,0 +1,11 @@
+gfarm2fs::gfmd_failover_in_read
+gfarm2fs::gfmd_failover_in_write
+gfarm2fs::mount_in_gfmd_failover
+gfarm2fs::operation_after_gfmd_failover
+gfarm2fs::read_in_gfmd_failover
+gfarm2fs::rep_in_gfmd_failover
+gfarm2fs::start_gfsd_in_gfmd_failover
+gfarm2fs::useradd_in_gfmd_failover
+gfarm2fs::userdel_in_gfmd_failover
+gfarm2fs::userlist_in_gfmd_failover
+gfarm2fs::write_in_gfmd_failover
