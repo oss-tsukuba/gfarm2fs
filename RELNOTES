@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.9.2
 =================================
 
-[2013.5.22]
+[2013.7.29]
 
 Updated feature
 * mount.gfarm2fs - more automount(8) support
