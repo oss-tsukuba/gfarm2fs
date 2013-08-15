@@ -5,6 +5,7 @@ dist_common_scripts_DATA = \
 	check_files_each_mntpnts \
 	check_gfsd_connected \
 	check_metadata_filesize \
+	check_user_group \
 	exec_on_multiple_clients \
 	gfwhere_check \
 	log_view \

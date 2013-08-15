@@ -1,13 +1,14 @@
 #
 # Test case for making files
 #
-load	"gfarm_v2::check_replica_num"
+load	"gfarm_v2::check_replica_num" \
+	"gfarm2fs::check_user_group"
 
 #
 # Test parameters
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
-# RETRY_COUNT:»-Retry number to check replica
+# RETRY_COUNT:	Retry number to check replica
 #
 setup_make_file()
 {
@@ -23,6 +24,9 @@ setup_make_file()
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
+
+	# prepare: check whether the user belongs to 'gfarmtoot' group
+	check_user_group client1 - gfarmroot || return $RESULT_UNSUPPORTED
 
 	# prepare: set file replica to be created
 	$GFSERVICE gfcmd client1 gfncopy -s 2 $GFARM_HOME

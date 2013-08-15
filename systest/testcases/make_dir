@@ -1,6 +1,7 @@
 #
 # Test case for making directories
 #
+load	"gfarm2fs::check_user_group"
 
 #
 # Test parameters
@@ -21,6 +22,14 @@ setup_make_dir()
 		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
 
+	# prepare: get the current user name.
+	GFARM_USER="`$GFSERVICE gfcmd client1 gfwhoami`"
+	[ $? -ne 0 -o "X$GFARM_USER" = X ] && return $RESULT_UNSUPPORTED
+
+	# prepare: check whether the user belongs to 'gfarmtoot' group
+	check_user_group client1 $GFARM_USER gfarmroot \
+		|| return $RESULT_UNSUPPORTED
+
 	return $RESULT_PASS
 }
 
@@ -36,7 +45,7 @@ test_make_dir()
 	fi
 
 	# step: gfchown
-	$GFSERVICE gfcmd client1 gfchown `id -un` \
+	$GFSERVICE gfcmd client1 gfchown $GFARM_USER \
 		$GFARM_HOME/$TEST_EXEC_ID
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: gfchown failed"

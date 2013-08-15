@@ -1,0 +1,22 @@
+#
+# check whether the current user belongs to a group
+#
+check_user_group()
+{
+	HOST="$1"
+	GFUSER="$2"
+	GFGROUP="$3"
+
+	if [ "X$GFUSER" = X- ]; then
+		GFUSER="`$GFSERVICE gfcmd $HOST gfwhoami`"
+		[ $? -ne 0 -o "X$GFUSER" = X ] && return 1
+	fi
+
+	GFGROUP_USERS="`$GFSERVICE gfcmd $HOST gfgroup -l $GFGROUP`"
+	[ $? -ne 0 ] && return 1
+
+	echo "@ $GFGROUP_USERS @" | grep " $GFUSER " > /dev/null
+	[ $? -ne 0 ] && return 1
+
+	return 0
+}
