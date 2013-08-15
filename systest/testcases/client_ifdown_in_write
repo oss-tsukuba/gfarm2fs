@@ -9,10 +9,9 @@
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # FILE_SIZE:	Size of a file to be created
 # SLEEP_SEC:	Second to sleep before make network interface down
-test_client_ifdown_in_write()
+#
+setup_client_ifdown_in_write()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -32,6 +31,13 @@ test_client_ifdown_in_write()
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
+
+	return $RESULT_PASS
+}
+
+test_client_ifdown_in_write()
+{
+	RESULT=$RESULT_PASS
 
 	# step: make files in background
 	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
@@ -68,6 +74,11 @@ test_client_ifdown_in_write()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_client_ifdown_in_write()
+{
 	# cleanup: remove files
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $FILE_PATH
 
@@ -75,5 +86,5 @@ test_client_ifdown_in_write()
 	$GFSERVICE umount client1 $MOUNT_POINT
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

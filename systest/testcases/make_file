@@ -8,10 +8,9 @@ load	"gfarm_v2::check_replica_num"
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # RETRY_COUNT:»-Retry number to check replica
-test_make_file()
+#
+setup_make_file()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	RETRY_COUNT=${RETRY_COUNT-"10"}
@@ -27,6 +26,13 @@ test_make_file()
 
 	# prepare: set file replica to be created
 	$GFSERVICE gfcmd client1 gfncopy -s 2 $GFARM_HOME
+
+	return $RESULT_PASS
+}
+
+test_make_file()
+{
+	RESULT=$RESULT_PASS
 
 	# step: mount
 	MOUNT_POINT=mnt_$TEST_EXEC_ID
@@ -80,6 +86,11 @@ test_make_file()
 		fi
 	done
 
+	return $RESULT
+}
+
+teardown_make_file()
+{
 	# cleanup: remove file
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $FILE_PATH
 
@@ -92,5 +103,5 @@ test_make_file()
 	# cleanup: reset number of file replica to be created
 	$GFSERVICE gfcmd client1 gfncopy -r $GFARM_HOME
 
-	return $RESULT
+	return $RESULT_PASS
 }

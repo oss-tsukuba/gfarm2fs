@@ -14,10 +14,9 @@ load	"gfarm2fs::calc_checksum" \
 # FILE_SIZE:	Size of a file to be created
 # SLEEP_SEC:	Second to sleep before make network interface down
 # RETRY_COUNT:	Retry number to check number of replicas
-test_two_gfsd_ifdown_in_rep()
+#
+setup_two_gfsd_ifdown_in_rep()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -60,6 +59,13 @@ test_two_gfsd_ifdown_in_rep()
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
+
+	return $RESULT_PASS
+}
+
+test_two_gfsd_ifdown_in_rep()
+{
+	RESULT=$RESULT_PASS
 
 	# step: replicate a file in background
 	$GFSERVICE systest::gfarm2fs::replicate_file client1 $GFARM_FILE gfsd2 &
@@ -176,8 +182,13 @@ test_two_gfsd_ifdown_in_rep()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_two_gfsd_ifdown_in_rep()
+{
 	# cleanup: remove a file
 	$GFSERVICE gfcmd client1 gfrm -r $GFARM_FILE
 
-	return $RESULT
+	return $RESULT_PASS
 }

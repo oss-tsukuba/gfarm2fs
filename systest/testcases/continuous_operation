@@ -17,10 +17,9 @@ log_with_time()
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # WRITE_SIZE:	Size to write to a file at a time
 # INTERVAL:	Interval(sec) of operation
-test_continuous_operation()
+#
+setup_continuous_operation()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	WRITE_SIZE=${WRITE_SIZE="512K"}
@@ -49,6 +48,13 @@ test_continuous_operation()
 
 	while true; do
 		FILE_PATH=`printf $FILE_TMPL $I`
+
+	return $RESULT_PASS
+}
+
+test_continuous_operation()
+{
+	RESULT=$RESULT_PASS
 
 		# step: create a file
 		$GFSERVICE systest::gfarm2fs::make_file client1 $FILE_PATH $WRITE_SIZE
@@ -95,6 +101,11 @@ test_continuous_operation()
 		I=`expr $I + 1`
 	done
 
+	return $RESULT
+}
+
+teardown_continuous_operation()
+{
 	# cleanup: remove file
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $MOUNT_POINT/stop
 
@@ -104,5 +115,5 @@ test_continuous_operation()
 	# cleanup: remove mount point
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

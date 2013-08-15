@@ -6,10 +6,9 @@
 # Test parameters
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
-test_operation_in_client_ifdown()
+#
+setup_operation_in_client_ifdown()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 
@@ -40,6 +39,13 @@ test_operation_in_client_ifdown()
 		log_warn "$TESTNAME: failed to execute ifdown on client1"
 		return $RESULT_FATAL
 	fi
+
+	return $RESULT_PASS
+}
+
+test_operation_in_client_ifdown()
+{
+	RESULT=$RESULT_PASS
 
 	# step: write file
 	GFARM_FILE2=$MOUNT_POINT/${TEST_EXEC_ID}_2
@@ -80,6 +86,11 @@ test_operation_in_client_ifdown()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_operation_in_client_ifdown()
+{
 	# cleanup: remove files
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $GFARM_FILE1 $GFARM_FILE2 \
 		$GFARM_FILE3
@@ -90,5 +101,5 @@ test_operation_in_client_ifdown()
 	# cleanup: remove mount point
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

@@ -5,7 +5,17 @@
 
 load	"gfarm2fs::test_read_files_common"
 
+setup_read_files_1c_100m_1000f_1G()
+{
+	return $RESULT_PASS
+}
+
 test_read_files_1c_100m_1000f_1G()
 {
 	test_read_files_common "/" 1 100 1000 1G
+}
+
+teardown_read_files_1c_100m_1000f_1G()
+{
+	return $RESULT_PASS
 }

@@ -12,10 +12,9 @@ load	"gfarm_v2::generate_testdata" \
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # FILE_SIZE:	Size of a file to be created
 # RETRY_COUNT:	Retry number to check number of replicas
-test_operation_in_two_gfsd_ifdown()
+#
+setup_operation_in_two_gfsd_ifdown()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -88,6 +87,13 @@ test_operation_in_two_gfsd_ifdown()
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
 		return $RESULT_FATAL
 	fi
+
+	return $RESULT_PASS
+}
+
+test_operation_in_two_gfsd_ifdown()
+{
+	RESULT=$RESULT_PASS
 
 	# step: wait until gfsd get disconnected
 	wait_for_gfsd_disconnect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
@@ -199,6 +205,11 @@ test_operation_in_two_gfsd_ifdown()
 		set_result RESULT $RESULT_XPASS
 	fi
 
+	return $RESULT
+}
+
+teardown_operation_in_two_gfsd_ifdown()
+{
 	# cleanup: make network interface up
 	$GFSERVICE systest::gfarm2fs::ifup gfsd1
 	if [ $? -ne 0 ]; then
@@ -225,5 +236,5 @@ test_operation_in_two_gfsd_ifdown()
 	$GFSERVICE umount client1 $MOUNT_POINT
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

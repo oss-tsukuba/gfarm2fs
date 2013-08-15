@@ -12,10 +12,9 @@ load	"gfarm_v2::check_journal_seqnum_max" \
 # SLEEP_SEC:	Second to sleep before make gfmd fail over
 # TIMEOUT:	  timeout sec for starting/stopping gfmd
 # RETRY_COUNT:	  retry number to check master/slave
-test_useradd_in_gfmd_failover()
+#
+setup_useradd_in_gfmd_failover()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 	TIMEOUT=${TIMEOUT-"10"}
@@ -30,6 +29,13 @@ test_useradd_in_gfmd_failover()
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
+
+	return $RESULT_PASS
+}
+
+test_useradd_in_gfmd_failover()
+{
+	RESULT=$RESULT_PASS
 
 	# step: stop gfmd on gfmd1
 	$GFSERVICE stop-gfmd gfmd1
@@ -81,6 +87,11 @@ test_useradd_in_gfmd_failover()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_useradd_in_gfmd_failover()
+{
 	# cleanup: failback
 	failback gfmd1 gfmd2 client1 $TIMEOUT $RETRY_COUNT
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to make gfmd on gfmd1" \
@@ -91,5 +102,5 @@ test_useradd_in_gfmd_failover()
 		$GFSERVICE gfcmd client1 gfuser -d $TEST_EXEC_ID
 	fi
 
-	return $RESULT
+	return $RESULT_PASS
 }

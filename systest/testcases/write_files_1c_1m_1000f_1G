@@ -5,7 +5,17 @@
 
 load	"gfarm2fs::test_write_files_common"
 
+setup_write_files_1c_1m_1000f_1G()
+{
+	return $RESULT_PASS
+}
+
 test_write_files_1c_1m_1000f_1G()
 {
 	test_write_files_common "/" 1 1 1000 1G
+}
+
+teardown_write_files_1c_1m_1000f_1G()
+{
+	return $RESULT_PASS
 }

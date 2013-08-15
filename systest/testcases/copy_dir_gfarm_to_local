@@ -7,10 +7,9 @@
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # NUM_DIRS:	Number of directories created
-test_copy_dir_gfarm_to_local()
+#
+setup_copy_dir_gfarm_to_local()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	NUM_DIRS=${NUM_DIRS-"3"}
@@ -32,6 +31,13 @@ test_copy_dir_gfarm_to_local()
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
+
+	return $RESULT_PASS
+}
+
+test_copy_dir_gfarm_to_local()
+{
+	RESULT=$RESULT_PASS
 
 	# step: create directories
 	SRC_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_%d"
@@ -98,6 +104,11 @@ test_copy_dir_gfarm_to_local()
 		fi
 	done
 
+	return $RESULT
+}
+
+teardown_copy_dir_gfarm_to_local()
+{
 	# cleanup: remove directories
 	for I in `seq $NUM_DIRS`; do
 		SRC_PATH=`printf $SRC_PATH_TMPL $I`
@@ -114,5 +125,5 @@ test_copy_dir_gfarm_to_local()
 	# cleanup: rmdir
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $TEST_EXEC_ID
 
-	return $RESULT
+	return $RESULT_PASS
 }

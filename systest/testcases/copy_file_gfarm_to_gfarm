@@ -7,10 +7,9 @@
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # NUM_FILES:	Number of files created
-test_copy_file_gfarm_to_gfarm()
+#
+setup_copy_file_gfarm_to_gfarm()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	NUM_FILES=${NUM_FILES-"3"}
@@ -29,6 +28,13 @@ test_copy_file_gfarm_to_gfarm()
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
+
+	return $RESULT_PASS
+}
+
+test_copy_file_gfarm_to_gfarm()
+{
+	RESULT=$RESULT_PASS
 
 	# step: make directory
 	SRC_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_src_%d"
@@ -102,6 +108,11 @@ test_copy_file_gfarm_to_gfarm()
 		fi
 	done
 
+	return $RESULT
+}
+
+teardown_copy_file_gfarm_to_gfarm()
+{
 	# cleanup: remove file and directory
 	for I in `seq $NUM_FILES`; do
 		SRC_PATH=`printf $SRC_PATH_TMPL $I`
@@ -117,5 +128,5 @@ test_copy_file_gfarm_to_gfarm()
 	# cleanup: remove mount point
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

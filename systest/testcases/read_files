@@ -4,6 +4,11 @@
 
 load	"gfarm2fs::test_read_files_common"
 
+setup_read_files()
+{
+	return $RESULT_PASS
+}
+
 test_read_files()
 {
 	GFARM_HOME=${GFARM_HOME-"/"}
@@ -14,4 +19,9 @@ test_read_files()
 
 	test_read_files_common \
 		$GFARM_HOME $NUM_CLIENTS $NUM_MOUNT $NUM_FILES $FILE_SIZE
+}
+
+teardown_read_files()
+{
+	return $RESULT_PASS
 }

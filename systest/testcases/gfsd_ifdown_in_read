@@ -11,10 +11,9 @@ load	"gfarm_v2::generate_testdata" \
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # FILE_SIZE:	Size of a file to be created
 # SLEEP_SEC:	Second to sleep before make network interface down
-test_gfsd_ifdown_in_read()
+#
+setup_gfsd_ifdown_in_read()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -48,6 +47,13 @@ test_gfsd_ifdown_in_read()
 	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
+
+	return $RESULT_PASS
+}
+
+test_gfsd_ifdown_in_read()
+{
+	RESULT=$RESULT_PASS
 
 	# step: read files in background
 	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
@@ -91,6 +97,11 @@ test_gfsd_ifdown_in_read()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_gfsd_ifdown_in_read()
+{
 	# cleanup: remove files
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -r $FILE_PATH
 
@@ -98,5 +109,5 @@ test_gfsd_ifdown_in_read()
 	$GFSERVICE umount client1 $MOUNT_POINT
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

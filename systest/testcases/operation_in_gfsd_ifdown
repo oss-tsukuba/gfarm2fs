@@ -9,10 +9,9 @@ load	"gfarm_v2::generate_testdata" \
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # FILE_SIZE:	Size of a file to be created
-test_operation_in_gfsd_ifdown()
+#
+setup_operation_in_gfsd_ifdown()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -56,6 +55,13 @@ test_operation_in_gfsd_ifdown()
 		return $RESULT_FATAL
 	fi
 
+	return $RESULT_PASS
+}
+
+test_operation_in_gfsd_ifdown()
+{
+	RESULT=$RESULT_PASS
+
 	# step: write file
 	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
@@ -88,6 +94,11 @@ test_operation_in_gfsd_ifdown()
 		set_result RESULT $RESULT_XPASS
 	fi
 
+	return $RESULT
+}
+
+teardown_operation_in_gfsd_ifdown()
+{
 	# cleanup: make network interface up
 	$GFSERVICE systest::gfarm2fs::ifup gfsd1
 	if [ $? -ne 0 ]; then
@@ -99,5 +110,5 @@ test_operation_in_gfsd_ifdown()
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2 \
 		$GFARM_FILE3 $GFARM_FILE4
 
-	return $RESULT
+	return $RESULT_PASS
 }

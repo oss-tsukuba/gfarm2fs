@@ -14,10 +14,9 @@ load	"gfarm_v2::generate_testdata" \
 # RETRY_COUNT:		Retry number to check gfsd connection or number of
 #			replicas
 # RETRY_INTERVAL:	Retry interval(sec) to check gfsd connection
-test_delete_in_two_gfsd_ifdown()
+#
+setup_delete_in_two_gfsd_ifdown()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -99,6 +98,13 @@ test_delete_in_two_gfsd_ifdown()
 		return $RESULT_FATAL
 	fi
 
+	return $RESULT_PASS
+}
+
+test_delete_in_two_gfsd_ifdown()
+{
+	RESULT=$RESULT_PASS
+
 	# step: wait until gfsd1 get disconnected
 	wait_for_gfsd_disconnect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
 	if [ $? -ne 0 ]; then
@@ -159,4 +165,10 @@ test_delete_in_two_gfsd_ifdown()
 	fi
 
 	return $RESULT
+}
+
+teardown_delete_in_two_gfsd_ifdown()
+{
+
+	return $RESULT_PASS
 }

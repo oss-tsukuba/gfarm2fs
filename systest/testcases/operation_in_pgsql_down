@@ -7,10 +7,9 @@ load	"gfarm2fs::check_metadata_filesize"
 # Test parameters
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
-test_operation_in_pgsql_down()
+#
+setup_operation_in_pgsql_down()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 
@@ -38,6 +37,13 @@ test_operation_in_pgsql_down()
 
 	# prepare: stop gfsd
 	$GFSERVICE stop-gfsd gfsd1
+
+	return $RESULT_PASS
+}
+
+test_operation_in_pgsql_down()
+{
+	RESULT=$RESULT_PASS
 
 	# step: stop backend-db
 	$GFSERVICE stop-backend-db gfmd1
@@ -248,6 +254,11 @@ test_operation_in_pgsql_down()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_operation_in_pgsql_down()
+{
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $GFARM_FILE3
@@ -261,5 +272,5 @@ test_operation_in_pgsql_down()
 	# cleanup: remove mount point
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

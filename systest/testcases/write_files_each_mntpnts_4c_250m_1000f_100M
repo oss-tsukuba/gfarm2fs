@@ -6,7 +6,17 @@
 
 load	"gfarm2fs::test_write_files_each_mntpnts_common"
 
+setup_write_files_each_mntpnts_4c_250m_1000f_100M()
+{
+	return $RESULT_PASS
+}
+
 test_write_files_each_mntpnts_4c_250m_1000f_100M()
 {
 	test_write_files_each_mntpnts_common "/" 4 250 100 100M
+}
+
+teardown_write_files_each_mntpnts_4c_250m_1000f_100M()
+{
+	return $RESULT_PASS
 }

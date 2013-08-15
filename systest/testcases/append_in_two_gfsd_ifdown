@@ -17,10 +17,9 @@ load	"gfarm2fs::calc_checksum" \
 # RETRY_COUNT:		Retry number to check gfsd connection or number of
 #			replicas
 # RETRY_INTERVAL:	Retry interval(sec) to check gfsd connection
-test_append_in_two_gfsd_ifdown()
+#
+setup_append_in_two_gfsd_ifdown()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -129,6 +128,13 @@ test_append_in_two_gfsd_ifdown()
 		log_warn "$TESTNAME: failed to execute ifdown on gfsd2"
 		return $RESULT_FATAL
 	fi
+
+	return $RESULT_PASS
+}
+
+test_append_in_two_gfsd_ifdown()
+{
+	RESULT=$RESULT_PASS
 
 	# step: wait until gfsd1 and gfsd2 get disconnected
 	wait_for_gfsd_disconnect gfsd1 client1 $RETRY_COUNT $RETRY_INTERVAL
@@ -257,6 +263,11 @@ test_append_in_two_gfsd_ifdown()
 		set_result RESULT $RESULT_XPASS
 	fi
 
+	return $RESULT
+}
+
+teardown_append_in_two_gfsd_ifdown()
+{
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
 
@@ -264,5 +275,5 @@ test_append_in_two_gfsd_ifdown()
 	$GFSERVICE umount client1 $MOUNT_POINT
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

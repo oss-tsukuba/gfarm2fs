@@ -17,10 +17,9 @@ load	"gfarm2fs::calc_checksum" \
 # SLEEP_SEC:	Second to sleep before make gfmd fail over
 # TIMEOUT:	  timeout sec for starting/stopping gfmd
 # RETRY_COUNT:	  retry number to check master/slave
-test_rep_in_gfmd_failover()
+#
+setup_rep_in_gfmd_failover()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -50,6 +49,13 @@ test_rep_in_gfmd_failover()
 
 	# prepare: calc checksum
 	CHECKSUM=`calc_checksum $FILE_SIZE`
+
+	return $RESULT_PASS
+}
+
+test_rep_in_gfmd_failover()
+{
+	RESULT=$RESULT_PASS
 
 	# step: stop gfmd on gfmd1
 	$GFSERVICE stop-gfmd gfmd1
@@ -124,6 +130,11 @@ test_rep_in_gfmd_failover()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_rep_in_gfmd_failover()
+{
 	# cleanup: failback
 	failback gfmd1 gfmd2 client1 $TIMEOUT $RETRY_COUNT
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to make gfmd on gfmd1" \
@@ -132,5 +143,5 @@ test_rep_in_gfmd_failover()
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE
 
-	return $RESULT
+	return $RESULT_PASS
 }

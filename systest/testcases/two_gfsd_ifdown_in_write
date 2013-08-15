@@ -11,10 +11,9 @@ load	"gfarm_v2::generate_testdata" \
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # FILE_SIZE:	Size of a file to be created
 # SLEEP_SEC:	Second to sleep before make network interface down
-test_two_gfsd_ifdown_in_write()
+#
+setup_two_gfsd_ifdown_in_write()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -43,6 +42,13 @@ test_two_gfsd_ifdown_in_write()
 		log_warn "$TESTNAME: gfsd2 is unavailable"
 		return $RESULT_FATAL
 	fi
+
+	return $RESULT_PASS
+}
+
+test_two_gfsd_ifdown_in_write()
+{
+	RESULT=$RESULT_PASS
 
 	# step: make files in background
 	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
@@ -162,9 +168,14 @@ test_two_gfsd_ifdown_in_write()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_two_gfsd_ifdown_in_write()
+{
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2 \
 		$GFARM_FILE3 $GFARM_FILE4
 
-	return $RESULT
+	return $RESULT_PASS
 }

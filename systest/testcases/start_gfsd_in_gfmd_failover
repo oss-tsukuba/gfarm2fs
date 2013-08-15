@@ -13,10 +13,9 @@ load	"gfarm2fs::check_gfsd_connected" \
 # SLEEP_SEC:	Second to sleep before make gfmd fail over
 # TIMEOUT:	  timeout sec for starting/stopping gfmd
 # RETRY_COUNT:	  retry number to check master/slave
-test_start_gfsd_in_gfmd_failover()
+#
+setup_start_gfsd_in_gfmd_failover()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 	TIMEOUT=${TIMEOUT-"10"}
@@ -38,6 +37,13 @@ test_start_gfsd_in_gfmd_failover()
 		log_warn "$TESTNAME: failed to stop gfsd"
 		return $RESULT_FATAL
 	fi
+
+	return $RESULT_PASS
+}
+
+test_start_gfsd_in_gfmd_failover()
+{
+	RESULT=$RESULT_PASS
 
 	# step: stop gfmd on gfmd1
 	$GFSERVICE stop-gfmd gfmd1
@@ -86,10 +92,15 @@ test_start_gfsd_in_gfmd_failover()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_start_gfsd_in_gfmd_failover()
+{
 	# cleanup: failback
 	failback gfmd1 gfmd2 client1 $TIMEOUT $RETRY_COUNT
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to make gfmd on gfmd1" \
 		"as master"
 
-	return $RESULT
+	return $RESULT_PASS
 }

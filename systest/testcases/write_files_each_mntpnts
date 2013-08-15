@@ -4,6 +4,11 @@
 
 load	"gfarm2fs::test_write_files_each_mntpnts_common"
 
+setup_write_files_each_mntpnts()
+{
+	return $RESULT_PASS
+}
+
 test_write_files_each_mntpnts()
 {
 	GFARM_HOME=${GFARM_HOME-"/"}
@@ -14,4 +19,9 @@ test_write_files_each_mntpnts()
 
 	test_write_files_each_mntpnts_common \
 		$GFARM_HOME $NUM_CLIENTS $NUM_MOUNT $NUM_FILES $FILE_SIZE
+}
+
+teardown_write_files_each_mntpnts()
+{
+	return $RESULT_PASS
 }

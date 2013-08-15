@@ -12,10 +12,9 @@ load	"gfarm_v2::check_replica_num" \
 # FILE_SIZE:	Size of a file to be created
 # TIMEOUT:	  timeout sec for starting/stopping gfmd
 # RETRY_COUNT:	  retry number to check number of replica
-test_operation_after_gfmd_failover()
+#
+setup_operation_after_gfmd_failover()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -48,6 +47,13 @@ test_operation_after_gfmd_failover()
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT $MOUNT_POINT2
 	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
+
+	return $RESULT_PASS
+}
+
+test_operation_after_gfmd_failover()
+{
+	RESULT=$RESULT_PASS
 
 	# step: stop gfmd on gfmd1
 	$GFSERVICE stop-gfmd gfmd1
@@ -190,6 +196,11 @@ test_operation_after_gfmd_failover()
 		fi
 	done
 
+	return $RESULT
+}
+
+teardown_operation_after_gfmd_failover()
+{
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_PATH
 
@@ -199,5 +210,5 @@ test_operation_after_gfmd_failover()
 	# cleanup: remove mount point
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT $MOUNT_POINT2
 
-	return $RESULT
+	return $RESULT_PASS
 }

@@ -6,10 +6,9 @@
 # Test parameters
 #
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
-test_make_dir()
+#
+setup_make_dir()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 
@@ -21,6 +20,13 @@ test_make_dir()
 	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
 		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
 	fi
+
+	return $RESULT_PASS
+}
+
+test_make_dir()
+{
+	RESULT=$RESULT_PASS
 
 	# step: gfmkdir
 	$GFSERVICE gfcmd client1 gfmkdir $GFARM_HOME/$TEST_EXEC_ID
@@ -111,6 +117,11 @@ test_make_dir()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_make_dir()
+{
 	# cleanup: remove directory
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir \
 		"$MOUNT_POINT/${TEST_EXEC_ID}" "$MOUNT_POINT/${TEST_EXEC_ID}-2"
@@ -121,5 +132,5 @@ test_make_dir()
 	# cleanup: remove mount point
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }

@@ -15,10 +15,9 @@ load	"gfarm2fs::calc_checksum" \
 # SLEEP_SEC:	Second to sleep before make network interface down
 # TIMEOUT:	  timeout sec for starting/stopping gfmd
 # RETRY_COUNT:	  retry number to check master/slave
-test_gfmd_failover_in_read()
+#
+setup_gfmd_failover_in_read()
 {
-	RESULT=$RESULT_PASS
-
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
@@ -49,6 +48,13 @@ test_gfmd_failover_in_read()
 
 	# prepare: calc checksum
 	CHECKSUM_EXPECT=`calc_checksum $FILE_SIZE`
+
+	return $RESULT_PASS
+}
+
+test_gfmd_failover_in_read()
+{
+	RESULT=$RESULT_PASS
 
 	# step: read a file in background
 	$GFSERVICE systest::gfarm2fs::read_file client1 $FILE_PATH &
@@ -115,6 +121,11 @@ test_gfmd_failover_in_read()
 		set_result RESULT $RESULT_FAIL
 	fi
 
+	return $RESULT
+}
+
+teardown_gfmd_failover_in_read()
+{
 	# cleanup: failback
 	failback gfmd1 gfmd2 client1 $TIMEOUT $RETRY_COUNT
 	[ $? -ne 0 ] && log_warn "$TESTNAME: failed to make gfmd on gfmd1" \
@@ -127,5 +138,5 @@ test_gfmd_failover_in_read()
 	$GFSERVICE umount client1 $MOUNT_POINT
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rmdir $MOUNT_POINT
 
-	return $RESULT
+	return $RESULT_PASS
 }
