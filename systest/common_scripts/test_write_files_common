@@ -1,17 +1,17 @@
 #
 # Test case for writing files
 #
-load	"gfarm2fs::calc_checksum" \
-	"gfarm2fs::exec_on_multiple_clients" \
-	"gfarm2fs::mkdir_n" \
-	"gfarm2fs::mount_n" \
-	"gfarm2fs::make_files" \
-	"gfarm2fs::gfwhere_check" \
-	"gfarm2fs::check_files" \
-	"gfarm2fs::log_view" \
-	"gfarm2fs::remove_files" \
-	"gfarm2fs::umount_n" \
-	"gfarm2fs::rmdir_n"
+load "gfarm2fs::calc_checksum"
+load "gfarm2fs::exec_on_multiple_clients"
+load "gfarm2fs::mkdir_n"
+load "gfarm2fs::mount_n"
+load "gfarm2fs::make_files"
+load "gfarm2fs::gfwhere_check"
+load "gfarm2fs::check_files"
+load "gfarm2fs::log_view"
+load "gfarm2fs::remove_files"
+load "gfarm2fs::umount_n"
+load "gfarm2fs::rmdir_n"
 #
 # Test parameters
 #

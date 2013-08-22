@@ -1,7 +1,7 @@
 #
 # Test case for operation when backend db is down
 #
-load	"gfarm2fs::check_metadata_filesize"
+load "gfarm2fs::check_metadata_filesize"
 
 #
 # Test parameters

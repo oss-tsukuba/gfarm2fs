@@ -2,8 +2,8 @@
 # Test case for check behavior when gfsd network interface is down
 # in writing files
 #
-load	"gfarm_v2::generate_testdata" \
-	"gfarm2fs::wait_for_gfsd_connect"
+load "gfarm_v2::generate_testdata"
+load "gfarm2fs::wait_for_gfsd_connect"
 
 #
 # Test parameters

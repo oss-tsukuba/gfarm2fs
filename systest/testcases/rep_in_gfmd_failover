@@ -1,13 +1,13 @@
 #
 # Test case for check behavior when replicated a file in gfmd failing over
 #
-load	"gfarm2fs::calc_checksum" \
-	"gfarm_v2::generate_testdata" \
-	"gfarm_v2::check_replica_num" \
-	"gfarm_v2::check_journal_seqnum_max" \
-	"gfarm_v2::check_gfmd_connected" \
-	"gfarm_v2::check_gfmd_master" \
-	"gfarm_v2::failback"
+load "gfarm2fs::calc_checksum"
+load "gfarm_v2::generate_testdata"
+load "gfarm_v2::check_replica_num"
+load "gfarm_v2::check_journal_seqnum_max"
+load "gfarm_v2::check_gfmd_connected"
+load "gfarm_v2::check_gfmd_master"
+load "gfarm_v2::failback"
 
 #
 # Test parameters

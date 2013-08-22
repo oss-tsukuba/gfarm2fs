@@ -3,7 +3,7 @@
 # (Test case No. 2-2-1-1)
 #
 
-load	"gfarm2fs::test_write_files_common"
+load "gfarm2fs::test_write_files_common"
 
 setup_write_files_4c_100m_1000f_1M()
 {

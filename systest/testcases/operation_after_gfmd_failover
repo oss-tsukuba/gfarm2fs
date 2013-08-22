@@ -1,9 +1,9 @@
 #
 # Test case for operation after gfmd failed over
 #
-load	"gfarm_v2::check_replica_num" \
-	"gfarm2fs::calc_checksum" \
-	"gfarm2fs::check_metadata_filesize"
+load "gfarm_v2::check_replica_num"
+load "gfarm2fs::calc_checksum"
+load "gfarm2fs::check_metadata_filesize"
 
 #
 # Test parameters

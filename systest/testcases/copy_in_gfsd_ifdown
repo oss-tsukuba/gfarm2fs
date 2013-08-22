@@ -2,12 +2,12 @@
 # Test case for copying a file which has replication, when gfsd network
 # interface is down
 #
-load	"gfarm2fs::calc_checksum" \
-	"gfarm_v2::generate_testdata" \
-	"gfarm2fs::wait_for_gfsd_connect" \
-	"gfarm2fs::wait_for_gfsd_disconnect" \
-	"gfarm_v2::check_replica_num" \
-	"gfarm_v2::check_file_location"
+load "gfarm2fs::calc_checksum"
+load "gfarm_v2::generate_testdata"
+load "gfarm2fs::wait_for_gfsd_connect"
+load "gfarm2fs::wait_for_gfsd_disconnect"
+load "gfarm_v2::check_replica_num"
+load "gfarm_v2::check_file_location"
 
 #
 # Test parameters

@@ -2,7 +2,7 @@
 # This testcase is for backward compatibility.
 #
 
-load	"gfarm2fs::test_write_files_common"
+load "gfarm2fs::test_write_files_common"
 
 setup_write_files()
 {

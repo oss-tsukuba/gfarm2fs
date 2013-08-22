@@ -1,14 +1,14 @@
 #
 # Test case for reading files
 #
-load 	"gfarm2fs::exec_on_multiple_clients" \
-	"gfarm2fs::mkdir_n" \
-	"gfarm2fs::mount_n" \
-	"gfarm2fs::make_files_single" \
-	"gfarm2fs::log_view" \
-	"gfarm2fs::remove_files" \
-	"gfarm2fs::umount_n" \
-	"gfarm2fs::rmdir_n"
+load "gfarm2fs::exec_on_multiple_clients"
+load "gfarm2fs::mkdir_n"
+load "gfarm2fs::mount_n"
+load "gfarm2fs::make_files_single"
+load "gfarm2fs::log_view"
+load "gfarm2fs::remove_files"
+load "gfarm2fs::umount_n"
+load "gfarm2fs::rmdir_n"
 
 #
 # read files

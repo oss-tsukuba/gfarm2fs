@@ -1,7 +1,7 @@
 #
 # Test case for check behavior when backend db is down in reading files
 #
-load	"gfarm2fs::calc_checksum"
+load "gfarm2fs::calc_checksum"
 
 #
 # Test parameters

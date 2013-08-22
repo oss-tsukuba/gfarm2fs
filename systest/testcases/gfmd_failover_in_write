@@ -1,12 +1,12 @@
 #
 # Test case for check behavior when gfmd failed over in writing files
 #
-load	"gfarm2fs::calc_checksum" \
-	"gfarm_v2::check_gfmd_connected" \
-	"gfarm2fs::check_metadata_filesize" \
-	"gfarm_v2::check_gfmd_master" \
-	"gfarm_v2::check_journal_seqnum_max" \
-	"gfarm_v2::failback"
+load "gfarm2fs::calc_checksum"
+load "gfarm_v2::check_gfmd_connected"
+load "gfarm2fs::check_metadata_filesize"
+load "gfarm_v2::check_gfmd_master"
+load "gfarm_v2::check_journal_seqnum_max"
+load "gfarm_v2::failback"
 
 #
 # Test parameters

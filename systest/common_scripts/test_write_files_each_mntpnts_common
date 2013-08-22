@@ -1,17 +1,17 @@
 #
 # test case for writing files on each mount points for each clients
 #
-load	"gfarm2fs::calc_checksum" \
-	"gfarm2fs::exec_on_multiple_clients" \
-	"gfarm2fs::mkdir_n" \
-	"gfarm2fs::mount_n" \
-	"gfarm2fs::make_files_each_mntpnts" \
-	"gfarm2fs::gfwhere_check" \
-	"gfarm2fs::check_files_each_mntpnts" \
-	"gfarm2fs::remove_files_each_mntpnts" \
-	"gfarm2fs::log_view" \
-	"gfarm2fs::umount_n" \
-	"gfarm2fs::rmdir_n"
+load "gfarm2fs::calc_checksum"
+load "gfarm2fs::exec_on_multiple_clients"
+load "gfarm2fs::mkdir_n"
+load "gfarm2fs::mount_n"
+load "gfarm2fs::make_files_each_mntpnts"
+load "gfarm2fs::gfwhere_check"
+load "gfarm2fs::check_files_each_mntpnts"
+load "gfarm2fs::remove_files_each_mntpnts"
+load "gfarm2fs::log_view"
+load "gfarm2fs::umount_n"
+load "gfarm2fs::rmdir_n"
 #
 # Test parameters
 #

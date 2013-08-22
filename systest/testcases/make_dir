@@ -1,7 +1,7 @@
 #
 # Test case for making directories
 #
-load	"gfarm2fs::check_user_group"
+load "gfarm2fs::check_user_group"
 
 #
 # Test parameters
