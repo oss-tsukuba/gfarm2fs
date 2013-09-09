@@ -9,6 +9,9 @@
 #
 setup_operation_in_client_ifdown()
 {
+	# define mount point
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 
@@ -22,7 +25,6 @@ setup_operation_in_client_ifdown()
 	fi
 
 	# prepare: create mount point
-	MOUNT_POINT=mnt_$TEST_EXEC_ID
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 
 	# prepare: mount

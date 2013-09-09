@@ -10,6 +10,9 @@ load "gfarm2fs::check_user_group"
 #
 setup_make_dir()
 {
+	# define mount point
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 
@@ -85,7 +88,6 @@ test_make_dir()
 	fi
 
 	# step: mount
-	MOUNT_POINT=mnt_$TEST_EXEC_ID
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME

@@ -15,6 +15,9 @@ load "gfarm_v2::failback"
 #
 setup_mount_in_gfmd_failover()
 {
+	# define mount point
+	MOUNT_POINT=mnt_$TEST_EXEC_ID
+
 	# default parameter
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 	TIMEOUT=${TIMEOUT-"10"}
@@ -31,7 +34,6 @@ setup_mount_in_gfmd_failover()
 	fi
 
 	# prepare: create mount point
-	MOUNT_POINT=mnt_$TEST_EXEC_ID
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 
 	return $RESULT_PASS
