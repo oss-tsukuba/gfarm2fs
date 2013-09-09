@@ -21,11 +21,6 @@ setup_copy_dir_gfarm_to_local()
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
-	AUTH_TYPE=`$GFSERVICE get-config-gfarm-param gfmd1 AUTH_TYPE`
-	if [ X$AUTH_TYPE = Xgsi ] || [ X$AUTH_TYPE = Xgsi_auth ]; then
-		$GFSERVICE systest::gfarm_v2::grid_proxy_init client1
-	fi
-
 	# prepare: mkdir
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $TEST_EXEC_ID
 
