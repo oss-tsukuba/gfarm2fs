@@ -40,6 +40,13 @@ setup_continuous_operation()
 	$GFSERVICE mount client1 $MOUNT_POINT -o modules=subdir \
 		-o subdir=$GFARM_HOME
 
+	return $RESULT_PASS
+}
+
+test_continuous_operation()
+{
+	RESULT=$RESULT_PASS
+
 	# file count
 	I=0
 
@@ -48,13 +55,6 @@ setup_continuous_operation()
 
 	while true; do
 		FILE_PATH=`printf $FILE_TMPL $I`
-
-	return $RESULT_PASS
-}
-
-test_continuous_operation()
-{
-	RESULT=$RESULT_PASS
 
 		# step: create a file
 		$GFSERVICE systest::gfarm2fs::make_file client1 $FILE_PATH $WRITE_SIZE
