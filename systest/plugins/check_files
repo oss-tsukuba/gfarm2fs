@@ -66,7 +66,7 @@ subcmd_check_files_agent()
 	CHECKSUM=$3
 
 	if [ ! -d $TARGET_DIR ]; then
-		 log_error "failed to read dir: $MNT/$TARGET_DIR"
+		 log_error "failed to read dir: $TARGET_DIR"
 	fi
 
 	check_files_internal $TARGET_DIR $NUM_FILES $CHECKSUM
