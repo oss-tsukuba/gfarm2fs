@@ -15,6 +15,7 @@ load "gfarm2fs::rmdir_n"
 #
 # Test parameters
 #
+# MOUNT_TOPDIR: A path to the top directory of mount points
 # GFARM_HOME:	A directory path of Gfarm which this test will be executed
 # NUM_CLIENTS:	Number of clients used
 # NUM_MOUNT:	Number of mount points
@@ -22,24 +23,27 @@ load "gfarm2fs::rmdir_n"
 # FILE_SIZE:	File size of each file to be written
 test_write_files_each_mntpnts_common()
 {
-	GFARM_HOME="$1"
-	NUM_CLIENTS="$2"
-	NUM_MOUNT="$3"
-	NUM_FILES="$4"
-	FILE_SIZE="$5"
+	MOUNT_TOPDIR=${MOUNT_TOPDIR-"."}
+	MOUNT_DIR_PREFIX="${MOUNT_TOPDIR}/${TEST_EXEC_ID}_"
+	GFARM_HOME=${GFARM_HOME-"/"}
+
+	NUM_CLIENTS="$1"
+	NUM_MOUNT="$2"
+	NUM_FILES="$3"
+	FILE_SIZE="$4"
 
 	CHKSUM=`calc_checksum $FILE_SIZE`
 	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
 	RESULT=$RESULT_PASS
 
-	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false ${TEST_EXEC_ID}_ \
+	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false $MOUNT_DIR_PREFIX \
 		$NUM_MOUNT
 
-	exec_on_multiple_clients $NUM_CLIENTS mount_n false ${TEST_EXEC_ID}_ \
+	exec_on_multiple_clients $NUM_CLIENTS mount_n false $MOUNT_DIR_PREFIX \
 		$NUM_MOUNT $GFARM_HOME
 
 	exec_on_multiple_clients $NUM_CLIENTS make_files_each_mntpnts true \
-		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES $FILE_SIZE
+		$MOUNT_DIR_PREFIX $NUM_MOUNT $TARGET_DIR $NUM_FILES $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to make files"
 		set_result RESULT $RESULT_FAIL
@@ -48,7 +52,7 @@ test_write_files_each_mntpnts_common()
 	gfwhere_check client1 $GFARM_HOME
 
 	exec_on_multiple_clients $NUM_CLIENTS check_files_each_mntpnts true \
-		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES $CHKSUM
+		$MOUNT_DIR_PREFIX $NUM_MOUNT $TARGET_DIR $NUM_FILES $CHKSUM
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: file checksum is not expected one"
 		set_result RESULT $RESULT_FAIL
@@ -57,13 +61,13 @@ test_write_files_each_mntpnts_common()
 	log_view client1
 
 	exec_on_multiple_clients $NUM_CLIENTS remove_files_each_mntpnts false \
-		${TEST_EXEC_ID}_ $NUM_MOUNT $TARGET_DIR $NUM_FILES
+		$MOUNT_DIR_PREFIX $NUM_MOUNT $TARGET_DIR $NUM_FILES
 
-	exec_on_multiple_clients $NUM_CLIENTS umount_n false ${TEST_EXEC_ID}_ \
-		$NUM_MOUNT
+	exec_on_multiple_clients $NUM_CLIENTS umount_n false \
+		$MOUNT_DIR_PREFIX $NUM_MOUNT
 
-	exec_on_multiple_clients $NUM_CLIENTS rmdir_n false ${TEST_EXEC_ID}_ \
-		$NUM_MOUNT
+	exec_on_multiple_clients $NUM_CLIENTS rmdir_n false \
+		$MOUNT_DIR_PREFIX $NUM_MOUNT
 
 	return $RESULT
 }

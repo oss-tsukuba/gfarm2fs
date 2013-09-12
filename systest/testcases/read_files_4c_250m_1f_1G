@@ -12,7 +12,7 @@ setup_read_files_4c_250m_1f_1G()
 
 test_read_files_4c_250m_1f_1G()
 {
-	test_read_files_common "/" 4 250 1 1G
+	test_read_files_common 4 250 1 1G
 }
 
 teardown_read_files_4c_250m_1f_1G()

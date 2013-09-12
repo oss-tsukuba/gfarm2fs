@@ -12,7 +12,7 @@ setup_write_files_4c_100m_1000f_100M()
 
 test_write_files_4c_100m_1000f_100M()
 {
-	test_write_files_common "/" 4 100 1000 100M
+	test_write_files_common 4 100 1000 100M
 }
 
 teardown_write_files_4c_100m_1000f_100M()

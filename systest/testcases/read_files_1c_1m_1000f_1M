@@ -12,7 +12,7 @@ setup_read_files_1c_1m_1000f_1M()
 
 test_read_files_1c_1m_1000f_1M()
 {
-	test_read_files_common "/" 1 1 1000 1M
+	test_read_files_common 1 1 1000 1M
 }
 
 teardown_read_files_1c_1m_1000f_1M()

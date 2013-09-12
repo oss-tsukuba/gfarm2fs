@@ -11,14 +11,13 @@ setup_write_files()
 
 test_write_files()
 {
-	GFARM_HOME=${GFARM_HOME-"/"}
 	NUM_CLIENTS=${NUM_CLIENTS-"1"}
 	NUM_MOUNT=${NUM_MOUNT-"1"}
 	NUM_FILES=${NUM_FILES-"1000"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
 
 	test_write_files_common \
-		$GFARM_HOME $NUM_CLIENTS $NUM_MOUNT $NUM_FILES $FILE_SIZE
+		$NUM_CLIENTS $NUM_MOUNT $NUM_FILES $FILE_SIZE
 }
 
 teardown_write_files()

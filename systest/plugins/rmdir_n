@@ -42,7 +42,7 @@ subcmd_rmdir_n_agent()
 	for I in `seq $NUM_DIRS`; do
 		DIR=`printf $DIR_PREFIX%04d $I`
 		if [ -d $DIR ]; then
-			rmdir -p $DIR
+			rmdir $DIR
 			[ $? -ne 0 ] && log_error "failed to rmdir $DIR"
 		fi
 	done
