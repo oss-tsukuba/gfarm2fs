@@ -46,7 +46,8 @@ subcmd_make_files_n_each_mntpnts_agent()
 
 	PROCESS_LIST=""
 
-	for I in `df|awk '{if ($1 == "'$MNTDIR_PREFIX'") print $6}'|sort|head -$COUNT`; do
+	MNTDIR_PREFIX_ESC=`echo $MNTDIR_PREFIX | sed -e 's|/|\\\\/|g'`
+	for I in `df|awk "/$MNTDIR_PREFIX_ESC/{print \\\$6}"|sort|head -$COUNT`; do
 		make_files "$I/$PROGHOST/$I/$TARGET_DIR" "$@" &
 		PROCESS_LIST="$PROCESS_LIST $!"
 	done
