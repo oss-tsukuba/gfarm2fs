@@ -21,16 +21,6 @@ create_link()
 # check proxy cert
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
 
-# copy proxy cert to default location and unset X509_USER_PROXY
-: ${UID:=`id -u`}
-if [ X"$X509_USER_PROXY" != X -a -f "$X509_USER_PROXY" -a "$X509_USER_PROXY" != /tmp/x509up_u$UID ]; then
-	cmp $X509_USER_PROXY /tmp/x509up_u$UID > /dev/null 2>&1 || {
-		cp -p $X509_USER_PROXY /tmp/x509up_u$UID &&
-		unset X509_USER_PROXY &&
-		echo Update proxy certificate for gfarm2fs
-	}
-fi
-
 # display timeleft of proxy cert
 (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft
 
