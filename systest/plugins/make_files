@@ -29,6 +29,8 @@ make_files()
 
 	if [ ! -d $TARGET_DIR ]; then
 		mkdir -p $TARGET_DIR
+		[ $? -ne 0 ] && log_error "mkdir -p $TARGET_DIR failed"
+		log_debug "mkdir -p $TARGET_DIR"
 	fi
 
 	for I in `seq $NUM_FILES` ; do

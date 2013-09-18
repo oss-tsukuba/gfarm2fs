@@ -44,7 +44,8 @@ subcmd_mkdir_n_agent()
 		DIR=`printf $DIR_PREFIX%04d $I`
 		if [ ! -d $DIR ]; then
 			mkdir -p $DIR
-			[ $? -ne 0 ] && log_error "failed to mkdir $DIR"
+			[ $? -ne 0 ] && log_error "failed to mkdir -p $DIR"
+			log_debug "mkdir -p $DIR"
 		fi
 	done
 
