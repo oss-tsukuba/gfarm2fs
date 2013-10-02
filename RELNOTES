@@ -1,3 +1,13 @@
+Release note for Gfarm2fs 1.2.9.3
+=================================
+
+[2013.10.2]
+
+Updated feature
+* mount.gfarm2fs - workaround for temporary proxy cert created by
+  gsissh
+* display profile information when profiling feature is enabled
+
 Release note for Gfarm2fs 1.2.9.2
 =================================
 
