@@ -2124,7 +2124,7 @@ main(int argc, char *argv[])
 	gfarm2fs_replicate_final();
 	e = gfarm_terminate();
 	if (e != GFARM_ERR_NO_ERROR)
-		gflog_error(GFARM_MSG_UNFIXED, "gfarm_terminate: %s",
+		gflog_error(GFARM_MSG_2000124, "gfarm_terminate: %s",
 			    gfarm_error_string(e));
 	free(params.subdir);
 	free(params.facility);
