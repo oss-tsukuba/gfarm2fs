@@ -59,6 +59,8 @@ prepare a configuration file of 'gfservice' (the default path is
     gfsd4_LOG_FILE_PATHS=/var/log/syslog
 
     client1=pc1.example.com
+    MOUNT_TOPDIR=/work/gfarm-systest
+    MOUNT_OPTIONS="-syslog=local7"
 
 The example above declares variables not explained in gfservice.conf(5).
 They are not interpreted by 'gfservice' but 'systest':
@@ -99,6 +101,16 @@ They are not interpreted by 'gfservice' but 'systest':
             gfmd1_LOG_FILE_PATH="/var/log/messages /var/log/gfarm"
 
         The default value is "/var/log/messages".
+
+    MOUNT_TOPDIR
+	The absolute paths to mount potions.  'systest' mounts gfarm2fs
+	on sub-directories under $MOUNT_DIR.  The default value is $HOME
+	(home directory).  If a home directory of the client host is
+	hosted by NFS, specify a path to a directory on a local disk.
+	Note that the directory must be writable by the test user.
+
+    MOUNT_OPTIONS
+	Additional options to 'gfarm2fs'.
 
 Read gfservice.conf(5) for more details about the configuration file.
 
