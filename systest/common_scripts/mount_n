@@ -11,7 +11,7 @@ mount_n()
 	for I in `seq $COUNT` ; do
 		MNT=`printf $MNTDIR_PREFIX%04d $I`
 		$GFSERVICE mount $HOSTID $MNT -o modules=subdir \
-			-o subdir=$SUBDIR
+			-o subdir=$SUBDIR $MOUNT_OPTIONS
 		if [ $? -ne 0 ]; then
 			log_warn "gfservice mount failed $HOSTID mnt$I"
 			return 1
