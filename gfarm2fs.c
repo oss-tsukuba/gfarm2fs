@@ -1102,7 +1102,7 @@ gfs_hook_open_flags_gfarmize(int open_flags)
 	if ((open_flags & O_APPEND) != 0)
 		gfs_flags |= GFARM_FILE_APPEND;
 #endif
-#if 0 /* not yet on Gfarm v2 */
+#ifdef GFARM_FILE_EXCLUSIVE
 	if ((open_flags & O_EXCL) != 0)
 		gfs_flags |= GFARM_FILE_EXCLUSIVE;
 #endif
