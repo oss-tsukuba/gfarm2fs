@@ -45,10 +45,12 @@ USERLIST="$GFUSER"
 : ${GFARM_CONFIG_FILE:="$HOME/.gfarm2rc"}
 
 groups=`gfgroup -l | grep $GFUSER | awk -F: '{print $1}'`
-groups_not_exist=true
+if [ -z "$groups" ]; then
+    ASK "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group."
+fi
+
 for g in $groups
 do
-    groups_not_exist=false
     dir_not_exist=true
     dir_not_writable=true
     cannot_mount=true
@@ -86,7 +88,3 @@ do
 	fi
     fi
 done
-
-if $groups_not_exist; then
-    ASK "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group."
-fi
