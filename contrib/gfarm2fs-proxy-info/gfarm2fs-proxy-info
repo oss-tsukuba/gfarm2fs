@@ -19,7 +19,7 @@ usage() {
 getxattr() {
     attr=$1
     p=$2
-    v=`getfattr -n $attr $p | sed -n s/$attr'="\(.*\)"/\1/p'`
+    v=`getfattr --absolute-names -n $attr $p | sed -n s/$attr'="\(.*\)"/\1/p'`
     echo $v
 }
 
@@ -54,21 +54,13 @@ esac
 MOUNTDIR=$1
 [ -d $MOUNTDIR ] || ABORT "$MOUNTDIR: not a directory, or access denied"
 
-# to omit the following warning from getfattr(1):
-#	getfattr: Removing leading '/' from absolute path names
-MOUNTDIR_ORG=$MOUNTDIR
-case $MOUNTDIR in
-/*)	cd /
-	MOUNTDIR=`expr "$MOUNTDIR" : '/\(.*\)'`;;
-esac
-
 if [ `(LC_ALL=C gsiproxyinfo $MOUNTDIR 2>&1 >/dev/null)|LC_ALL=C wc -c` -ne 0 ]
 then
 	LC_ALL=C gsiproxyinfo $MOUNTDIR 2>&1 >/dev/null |
 	while read line; do
 		case $line in
 		*'Operation not supported')
-			echo >&2 $PROG: $MOUNTDIR_ORG: not mounted by gfarm2fs
+			echo >&2 $PROG: $MOUNTDIR: not mounted by gfarm2fs
 			;;
 		*)
 			echo >&2 $PROG: $line;;
