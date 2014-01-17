@@ -66,10 +66,10 @@ do
 		then
 		    cannot_mount=false
 		    # create symlinks
-		    if cd /gfarm/$g/$u; then
+		    ( if cd /gfarm/$g/$u; then
 			create_link www $g $GFUSER
 			create_link samba $g $GFUSER
-		    fi
+		      fi )
 		else
 		    not_mountable_dir=/gfarm/$g/$u
 		fi
