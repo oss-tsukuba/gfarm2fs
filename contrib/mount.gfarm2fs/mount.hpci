@@ -23,6 +23,9 @@ create_link()
 # check proxy cert
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
 
+# check privilege to use FUSE
+[ -w /dev/fuse ] || ABORT "Cannot access /dev/fuse.  Please ask the system administrator."
+
 # display timeleft of proxy cert
 (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft
 
