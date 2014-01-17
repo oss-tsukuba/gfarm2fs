@@ -11,6 +11,12 @@ ABORT() {
 	exit 1
 }
 
+ASK() {
+	echo >&2 $PROG: $*
+	echo >&2 $PROG: Please ask the system administrator.
+	exit 1
+}
+
 create_link()
 {
     LINK=$1
@@ -24,7 +30,7 @@ create_link()
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
 
 # check privilege to use FUSE
-[ -w /dev/fuse ] || ABORT "Cannot access /dev/fuse.  Please ask the system administrator."
+[ -w /dev/fuse ] || ASK "Cannot access /dev/fuse."
 
 # display timeleft of proxy cert
 (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft
@@ -72,9 +78,9 @@ do
     done
     if $cannot_mount; then
 	if $dir_not_exist; then
-	    ABORT "Your mount directory is not found/accessible in '/gfarm/$g'.  Please ask the system administrator."
+	    ASK "Your mount directory is not found/accessible in '/gfarm/$g'."
 	elif $dir_not_writable; then
-	    ABORT "Your mount directory '$not_writable_dir' is not writable'.  Please ask the system administrator."
+	    ASK "Your mount directory '$not_writable_dir' is not writable'."
 	else
 	    ABORT "failed to mount on $not_mountable_dir."
 	fi
@@ -82,5 +88,5 @@ do
 done
 
 if $groups_does_not_exist; then
-    ABORT "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group.  Please ask the system administrator."
+    ASK "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group."
 fi
