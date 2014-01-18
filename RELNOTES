@@ -1,3 +1,16 @@
+Release note for Gfarm2fs 1.2.9.4
+=================================
+
+[2014.1.18]
+
+New feature
+* support atomic file creation (O_EXCL), which requires Gfarm 2.5.8.4
+  or later
+
+Updated feature
+* mount.hpci, gfarm2fs-proxy-info - better error reporting [sf.net
+  trac #741, #742]
+
 Release note for Gfarm2fs 1.2.9.3
 =================================
 
@@ -30,7 +43,8 @@ Release note for Gfarm2fs 1.2.9
 [2013.4.22]
 
 New feature
-* support atomic append (O_APPEND)
+* support atomic append (O_APPEND), which requires Gfarm 2.5.8 or
+  later
 
 Updated feature
 * mount.gfarm2fs - automount(8) support
