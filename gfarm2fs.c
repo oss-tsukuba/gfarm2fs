@@ -161,6 +161,8 @@ static void
 gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 {
 	char buf[PATH_MAX];
+	struct gfs_stat st;
+	gfarm_error_t e;
 
 	if (realpath(mpoint, buf) == NULL) {
 		gflog_error(GFARM_MSG_2000058, "realpath(%s): %s",
@@ -202,6 +204,17 @@ gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 		    "no memory to allocate subdir \"%s\"", subdir);
 		exit(1);
 	}
+	if ((e = gfs_stat(gfarm2fs_subdir, &st)) != GFARM_ERR_NO_ERROR) {
+		gflog_error(GFARM_MSG_UNFIXED, "%s: %s",
+		    gfarm2fs_subdir, gfarm_error_string(e));
+		exit(1);
+	} else if (!GFARM_S_ISDIR(st.st_mode)) {
+		e = GFARM_ERR_NOT_A_DIRECTORY;
+		gflog_error(GFARM_MSG_UNFIXED, "%s: %s",
+		    gfarm2fs_subdir, gfarm_error_string(e));
+		exit(1);
+	}
+	gfs_stat_free(&st);
 	gfarm2fs_subdir_len = strlen(gfarm2fs_subdir);
 	/* ignore one trailing slash.  see gfarm2fs_getattr */
 	if (gfarm2fs_subdir_len > 0 &&
