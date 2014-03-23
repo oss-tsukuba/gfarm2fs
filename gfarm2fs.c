@@ -205,12 +205,12 @@ gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
 		exit(1);
 	}
 	if ((e = gfs_stat(gfarm2fs_subdir, &st)) != GFARM_ERR_NO_ERROR) {
-		gflog_error(GFARM_MSG_UNFIXED, "%s: %s",
+		gflog_error(GFARM_MSG_2000125, "%s: %s",
 		    gfarm2fs_subdir, gfarm_error_string(e));
 		exit(1);
 	} else if (!GFARM_S_ISDIR(st.st_mode)) {
 		e = GFARM_ERR_NOT_A_DIRECTORY;
-		gflog_error(GFARM_MSG_UNFIXED, "%s: %s",
+		gflog_error(GFARM_MSG_2000126, "%s: %s",
 		    gfarm2fs_subdir, gfarm_error_string(e));
 		exit(1);
 	}
