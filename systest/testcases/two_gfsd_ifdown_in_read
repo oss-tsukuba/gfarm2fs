@@ -25,6 +25,10 @@ setup_two_gfsd_ifdown_in_read()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	FILE_PATH1=$MOUNT_POINT/${TEST_EXEC_ID}_1
+	FILE_PATH2=$MOUNT_POINT/${TEST_EXEC_ID}_2
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -67,11 +71,9 @@ test_two_gfsd_ifdown_in_read()
 	RESULT=$RESULT_PASS
 
 	# step: read files in background
-	FILE_PATH1=$MOUNT_POINT/${TEST_EXEC_ID}_1
 	$GFSERVICE systest::gfarm2fs::read_file client1 $FILE_PATH1 &
 	READ_PID1=$!
 
-	FILE_PATH2=$MOUNT_POINT/${TEST_EXEC_ID}_2
 	$GFSERVICE systest::gfarm2fs::read_file client1 $FILE_PATH2 &
 	READ_PID2=$!
 
@@ -150,7 +152,7 @@ test_two_gfsd_ifdown_in_read()
 teardown_two_gfsd_ifdown_in_read()
 {
 	# cleanup: remove files
-	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -r $FILE_PATH
+	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -r $FILE_PATH1 $FILE_PATH2
 
 	# cleanup: unmount
 	$GFSERVICE umount client1 $MOUNT_POINT

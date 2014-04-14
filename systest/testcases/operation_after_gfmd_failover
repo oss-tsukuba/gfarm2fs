@@ -24,6 +24,11 @@ setup_operation_after_gfmd_failover()
 	TIMEOUT=${TIMEOUT-"10"}
 	RETRY_COUNT=${RETRY_COUNT-"10"}
 
+	# miscellaneous parameters
+	FILE_NAME=$TEST_EXEC_ID
+	FILE_PATH=$MOUNT_POINT/$FILE_NAME
+	GFARM_PATH=$GFARM_HOME/$FILE_NAME
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
@@ -66,8 +71,6 @@ test_operation_after_gfmd_failover()
 		"as slave"
 
 	# step: make files
-	FILE_NAME=$TEST_EXEC_ID
-	FILE_PATH=$MOUNT_POINT/$FILE_NAME
 	$GFSERVICE systest::gfarm2fs::make_file client1 $FILE_PATH $FILE_SIZE
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to write a file"
@@ -75,7 +78,6 @@ test_operation_after_gfmd_failover()
 	fi
 
 	# step: check spool file
-	GFARM_PATH=$GFARM_HOME/$FILE_NAME
 	SPOOL_PATH=`$GFSERVICE gfcmd client1 gfspoolpath $GFARM_PATH`
 	if [ X$SPOOL_PATH = X ]; then
 		log_warn "$TESTNAME: failed to get spool path"

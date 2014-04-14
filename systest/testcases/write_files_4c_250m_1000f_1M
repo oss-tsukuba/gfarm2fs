@@ -7,15 +7,15 @@ load "gfarm2fs::test_write_files_common"
 
 setup_write_files_4c_250m_1000f_1M()
 {
-	return $RESULT_PASS
+	setup_write_files_common 4 250 1000 1M
 }
 
 test_write_files_4c_250m_1000f_1M()
 {
-	test_write_files_common 4 250 1000 1M
+	test_write_files_common
 }
 
 teardown_write_files_4c_250m_1000f_1M()
 {
-	return $RESULT_PASS
+	teardown_write_files_common
 }

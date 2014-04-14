@@ -29,6 +29,9 @@ setup_rename_in_gfsd_ifdown()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	GFARM_FILE_DST=$GFARM_HOME/${TEST_EXEC_ID}_dst
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -103,7 +106,6 @@ test_rename_in_gfsd_ifdown()
 	fi
 
 	# step: check number of replicas
-	GFARM_FILE_DST=$GFARM_HOME/${TEST_EXEC_ID}_dst
 	check_replica_num client1 $GFARM_FILE_DST 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"

@@ -17,6 +17,13 @@ setup_copy_dir_gfarm_to_gfarm()
 	GFARM_HOME=${GFARM_HOME-"/"}
 	NUM_DIRS=${NUM_DIRS-"3"}
 
+	# miscellaneous parameters
+	SRC_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_src_%d"
+	SRC_FILE_TMPL="$SRC_PATH_TMPL/${TEST_EXEC_ID}_%d.txt"
+
+	DST_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_dst_%d"
+	DST_FILE_TMPL="$DST_PATH_TMPL/${TEST_EXEC_ID}_%d.txt"
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -34,14 +41,12 @@ test_copy_dir_gfarm_to_gfarm()
 	RESULT=$RESULT_PASS
 
 	# step: create directories
-	SRC_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_src_%d"
 	for I in `seq $NUM_DIRS`; do
 		SRC_PATH=`printf $SRC_PATH_TMPL $I`
 		$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $SRC_PATH
 	done
 
 	# step: create file
-	SRC_FILE_TMPL="$SRC_PATH_TMPL/${TEST_EXEC_ID}_%d.txt"
 	for I in `seq $NUM_DIRS`; do
 		SRC_FILE=`printf $SRC_FILE_TMPL $I $I`
 		$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo ${TEST_EXEC_ID}_$I \
@@ -49,7 +54,6 @@ test_copy_dir_gfarm_to_gfarm()
 	done
 
 	# step: cp
-	DST_PATH_TMPL="$MOUNT_POINT/${TEST_EXEC_ID}_dst_%d"
 	for I in `seq $NUM_DIRS`; do
 		SRC_PATH=`printf $SRC_PATH_TMPL $I`
 		DST_PATH=`printf $DST_PATH_TMPL $I`
@@ -58,7 +62,6 @@ test_copy_dir_gfarm_to_gfarm()
 
 	# step: diff
 	DIFF_CMD="diff -q"
-	DST_FILE_TMPL="$DST_PATH_TMPL/${TEST_EXEC_ID}_%d.txt"
 	for I in `seq $NUM_DIRS`; do
 		SRC_FILE=`printf $SRC_FILE_TMPL $I $I`
 		DST_FILE=`printf $DST_FILE_TMPL $I $I`

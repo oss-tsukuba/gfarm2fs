@@ -29,6 +29,10 @@ setup_gfmd_failover_in_read()
 	RETRY_COUNT=${RETRY_COUNT-"10"}
 	RETRY_INTERVAL=${RETRY_COUNT-"5"}
 
+	# miscellaneous parameters
+	FILE_NAME=$TEST_EXEC_ID
+	FILE_PATH=$MOUNT_POINT/$FILE_NAME
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -39,8 +43,6 @@ setup_gfmd_failover_in_read()
 		-o subdir=$GFARM_HOME
 
 	# prepare: make a file
-	FILE_NAME=$TEST_EXEC_ID
-	FILE_PATH=$MOUNT_POINT/$FILE_NAME
 	$GFSERVICE systest::gfarm2fs::make_file client1 $FILE_PATH $FILE_SIZE
 
 	# prepare: calc checksum

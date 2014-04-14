@@ -29,6 +29,9 @@ setup_append_in_gfsd_ifdown()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
@@ -59,7 +62,6 @@ setup_append_in_gfsd_ifdown()
 		-o subdir=$GFARM_HOME
 
 	# prepare: make a file with replica
-	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
 	if [ $? -ne 0 ]; then

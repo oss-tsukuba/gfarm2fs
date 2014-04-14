@@ -21,19 +21,28 @@ load "gfarm2fs::rmdir_n"
 # NUM_MOUNT:	Number of mount points
 # NUM_FILES:	Number of files to write
 # FILE_SIZE:	File size of each file to be written
-test_write_files_each_mntpnts_common()
+setup_write_files_each_mntpnts_common()
 {
+	# define mount point
 	MOUNT_TOPDIR=${MOUNT_TOPDIR-"."}
 	MOUNT_DIR_PREFIX="${MOUNT_TOPDIR}/${TEST_EXEC_ID}_"
 	GFARM_HOME=${GFARM_HOME-"/"}
 
+	# default parameter
 	NUM_CLIENTS="$1"
 	NUM_MOUNT="$2"
 	NUM_FILES="$3"
 	FILE_SIZE="$4"
 
+	# miscellaneous parameters
 	CHKSUM=`calc_checksum $FILE_SIZE`
 	TARGET_DIR="test_${NUM_MOUNT}_${NUM_FILES}_${FILE_SIZE}"
+
+	return $RESULT_PASS
+}
+
+test_write_files_each_mntpnts_common()
+{
 	RESULT=$RESULT_PASS
 
 	exec_on_multiple_clients $NUM_CLIENTS mkdir_n false $MOUNT_DIR_PREFIX \
@@ -60,6 +69,11 @@ test_write_files_each_mntpnts_common()
 
 	log_view client1
 
+	return $RESULT
+}
+
+teardown_write_files_each_mntpnts_common()
+{
 	exec_on_multiple_clients $NUM_CLIENTS remove_files_each_mntpnts false \
 		$MOUNT_DIR_PREFIX $NUM_MOUNT $TARGET_DIR $NUM_FILES
 
@@ -69,5 +83,5 @@ test_write_files_each_mntpnts_common()
 	exec_on_multiple_clients $NUM_CLIENTS rmdir_n false \
 		$MOUNT_DIR_PREFIX $NUM_MOUNT
 
-	return $RESULT
+	return $RESULT_PASS
 }

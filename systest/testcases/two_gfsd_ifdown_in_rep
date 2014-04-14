@@ -24,6 +24,9 @@ setup_two_gfsd_ifdown_in_rep()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 gfsd2 gfsd3 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -51,7 +54,6 @@ setup_two_gfsd_ifdown_in_rep()
 	CHECKSUM=`calc_checksum $FILE_SIZE`
 
 	# prepare: make a file
-	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
 

@@ -18,6 +18,12 @@ setup_operation_in_gfsd_ifdown()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
+	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
+	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
+	GFARM_FILE4=$GFARM_HOME/${TEST_EXEC_ID}_4
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -36,8 +42,6 @@ setup_operation_in_gfsd_ifdown()
 	fi
 
 	# prepare: make a file
-	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE1 gfmd1 gfsd1
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
@@ -58,7 +62,6 @@ test_operation_in_gfsd_ifdown()
 	RESULT=$RESULT_PASS
 
 	# step: write file
-	GFARM_FILE3=$GFARM_HOME/${TEST_EXEC_ID}_3
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE3 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
@@ -74,7 +77,6 @@ test_operation_in_gfsd_ifdown()
 	fi
 
 	# step: write file
-	GFARM_FILE4=$GFARM_HOME/${TEST_EXEC_ID}_4
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE4 gfmd1 gfsd1
 	if [ $? -eq 0 ]; then

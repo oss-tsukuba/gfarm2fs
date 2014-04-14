@@ -29,6 +29,9 @@ setup_copy_in_gfsd_ifdown()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	TEST_DIR=$MOUNT_POINT/$TEST_EXEC_ID
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
@@ -59,7 +62,6 @@ setup_copy_in_gfsd_ifdown()
 		-o subdir=$GFARM_HOME
 
 	# prepare: make directory
-	TEST_DIR=$MOUNT_POINT/$TEST_EXEC_ID
 	SRC_DIR=$TEST_DIR/src
 	DST_DIR=$TEST_DIR/dst
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir -p $SRC_DIR $DST_DIR

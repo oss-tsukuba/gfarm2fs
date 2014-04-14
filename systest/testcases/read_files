@@ -6,21 +6,21 @@ load "gfarm2fs::test_read_files_common"
 
 setup_read_files()
 {
-	return $RESULT_PASS
-}
-
-test_read_files()
-{
 	NUM_CLIENTS=${NUM_CLIENTS-"1"}
 	NUM_MOUNT=${NUM_MOUNT-"1"}
 	NUM_FILES=${NUM_FILES-"1000"}
 	FILE_SIZE=${FILE_SIZE-"1M"}
 
-	test_read_files_common \
+	setup_read_files_common \
 		$NUM_CLIENTS $NUM_MOUNT $NUM_FILES $FILE_SIZE
+}
+
+test_read_files()
+{
+	test_read_files_common
 }
 
 teardown_read_files()
 {
-	return $RESULT_PASS
+	teardown_read_files_common
 }

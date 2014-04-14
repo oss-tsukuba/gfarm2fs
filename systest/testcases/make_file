@@ -19,6 +19,11 @@ setup_make_file()
 	GFARM_HOME=${GFARM_HOME-"/"}
 	RETRY_COUNT=${RETRY_COUNT-"10"}
 
+	# miscellaneous parameters
+	FILE_NAME=${TEST_EXEC_ID}.txt
+	FILE_PATH=$MOUNT_POINT/$FILE_NAME
+	GFARM_PATH=$GFARM_HOME/$FILE_NAME
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -42,9 +47,6 @@ test_make_file()
 		-o subdir=$GFARM_HOME
 
 	# step: create file
-	FILE_NAME=${TEST_EXEC_ID}.txt
-	FILE_PATH=$MOUNT_POINT/$FILE_NAME
-	GFARM_PATH=$GFARM_HOME/$FILE_NAME
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo test_$TEST_EXEC_ID \
 		> $FILE_PATH"
 

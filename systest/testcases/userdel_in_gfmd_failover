@@ -21,6 +21,9 @@ setup_userdel_in_gfmd_failover()
 	RETRY_COUNT=${RETRY_COUNT-"10"}
 	RETRY_INTERVAL=${RETRY_COUNT-"5"}
 
+	# miscellaneous parameters
+	NEED_USERDEL=false
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED

@@ -24,6 +24,18 @@ setup_operation_in_two_gfsd_ifdown()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	GFARM_PATH1=$GFARM_HOME/${TEST_EXEC_ID}_1
+	GFARM_PATH2=$GFARM_HOME/${TEST_EXEC_ID}_2
+	GFARM_PATH3=$GFARM_HOME/${TEST_EXEC_ID}_3
+
+	READ_GFARM_PATH1=$GFARM_PATH3/${TEST_EXEC_ID}_1
+	READ_GFARM_PATH2=$GFARM_PATH3/${TEST_EXEC_ID}_2
+
+	WRITE_GFARM_PATH1=$GFARM_PATH1/$TEST_EXEC_ID
+	WRITE_GFARM_PATH2=$GFARM_PATH2/$TEST_EXEC_ID
+	WRITE_GFARM_PATH3=$GFARM_PATH3/${TEST_EXEC_ID}_3
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
@@ -49,9 +61,6 @@ setup_operation_in_two_gfsd_ifdown()
 	fi
 
 	# prepare: make directory
-	GFARM_PATH1=$GFARM_HOME/${TEST_EXEC_ID}_1
-	GFARM_PATH2=$GFARM_HOME/${TEST_EXEC_ID}_2
-	GFARM_PATH3=$GFARM_HOME/${TEST_EXEC_ID}_3
 	$GFSERVICE gfcmd client1 gfmkdir $GFARM_PATH1 $GFARM_PATH2 \
 		$GFARM_PATH3
 
@@ -60,8 +69,6 @@ setup_operation_in_two_gfsd_ifdown()
 	$GFSERVICE gfcmd client1 gfncopy -s 2 $GFARM_PATH2
 
 	# prepare: make a file
-	READ_GFARM_PATH1=$GFARM_PATH3/${TEST_EXEC_ID}_1
-	READ_GFARM_PATH2=$GFARM_PATH3/${TEST_EXEC_ID}_2
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $READ_GFARM_PATH1 gfmd1 gfsd1
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
@@ -121,8 +128,6 @@ test_operation_in_two_gfsd_ifdown()
 	fi
 
 	# step: check number of replicas
-	WRITE_GFARM_PATH1=$GFARM_PATH1/$TEST_EXEC_ID
-	WRITE_GFARM_PATH2=$GFARM_PATH2/$TEST_EXEC_ID
 	check_replica_num client1 $WRITE_GFARM_PATH1 2 $RETRY_COUNT
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: number of file replica is not enough"
@@ -186,7 +191,6 @@ test_operation_in_two_gfsd_ifdown()
 	fi
 
 	# step: write file
-	WRITE_GFARM_PATH3=$GFARM_PATH3/${TEST_EXEC_ID}_3
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE4 $WRITE_GFARM_PATH3 gfmd1 gfsd1
 	if [ $? -eq 0 ]; then

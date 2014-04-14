@@ -6,21 +6,21 @@ load "gfarm2fs::test_write_files_common"
 
 setup_write_files()
 {
-	return $RESULT_PASS
-}
-
-test_write_files()
-{
 	NUM_CLIENTS=${NUM_CLIENTS-"1"}
 	NUM_MOUNT=${NUM_MOUNT-"1"}
 	NUM_FILES=${NUM_FILES-"1000"}
 	FILE_SIZE=${FILE_SIZE-"100M"}
 
-	test_write_files_common \
+	setup_write_files_common \
 		$NUM_CLIENTS $NUM_MOUNT $NUM_FILES $FILE_SIZE
+}
+
+test_write_files()
+{
+	test_write_files_common
 }
 
 teardown_write_files()
 {
-	return $RESULT_PASS
+	teardown_write_files_common
 }

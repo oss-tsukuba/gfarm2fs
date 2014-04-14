@@ -28,13 +28,15 @@ setup_rep_in_gfmd_failover()
 	RETRY_COUNT=${RETRY_COUNT-"10"}
 	RETRY_INTERVAL=${RETRY_COUNT-"5"}
 
+	# miscellaneous parameters
+	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
 
 	# prepare: make a file
-	GFARM_FILE=$GFARM_HOME/$TEST_EXEC_ID
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE gfmd1 gfsd1
 	if [ $? -ne 0 ]; then

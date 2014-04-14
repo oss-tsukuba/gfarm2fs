@@ -16,6 +16,11 @@ setup_operation_in_pgsql_down()
 	# default parameter
 	GFARM_HOME=${GFARM_HOME-"/"}
 
+	# miscellaneous parameters
+	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
+	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
+	GFARM_FILE3=$MOUNT_POINT/${TEST_EXEC_ID}_3
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfmd2 gfsd1 gfsd2 client1"
@@ -28,7 +33,6 @@ setup_operation_in_pgsql_down()
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 mkdir $MOUNT_POINT
 
 	# prepare: write file with gfreg
-	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
 	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE1 gfmd1 gfsd2
 
@@ -57,7 +61,6 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: write file with gfreg
-	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
 	echo $TEST_EXEC_ID | $GFSERVICE systest::gfarm_v2::read_and_register client1 \
 		$GFARM_FILE2 gfmd1
 	if [ $? -ne 0 ]; then
@@ -244,7 +247,6 @@ test_operation_in_pgsql_down()
 	fi
 
 	# step: create file
-	GFARM_FILE3=$MOUNT_POINT/${TEST_EXEC_ID}_3
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 "echo $TEST_EXEC_ID > $GFARM_FILE3"
 	if [ $? -ne 0 ]; then
 		log_warn "$TESTNAME: failed to create file"

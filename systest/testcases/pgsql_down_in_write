@@ -21,6 +21,9 @@ setup_pgsql_down_in_write()
 	FILE_SIZE=${FILE_SIZE-"100M"}
 	SLEEP_SEC=${SLEEP_SEC-"3"}
 
+	# miscellaneous parameters
+	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfmd2 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -41,7 +44,6 @@ test_pgsql_down_in_write()
 	RESULT=$RESULT_PASS
 
 	# step: make files in background
-	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
 	$GFSERVICE systest::gfarm2fs::make_file client1 $FILE_PATH $FILE_SIZE &
 	MAKE_PID=$!
 

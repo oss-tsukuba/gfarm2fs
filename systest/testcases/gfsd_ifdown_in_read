@@ -24,6 +24,9 @@ setup_gfsd_ifdown_in_read()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
+
 	# prepare: check whether required host is defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - "gfmd1 gfsd1 client1"
 	[ $? -ne 0 ] && return $RESULT_UNSUPPORTED
@@ -53,7 +56,6 @@ test_gfsd_ifdown_in_read()
 	RESULT=$RESULT_PASS
 
 	# step: read files in background
-	FILE_PATH=$MOUNT_POINT/$TEST_EXEC_ID
 	$GFSERVICE systest::gfarm2fs::read_file client1 $FILE_PATH &
 	READ_PID=$!
 
