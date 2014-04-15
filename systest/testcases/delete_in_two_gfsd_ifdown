@@ -23,6 +23,10 @@ setup_delete_in_two_gfsd_ifdown()
 	RETRY_COUNT=${RETRY_COUNT-"20"}
 	RETRY_INTERVAL=${RETRY_INTERVAL-"30"}
 
+	# miscellaneous parameters
+	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
+	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
+
 	# prepare: check whether required hosts are defined
 	$GFSERVICE systest::gfarm_v2::check_hostids_defined - \
 		"gfmd1 gfsd1 gfsd2 gfsd3 client1"
@@ -48,7 +52,6 @@ setup_delete_in_two_gfsd_ifdown()
 	fi
 
 	# prepare: make a file with replica
-	GFARM_FILE1=$GFARM_HOME/${TEST_EXEC_ID}_1
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE1 gfmd1 gfsd1
 	if [ $? -ne 0 ]; then
@@ -62,7 +65,6 @@ setup_delete_in_two_gfsd_ifdown()
 		return $RESULT_FATAL
 	fi
 
-	GFARM_FILE2=$GFARM_HOME/${TEST_EXEC_ID}_2
 	generate_testdata $FILE_SIZE | $GFSERVICE systest::gfarm_v2::read_and_register \
 		client1 $GFARM_FILE2 gfmd1 gfsd2
 	if [ $? -ne 0 ]; then
@@ -164,6 +166,12 @@ test_delete_in_two_gfsd_ifdown()
 
 teardown_delete_in_two_gfsd_ifdown()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd2
+
+	# cleanup: remove file
+	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2
 
 	return $RESULT_PASS
 }

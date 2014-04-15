@@ -172,6 +172,10 @@ test_two_gfsd_ifdown_in_write()
 
 teardown_two_gfsd_ifdown_in_write()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd2
+
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE1 $GFARM_FILE2 \
 		$GFARM_FILE3 $GFARM_FILE4

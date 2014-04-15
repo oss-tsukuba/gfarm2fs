@@ -213,16 +213,7 @@ teardown_operation_in_two_gfsd_ifdown()
 {
 	# cleanup: make network interface up
 	$GFSERVICE systest::gfarm2fs::ifup gfsd1
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
-		return $RESULT_FATAL
-	fi
-
 	$GFSERVICE systest::gfarm2fs::ifup gfsd2
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to execute ifup on gfsd2"
-		return $RESULT_FATAL
-	fi
 
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $READ_GFARM_PATH1 \

@@ -90,6 +90,9 @@ test_operation_in_client_ifdown()
 
 teardown_operation_in_client_ifdown()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup client1
+
 	# cleanup: remove files
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -f $GFARM_FILE1 $GFARM_FILE2 \
 		$GFARM_FILE3

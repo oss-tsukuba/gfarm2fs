@@ -101,6 +101,9 @@ test_gfsd_ifdown_in_read()
 
 teardown_gfsd_ifdown_in_read()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
+
 	# cleanup: remove files
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -r $FILE_PATH
 

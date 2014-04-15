@@ -182,6 +182,9 @@ test_copy_in_gfsd_ifdown()
 
 teardown_copy_in_gfsd_ifdown()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
+
 	# cleanup: remove work directory
 	$GFSERVICE systest::gfarm2fs::exec_ssh client1 rm -rf $TEST_DIR
 

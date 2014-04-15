@@ -260,6 +260,10 @@ test_rename_in_two_gfsd_ifdown()
 
 teardown_rename_in_two_gfsd_ifdown()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
+	$GFSERVICE systest::gfarm2fs::ifup gfsd2
+
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f ${GFARM_FILE1}_dst \
 		${GFARM_FILE2}_dst

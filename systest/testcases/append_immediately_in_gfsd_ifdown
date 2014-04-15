@@ -117,18 +117,14 @@ test_append_immediately_in_gfsd_ifdown()
 		fi
 	done
 
-	# step: make network interface up
-	$GFSERVICE systest::gfarm2fs::ifup gfsd1
-	if [ $? -ne 0 ]; then
-		log_warn "$TESTNAME: failed to execute ifup on gfsd1"
-		return $RESULT_FATAL
-	fi
-
 	return $RESULT
 }
 
 teardown_append_immediately_in_gfsd_ifdown()
 {
+	# cleanup: make network interface up
+	$GFSERVICE systest::gfarm2fs::ifup gfsd1
+
 	# cleanup: remove files
 	$GFSERVICE gfcmd client1 gfrm -f $GFARM_FILE
 
