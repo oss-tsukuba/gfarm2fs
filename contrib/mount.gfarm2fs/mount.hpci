@@ -19,11 +19,14 @@ ASK() {
 
 create_link()
 {
-    LINK=$1
-    G=$2
-    U=$3
-    [ -h $LINK ] ||
-	(gfln -s gfarm:///$LINK/$G/$U $LINK && echo create \'$LINK\' symlink)
+    G=$1
+    U=$2
+    [ -h www ] ||
+	(gfln -s gfarm:///www/$G/$U www && echo create \'www\' symlink)
+    [ -h samba ] ||
+	(gfln -s gfarm:///samba/$G/$U samba && echo create \'samba\' symlink)
+    [ -h shared ] ||
+	(gfln -s gfarm:///home/$G/shared shared && echo create \'shared\' symlink)
 }
 
 # check proxy cert
@@ -68,10 +71,7 @@ do
 		then
 		    cannot_mount=false
 		    # create symlinks
-		    ( if cd /gfarm/$g/$u; then
-			create_link www $g $GFUSER
-			create_link samba $g $GFUSER
-		      fi )
+		    (cd /gfarm/$g/$u && create_link $g $GFUSER)
 		else
 		    not_mountable_dir=/gfarm/$g/$u
 		fi
