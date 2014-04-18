@@ -2,6 +2,8 @@
 #
 # mount.hpci - mount HPCI shared storage
 #
+# usage: mount.hpci [ -r | --root | -h | --home | -g | --group ]
+#
 # this command assumes to be executed by a normal user not root
 
 PROG=`basename $0`
@@ -14,6 +16,11 @@ ABORT() {
 ASK() {
 	echo >&2 $PROG: $*
 	echo >&2 $PROG: Please ask the system administrator.
+	exit 1
+}
+
+USAGE() {
+	echo >&2 "usage: $PROG [ -r | --root | -h | --home | -g | --group ]"
 	exit 1
 }
 
@@ -52,6 +59,27 @@ if [ -z "$groups" ]; then
     ASK "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group."
 fi
 
+# option
+mount_dir=user
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-r|--root)
+		mount_dir=root
+		;;
+	-h|--home)
+		mount_dir=home
+		;;
+	-g|--group)
+		mount_dir=group
+		;;
+	*)
+		USAGE
+		;;
+	esac
+	shift
+done
+
 for g in $groups
 do
     dir_not_exist=true
@@ -67,11 +95,19 @@ do
 		not_writable_dir=/gfarm/$g/$u
 	    else
 		dir_not_writable=false
-		if env GFARMFS_ROOT=/home/$g/$GFUSER mount.gfarm2fs "$GFARM_CONFIG_FILE" /gfarm/$g/$u
+		case $mount_dir in
+		root) GFARMFS_ROOT=/ ;;
+		home) GFARMFS_ROOT=/home ;;
+		group) GFARMFS_ROOT=/home/$g ;;
+		user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
+		esac
+		if env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" /gfarm/$g/$u
 		then
 		    cannot_mount=false
 		    # create symlinks
-		    (cd /gfarm/$g/$u && create_link $g $GFUSER)
+		    if [ $mount_dir = "user" ]; then
+			    (cd /gfarm/$g/$u && create_link $g $GFUSER)
+		    fi
 		else
 		    not_mountable_dir=/gfarm/$g/$u
 		fi
