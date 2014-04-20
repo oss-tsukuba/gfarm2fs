@@ -2,7 +2,7 @@
 #
 # mount.hpci - mount HPCI shared storage
 #
-# usage: mount.hpci [ -r | --root | -h | --home | -g | --group ]
+# usage: mount.hpci [ --root | --home | --group | --user ]
 #
 # this command assumes to be executed by a normal user not root
 
@@ -20,7 +20,7 @@ ASK() {
 }
 
 USAGE() {
-	echo >&2 "usage: $PROG [ -r | --root | -h | --home | -g | --group ]"
+	echo >&2 "usage: $PROG [ --root | --home | --group | --user ]"
 	exit 1
 }
 
@@ -28,13 +28,32 @@ create_link()
 {
     G=$1
     U=$2
-    [ -h www ] ||
-	(gfln -s gfarm:///www/$G/$U www && echo create \'www\' symlink)
-    [ -h samba ] ||
-	(gfln -s gfarm:///samba/$G/$U samba && echo create \'samba\' symlink)
-    [ -h shared ] ||
-	(gfln -s gfarm:///home/$G/shared shared && echo create \'shared\' symlink)
+    H=gfarm:///home/$G/$U
+    if ! gftest -h $H/www; then
+	gfln -s gfarm:///www/$G/$U $H/www && echo create \'www\' symlink
+    fi
+    if ! gftest -h $H/samba; then
+	gfln -s gfarm:///samba/$G/$U $H/samba && echo create \'samba\' symlink
+    fi
+    if ! gftest -h $H/shared; then
+	gfln -s gfarm:///home/$G/shared $H/shared && echo create \'shared\' symlink
+    fi
 }
+
+# option
+mount_dir=--user
+while [ $# -gt 0 ]
+do
+	case $1 in
+	--root|--home|--group|--user)
+		mount_dir=$1
+		;;
+	*)
+		USAGE
+		;;
+	esac
+	shift
+done
 
 # check proxy cert
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
@@ -59,27 +78,6 @@ if [ -z "$groups" ]; then
     ASK "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group."
 fi
 
-# option
-mount_dir=user
-while [ $# -gt 0 ]
-do
-	case $1 in
-	-r|--root)
-		mount_dir=root
-		;;
-	-h|--home)
-		mount_dir=home
-		;;
-	-g|--group)
-		mount_dir=group
-		;;
-	*)
-		USAGE
-		;;
-	esac
-	shift
-done
-
 for g in $groups
 do
     dir_not_exist=true
@@ -96,18 +94,16 @@ do
 	    else
 		dir_not_writable=false
 		case $mount_dir in
-		root) GFARMFS_ROOT=/ ;;
-		home) GFARMFS_ROOT=/home ;;
-		group) GFARMFS_ROOT=/home/$g ;;
-		user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
+		--root) GFARMFS_ROOT=/ ;;
+		--home) GFARMFS_ROOT=/home ;;
+		--group) GFARMFS_ROOT=/home/$g ;;
+		--user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
 		esac
 		if env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" /gfarm/$g/$u
 		then
 		    cannot_mount=false
 		    # create symlinks
-		    if [ $mount_dir = "user" ]; then
-			    (cd /gfarm/$g/$u && create_link $g $GFUSER)
-		    fi
+		    create_link $g $GFUSER
 		else
 		    not_mountable_dir=/gfarm/$g/$u
 		fi
