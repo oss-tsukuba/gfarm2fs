@@ -1,3 +1,14 @@
+Release note for Gfarm2fs 1.2.9.6
+=================================
+
+[2014.4.27]
+
+Updated feature
+* mount.hpci - --user, --group, --home, --root options to specify the
+  mount directory in Gfarm
+* mount.hpci - create a symlink to a shared directory in the same
+  group
+
 Release note for Gfarm2fs 1.2.9.5
 =================================
 
