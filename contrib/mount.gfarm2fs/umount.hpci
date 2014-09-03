@@ -16,7 +16,8 @@ for g in $groups
 do
     for u in $USERLIST
     do
-	[ -d /gfarm/$g/$u ] &&
-	umount.gfarm2fs /gfarm/$g/$u
+	d=/gfarm/$g/$u
+	[ -d $d -o "`echo $d*`" = $d ] &&
+	umount.gfarm2fs $d
     done
 done
