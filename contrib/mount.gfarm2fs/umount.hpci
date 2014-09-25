@@ -5,6 +5,15 @@ ABORT() {
 	exit 1
 }
 
+path_exist() {
+	[ -d $1 ] && return 0
+	for f in `echo $1*`
+	do
+		[ $f = $1 ] && return 0
+	done
+	return 1
+}
+
 GFUSER=`gfwhoami`
 [ X"$GFUSER" = X ] && ABORT 'Who?'
 : ${USER:=`whoami`}
@@ -17,7 +26,8 @@ do
     for u in $USERLIST
     do
 	d=/gfarm/$g/$u
-	[ -d $d -o "`echo $d*`" = $d ] &&
-	umount.gfarm2fs $d
+	if path_exist $d; then
+	    umount.gfarm2fs $d
+	fi
     done
 done

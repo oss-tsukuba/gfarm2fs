@@ -13,10 +13,9 @@ ABORT() {
 	exit 1
 }
 
-ASK() {
+NOTE() {
 	echo >&2 $PROG: $*
 	echo >&2 $PROG: Please ask the system administrator.
-	exit 1
 }
 
 USAGE() {
@@ -59,7 +58,7 @@ done
 grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
 
 # check privilege to use FUSE
-[ -w /dev/fuse ] || ASK "Cannot access /dev/fuse."
+[ -w /dev/fuse ] || ABORT "Cannot access /dev/fuse."
 
 # display timeleft of proxy cert
 (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft
@@ -75,9 +74,10 @@ USERLIST="$GFUSER"
 
 groups=`gfgroup -l | grep $GFUSER | awk -F: '{print $1}'`
 if [ -z "$groups" ]; then
-    ASK "The Gfarm user '$GFUSER' doesn't belong to any Gfarm resource group."
+    ABORT "The Gfarm user '$GFUSER' doesn't belong to any Gfarm group."
 fi
 
+return_code=1
 for g in $groups
 do
     dir_not_exist=true
@@ -102,6 +102,7 @@ do
 		if env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" /gfarm/$g/$u
 		then
 		    cannot_mount=false
+		    return_code=0
 		    # create symlinks
 		    create_link $g $GFUSER
 		else
@@ -112,11 +113,12 @@ do
     done
     if $cannot_mount; then
 	if $dir_not_exist; then
-	    ASK "Your mount directory is not found/accessible in '/gfarm/$g'."
+	    NOTE "Your mount directory is not found/accessible in '/gfarm/$g'."
 	elif $dir_not_writable; then
-	    ASK "Your mount directory '$not_writable_dir' is not writable'."
+	    NOTE "Your mount directory '$not_writable_dir' is not writable."
 	else
-	    ABORT "failed to mount on $not_mountable_dir."
+	    NOTE "failed to mount on $not_mountable_dir."
 	fi
     fi
 done
+exit $return_code
