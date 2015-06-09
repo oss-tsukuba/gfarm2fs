@@ -76,6 +76,10 @@ static const char syslog_fmt[] = "<%s:%s>[%s]%s%s: %s";
 static const char trunc_str[] = "(...)";
 static const char empty_str[] = "";
 
+#ifndef GFARM_ERR_INVALID_CREDENTIAL
+#define GFARM_ERR_INVALID_CREDENTIAL	GFARM_ERR_NO_ERROR
+#endif
+
 #define gfarm2fs_check_error(msgNo, fuse_opname, gfarm_funcname, \
 			     gfarm_path, gfarm_e) \
 { \
@@ -230,6 +234,7 @@ gfarmize_path(const char *path, struct gfarmized_path *gfarmized)
 {
 	const char *p = path;
 	int sz;
+#ifdef HAVE_GFARM_AUTH_METHOD_GSI_AVAILABLE
 	gfarm_error_t e;
 
 	/* prevent to connect servers with expired client credential */
@@ -239,6 +244,7 @@ gfarmize_path(const char *path, struct gfarmized_path *gfarmized)
 			return (e);
 		gsi_auth_error = 0;
 	}
+#endif
 	if (IS_SUBDIR(p))
 		p += gfarm2fs_subdir_len;
 	if (p[0] == '/')
