@@ -9,9 +9,6 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you have the `gfarm_auth_method_gsi_available' function. */
-#undef HAVE_GFARM_AUTH_METHOD_GSI_AVAILABLE
-
 /* Define to 1 if you have the <gfarm/gfarm.h> header file. */
 #undef HAVE_GFARM_GFARM_H
 
