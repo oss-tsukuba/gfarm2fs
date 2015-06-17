@@ -69,16 +69,11 @@ static const char GFARM2FS_SYSLOG_FACILITY_DEFAULT[] = "local0";
 static const char GFARM2FS_SYSLOG_PRIORITY_DEBUG[] = "debug";
 
 static const char *mount_point;
-static int gsi_auth_error = 0;
 
 #define PATH_LEN_LIMIT 200
 static const char syslog_fmt[] = "<%s:%s>[%s]%s%s: %s";
 static const char trunc_str[] = "(...)";
 static const char empty_str[] = "";
-
-#ifndef GFARM_ERR_INVALID_CREDENTIAL
-#define GFARM_ERR_INVALID_CREDENTIAL	GFARM_ERR_NO_ERROR
-#endif
 
 #define gfarm2fs_check_error(msgNo, fuse_opname, gfarm_funcname, \
 			     gfarm_path, gfarm_e) \
@@ -92,8 +87,6 @@ static const char empty_str[] = "";
 			path_offset = path_len - PATH_LEN_LIMIT; \
 			path_prefix = trunc_str; \
 		} \
-		if (gfarm_e == GFARM_ERR_INVALID_CREDENTIAL) \
-			gsi_auth_error = 1; \
 		if (ret_errno == EINVAL || fuse_opname == OP_RELEASE) { \
 			gflog_error(msgNo, syslog_fmt, fuse_opname, \
 				gfarm_funcname, mount_point, \
@@ -234,17 +227,7 @@ gfarmize_path(const char *path, struct gfarmized_path *gfarmized)
 {
 	const char *p = path;
 	int sz;
-#ifdef HAVE_GFARM_AUTH_METHOD_GSI_AVAILABLE
-	gfarm_error_t e;
 
-	/* prevent to connect servers with expired client credential */
-	if (gsi_auth_error == 1) {
-		e = gfarm_auth_method_gsi_available();
-		if (e != GFARM_ERR_NO_ERROR)
-			return (e);
-		gsi_auth_error = 0;
-	}
-#endif
 	if (IS_SUBDIR(p))
 		p += gfarm2fs_subdir_len;
 	if (p[0] == '/')
