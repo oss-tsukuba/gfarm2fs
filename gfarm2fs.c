@@ -2065,6 +2065,8 @@ main(int argc, char *argv[])
 #endif
 	/* use inum in Gfarm */
 	fuse_opt_add_arg(&args, "-ouse_ino");
+	/* immediate removal */
+	fuse_opt_add_arg(&args, "-ohard_remove");
 	if (params.mount_point == NULL) {
 		fprintf(stderr, "missing mountpoint\n");
 		fprintf(stderr, "see `%s -h' for usage\n", program_name);
