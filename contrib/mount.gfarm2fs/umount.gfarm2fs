@@ -21,19 +21,20 @@ ABORT() {
 UMOUNT_FUSE()
 {
 	MNTDIR=$1
+	fusermount -u $MNTDIR > /dev/null
+	if [ $? -eq 0 ]; then
+		return 0
+	fi
 	retry=10
 	i=0
-	while true; do
+	while [ $i -lt $retry ]; do
 		fusermount -u $MNTDIR > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			return 0
 		fi
-		ls -l $MNTDIR > /dev/null 2>&1
-		if [ $i -ge $retry ]; then
-			return 1
-		fi
 		i=`expr $i + 1`
 	done
+	return 1
 }
 
 [ x"$1" = x"-h" -o x"$1" = x"--help" ] && USAGE
