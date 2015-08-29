@@ -1,3 +1,17 @@
+Release note for Gfarm2fs 1.2.9.8
+=================================
+
+[2015.8.29]
+
+Updated feature
+* umount.hpci - display umount error message
+* -o hard_remove to prevent device or resource busy error
+* gfarm2fs.cksum local extended attribute to show the digest
+
+Bug fix
+* mount.gfarm2fs - temporary proxy cert is referenced when mounting
+  two or more Gfarm file systems
+
 Release note for Gfarm2fs 1.2.9.7
 =================================
 
