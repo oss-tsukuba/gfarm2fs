@@ -589,9 +589,15 @@ gfarm2fs_readlink(const char *path, char *buf, size_t size)
 {
 	gfarm_error_t e;
 	struct gfarmized_path gfarmized;
-	char *old;
+	static char *old = NULL, *path_save = NULL;
 	size_t len;
 
+	if (path_save != NULL && strcmp(path_save, path) == 0)
+		goto use_saved_data;
+	free(path_save);
+	path_save = NULL;
+	free(old);
+	old = NULL;
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000063, OP_READLINK,
@@ -606,23 +612,20 @@ gfarm2fs_readlink(const char *path, char *buf, size_t size)
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
-
+	free_gfarmized_path(&gfarmized);
 	e = ungfarmize_path(&old, path);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000064, OP_READLINK,
 		    "ungfarmize_path", old, GFARM_ERR_NO_MEMORY);
-		free(old);
-		free_gfarmized_path(&gfarmized);
 		return (-ENOMEM);
 	}
-
+	path_save = strdup(path);
+use_saved_data:
 	len = strlen(old);
 	if (len >= size)
 		len = size - 1;
 	memcpy(buf, old, len);
 	buf[len] = '\0';
-	free(old);
-	free_gfarmized_path(&gfarmized);
 	return (0);
 }
 
