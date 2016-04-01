@@ -79,7 +79,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = systest
-DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am README
+DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+	$(dist_noinst_DATA) README
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -118,7 +119,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-DATA = $(noinst_DATA)
+DATA = $(dist_noinst_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 am__recursive_targets = \
@@ -291,7 +292,7 @@ top_builddir = @top_builddir@
 top_private_dir = @top_private_dir@
 top_srcdir = @top_srcdir@
 SUBDIRS = testcases common_scripts plugins scenarios
-noinst_DATA = testcases.xls
+dist_noinst_DATA = testcases.xls
 all: all-recursive
 
 .SUFFIXES:
