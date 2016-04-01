@@ -1,3 +1,3 @@
 SUBDIRS = testcases common_scripts plugins scenarios
 
-noinst_DATA = testcases.xls
+dist_noinst_DATA = testcases.xls
