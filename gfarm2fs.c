@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <syslog.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -585,6 +586,69 @@ gfarm2fs_access(const char *path, int mask)
 }
 
 static int
+timeval_cmp(const struct timeval *t1, const struct timeval *t2)
+{
+	if (t1->tv_sec > t2->tv_sec)
+		return (1);
+	if (t1->tv_sec < t2->tv_sec)
+		return (-1);
+	if (t1->tv_usec > t2->tv_usec)
+		return (1);
+	if (t1->tv_usec < t2->tv_usec)
+		return (-1);
+	return (0);
+}
+
+#define SECOND_BY_MICROSEC	1000000
+
+static void
+timeval_normalize(struct timeval *t)
+{
+	long n;
+
+	if (t->tv_usec >= SECOND_BY_MICROSEC) {
+		n = t->tv_usec / SECOND_BY_MICROSEC;
+		t->tv_usec -= n * SECOND_BY_MICROSEC;
+		t->tv_sec += n;
+	} else if (t->tv_usec < 0) {
+		n = -t->tv_usec / SECOND_BY_MICROSEC + 1;
+		t->tv_usec += n * SECOND_BY_MICROSEC;
+		t->tv_sec -= n;
+	}
+}
+
+static void
+timeval_add_microsec(struct timeval *t, long microsec)
+{
+	t->tv_usec += microsec;
+	timeval_normalize(t);
+}
+
+static int
+timeval_is_expired(const struct timeval *expiration)
+{
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+	return (timeval_cmp(&now, expiration) > 0);
+}
+
+static int
+readlink_is_expired()
+{
+	static struct timeval expiration = { 0, 0 };
+	long duration = 200000;	/* 200 millisecond */
+	int expired = 0;
+
+	if (timeval_is_expired(&expiration))
+		expired = 1;
+	gettimeofday(&expiration, NULL);
+	timeval_add_microsec(&expiration, duration);
+
+	return (expired);
+}
+
+static int
 gfarm2fs_readlink(const char *path, char *buf, size_t size)
 {
 	gfarm_error_t e;
@@ -592,7 +656,8 @@ gfarm2fs_readlink(const char *path, char *buf, size_t size)
 	static char *old = NULL, *path_save = NULL;
 	size_t len;
 
-	if (path_save != NULL && strcmp(path_save, path) == 0)
+	if (path_save != NULL && strcmp(path_save, path) == 0 &&
+	    !readlink_is_expired())
 		goto use_saved_data;
 	free(path_save);
 	path_save = NULL;
