@@ -1,2 +1,2 @@
-bin_SCRIPTS = mount.gfarm2fs umount.gfarm2fs mount.hpci umount.hpci
-EXTRA_DIST = $(bin_SCRIPTS)
+EXTRA_DIST = umount.gfarm2fs mount.hpci umount.hpci
+bin_SCRIPTS = mount.gfarm2fs $(EXTRA_DIST)
