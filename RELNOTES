@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.9.9
 =================================
 
-[2016.4.1]
+[2016.4.3]
 
 Updated feature
 * readlink - cache previous result to improve 'ls -l' performance
