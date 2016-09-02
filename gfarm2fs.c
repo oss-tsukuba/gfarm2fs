@@ -938,6 +938,8 @@ gfarm2fs_symlink(const char *old, const char *new)
 	return (-gfarm_error_to_errno(e));
 }
 
+static int option_directory_quota_rename_error_exdev;
+
 static int
 gfarm2fs_rename(const char *from, const char *to)
 {
@@ -962,6 +964,9 @@ gfarm2fs_rename(const char *from, const char *to)
 				"gfs_rename", gfarmized_from.path, e);
 	free_gfarmized_path(&gfarmized_to);
 	free_gfarmized_path(&gfarmized_from);
+	if (option_directory_quota_rename_error_exdev &&
+	    e == GFARM_ERR_OPERATION_NOT_SUPPORTED)
+		e = GFARM_ERR_CROSS_DEVICE_LINK;
 	return (-gfarm_error_to_errno(e));
 }
 
@@ -1931,6 +1936,7 @@ enum {
 	KEY_ENABLE_CACHED_ID,
 	KEY_GENUINE_NLINK,
 	KEY_DISABLE_GENUINE_NLINK,
+	KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV,
 };
 
 #define GFARM2FS_OPT(t, p, v) \
@@ -1956,6 +1962,8 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("enable_cached_id", KEY_ENABLE_CACHED_ID), /* for debug */
 	FUSE_OPT_KEY("genuine_nlink", KEY_GENUINE_NLINK),
 	FUSE_OPT_KEY("disable_genuine_nlink", KEY_DISABLE_GENUINE_NLINK),
+	FUSE_OPT_KEY("directory_quota_rename_error_exdev",
+	    KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV),
 	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_uid_max=%d", auto_uid_max, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_gid_min=%d", auto_gid_min, KEY_GFARM2FS_OPT),
@@ -1985,6 +1993,7 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "    -o copy_limit=N         maximum number of concurrent copy creations\n"
 "                            (default: %d)\n"
 "    -o disable_genuine_nlink use faked st_nlink\n"
+"    -o directory_quota_rename_error_exdev enable client-side directory move\n"
 "    -o auto_uid_min=N       minimum UID automatically assigned (default: %d)\n"
 "    -o auto_uid_max=N       maximum UID automatically assigned (default: %d)\n"
 "    -o auto_gid_min=N       minimum GID automatically assigned (default: %d)\n"
@@ -2051,6 +2060,9 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 		return (0);
 	case KEY_DISABLE_GENUINE_NLINK:
 		paramsp->genuine_nlink = 0;
+		return (0);
+	case KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV:
+		paramsp->directory_quota_rename_error_exdev = 1;
 		return (0);
 	case KEY_VERSION:
 		fprintf(stderr, "Gfarm2fs version " VERSION "\n");
@@ -2188,6 +2200,9 @@ main(int argc, char *argv[])
 
 	if (params.genuine_nlink)
 		get_nlink = get_genuine_nlink;
+
+	option_directory_quota_rename_error_exdev =
+	    params.directory_quota_rename_error_exdev;
 
 	/* end of setting params */
 

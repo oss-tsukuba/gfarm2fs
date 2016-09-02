@@ -48,6 +48,16 @@ is enabled.  default is 0.
 \fB-o disable_genuine_nlink\fR
 uses faked st_nlink (32000) of struct stat for directories.
 .TP
+\fB-o directory_quota_rename_error_exdev\fR
+enables client-side directory move between directories which belong to
+different directory quota.
+CAUTION: such client-side move will be really slow, because all files under
+the directory will be copied from source filesystem nodes to the client,
+and be copied back to destination filesystem nodes, and because
+this operation is essentially same with copy and remove,
+file owner settings may not be preserved, and it's possible that
+some directories cannot be correctly moved due to permission problems.
+.TP
 \fB-o auto_uid_min=\fIN\fB\fR
 specify the minimum UID automatically assigned.
 .TP
