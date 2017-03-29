@@ -1,7 +1,7 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
 Version: 1.2.10
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: BSD
 Group: Applications/Internet
 URL: http://sourceforge.net/projects/gfarm/
@@ -28,10 +28,17 @@ rm -rf $RPM_BUILD_ROOT
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-
 %files
 %defattr(-,root,root,-)
-%{_bindir}
+%{_bindir}/gfarm2fs
+%{_bindir}/gfarm2fs_fix_acl
+%{_bindir}/gfarm2fs_fix_acl.sh
+%{_bindir}/gfarm2fs-exec.sh
+%{_bindir}/gfarm2fs-proxy-info
+%{_bindir}/mount.gfarm2fs
+%{_bindir}/mount.hpci
+%{_bindir}/umount.gfarm2fs
+%{_bindir}/umount.hpci
 %doc RELNOTES
 %doc LICENSE
 %doc %{_mandir}
