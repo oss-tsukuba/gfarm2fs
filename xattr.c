@@ -201,10 +201,12 @@ static struct gfarm2fs_xattr_sw sw_disable_acl = {
 /* ------------------------------- */
 
 static gfarm_error_t
-gfarm2fs_xattr_copy(const char *src, void *dst, size_t *sizep)
+gfarm2fs_xattr_copy(const char *src, const char *name, void *dst, size_t *sizep)
 {
 	size_t len;
 
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
 	len = strlen(src);
 	if (*sizep >= len)
 		memcpy(dst, src, len);
@@ -238,15 +240,17 @@ port_to_string(int port, char *dst)
 }
 
 static gfarm_error_t
-local_xattr_url(const char *path, void *value, size_t *sizep)
+local_xattr_url(const char *path, const char *name, void *value, size_t *sizep)
 {
 	gfarm_error_t e;
 	const char *metadb;
 	size_t len, metadb_len, port_len, path_len;
 	int port;
 
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
 	if (gfarm_is_url(path))
-		return (gfarm2fs_xattr_copy(path, value, sizep));
+		return (gfarm2fs_xattr_copy(path, name, value, sizep));
 	e = gfarm_config_metadb_server(path, &metadb, &port);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (e);
@@ -268,13 +272,16 @@ local_xattr_url(const char *path, void *value, size_t *sizep)
 }
 
 static gfarm_error_t
-local_xattr_metadb(const char *path, void *value, size_t *sizep)
+local_xattr_metadb(const char *path, const char *name, void *value,
+	size_t *sizep)
 {
 	gfarm_error_t e;
 	const char *metadb;
 	size_t len, metadb_len, port_len;
 	int port;
 
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
 	e = gfarm_config_metadb_server(path, &metadb, &port);
 	if (e != GFARM_ERR_NO_ERROR)
 		return (e);
@@ -292,37 +299,45 @@ local_xattr_metadb(const char *path, void *value, size_t *sizep)
 }
 
 static gfarm_error_t
-local_xattr_gsi_common(const char *path, void *value, size_t *sizep,
-	gfarm_error_t (*op)(char **))
+local_xattr_gsi_common(void *value, size_t *sizep, gfarm_error_t (*op)(char **))
 {
 	char *gsivalue = NULL;
 	gfarm_error_t e;
 
 	if ((e = (op)(&gsivalue)) == GFARM_ERR_NO_ERROR) {
-		e = gfarm2fs_xattr_copy(gsivalue, value, sizep);
+		e = gfarm2fs_xattr_copy(gsivalue, NULL, value, sizep);
 		free(gsivalue);
 	}
 	return (e);
 }
 
 static gfarm_error_t
-local_xattr_gsi_proxy_info(const char *path, void *value, size_t *sizep)
+local_xattr_gsi_proxy_info(const char *path, const char *name, void *value,
+	size_t *sizep)
 {
-	return (local_xattr_gsi_common(path, value, sizep,
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
+	return (local_xattr_gsi_common(value, sizep,
 	    gfarm_config_gsi_proxy_info));
 }
 
 static gfarm_error_t
-local_xattr_gsi_path(const char *path, void *value, size_t *sizep)
+local_xattr_gsi_path(const char *path, const char *name, void *value,
+	size_t *sizep)
 {
-	return (local_xattr_gsi_common(path, value, sizep,
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
+	return (local_xattr_gsi_common(value, sizep,
 	    gfarm_config_gsi_path));
 }
 
 static gfarm_error_t
-local_xattr_gsi_timeleft(const char *path, void *value, size_t *sizep)
+local_xattr_gsi_timeleft(const char *path, const char *name, void *value,
+	size_t *sizep)
 {
-	return (local_xattr_gsi_common(path, value, sizep,
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
+	return (local_xattr_gsi_common(value, sizep,
 	    gfarm_config_gsi_timeleft));
 }
 
@@ -333,7 +348,7 @@ copy_cksum(struct gfs_stat_cksum *c, void *dst, size_t *sizep)
 	size_t len;
 
 	if (c == NULL || c->len == 0)
-		return (gfarm2fs_xattr_copy("", dst, sizep));
+		return (gfarm2fs_xattr_copy("", NULL, dst, sizep));
 	len = c->len + 2 + strlen(c->type) + 2 + port_size(c->flags);
 	if (*sizep == 0) {
 		*sizep = len;
@@ -348,11 +363,13 @@ copy_cksum(struct gfs_stat_cksum *c, void *dst, size_t *sizep)
 }
 
 static gfarm_error_t
-stat_cksum(const char *p, void *dst, size_t *sizep)
+stat_cksum(const char *p, const char *name, void *dst, size_t *sizep)
 {
 	struct gfs_stat_cksum c;
 	gfarm_error_t e;
 
+	if (name != NULL && name[0] != '\0')
+		return (GFARM_ERR_NO_SUCH_OBJECT);
 	if ((e = gfs_stat_cksum(p, &c)) != GFARM_ERR_NO_ERROR)
 		return (e);
 	e = copy_cksum(&c, dst, sizep);
@@ -361,9 +378,17 @@ stat_cksum(const char *p, void *dst, size_t *sizep)
 }
 #endif /* HAVE_GFS_STAT_CKSUM */
 
+#ifdef HAVE_GFARM_CONFIG_PROFILE_VALUE
+static gfarm_error_t
+local_xattr_profile(const char *p, const char *name, void *value, size_t *sizep)
+{
+	return (gfarm_config_profile_value(name, value, sizep));
+}
+#endif /* HAVE_GFARM_CONFIG_PROFILE_VALUE */
+
 struct {
 	char *attr;
-	gfarm_error_t (*op)(const char *, void *, size_t *);
+	gfarm_error_t (*op)(const char *, const char *, void *, size_t *);
 } local_xattr[] = {
 	{ "path", gfarm2fs_xattr_copy },
 	{ "url", local_xattr_url },
@@ -374,6 +399,9 @@ struct {
 #ifdef HAVE_GFS_STAT_CKSUM
 	{ "cksum", stat_cksum },
 #endif /* HAVE_GFS_STAT_CKSUM */
+#ifdef HAVE_GFARM_CONFIG_PROFILE_VALUE
+	{ "profile.", local_xattr_profile },
+#endif /* HAVE_GFARM_CONFIG_PROFILE_VALUE */
 };
 
 static gfarm_error_t
@@ -381,11 +409,12 @@ gfarm2fs_xattr_get_local(const char *path, const char *name, void *value,
 	size_t *sizep)
 {
 	const char *n = name + LOCAL_XATTR_PREFIX_LENGTH;
-	int i;
+	int i, len;
 
 	for (i = 0; i < GFARM_ARRAY_LENGTH(local_xattr); ++i) {
-		if (strcmp(n, local_xattr[i].attr) == 0)
-			return (local_xattr[i].op(path, value, sizep));
+		len = strlen(local_xattr[i].attr);
+		if (strncmp(n, local_xattr[i].attr, len) == 0)
+			return (local_xattr[i].op(path, n + len, value, sizep));
 	}
 	return (GFARM_ERR_NO_SUCH_OBJECT); /* ENODATA */
 }
