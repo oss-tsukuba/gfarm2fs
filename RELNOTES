@@ -1,3 +1,12 @@
+Release note for Gfarm2fs 1.2.12
+================================
+
+[2019.2.20]
+
+Updated feature
+* gfarm2fs.profile.xxx local extended attribute to show the profile
+  value when it is enabled, which requires Gfarm 2.7.12 or later
+
 Release note for Gfarm2fs 1.2.11
 ================================
 
