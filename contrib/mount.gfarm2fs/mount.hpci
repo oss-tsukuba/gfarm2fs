@@ -14,8 +14,7 @@ ABORT() {
 }
 
 NOTE() {
-	echo >&2 $PROG: $*
-	echo >&2 $PROG: Please ask the system administrator.
+	echo >&2 "$1: this mount point is not ready at this site ($2)"
 }
 
 USAGE() {
@@ -80,6 +79,8 @@ fi
 return_code=1
 for g in $groups
 do
+    [ $g = "gfarmadm" -o $g = "gfarmroot" ] && continue
+
     dir_not_exist=true
     dir_not_writable=true
     cannot_mount=true
@@ -87,10 +88,20 @@ do
     not_mountable_dir=XXX
     for u in $USERLIST
     do
-        if [ -d /gfarm/$g/$u ]; then
+	mount_point=/gfarm/$g/$u
+
+	if awk '{ print $2 }' /etc/mtab | grep "^$mount_point$" >/dev/null
+	then
+	    echo $mount_point: already mounted
+	    cannot_mount=false
+	    return_code=0
+	    continue
+	fi
+
+	if [ -d $mount_point ]; then
 	    dir_not_exist=false
-	    if [ ! -w /gfarm/$g/$u ]; then
-		not_writable_dir=/gfarm/$g/$u
+	    if [ ! -w $mount_point ]; then
+		not_writable_dir=$mount_point
 	    else
 		dir_not_writable=false
 		case $mount_dir in
@@ -99,25 +110,25 @@ do
 		--group) GFARMFS_ROOT=/home/$g ;;
 		--user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
 		esac
-		if env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" /gfarm/$g/$u
+		if env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" $mount_point
 		then
 		    cannot_mount=false
 		    return_code=0
 		    # create symlinks
 		    create_link $g $GFUSER
 		else
-		    not_mountable_dir=/gfarm/$g/$u
+		    not_mountable_dir=$mount_point
 		fi
 	    fi
 	fi
     done
     if $cannot_mount; then
 	if $dir_not_exist; then
-	    NOTE "Your mount directory is not found/accessible in '/gfarm/$g'."
+	    NOTE /gfarm/$g "not exist"
 	elif $dir_not_writable; then
-	    NOTE "Your mount directory '$not_writable_dir' is not writable."
+	    NOTE $not_writable_dir "not writable"
 	else
-	    NOTE "failed to mount on $not_mountable_dir."
+	    NOTE $not_mountable_dir "failed to mount"
 	fi
     fi
 done
