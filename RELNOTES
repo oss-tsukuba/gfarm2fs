@@ -1,3 +1,15 @@
+Release note for Gfarm2fs 1.2.13
+================================
+
+[2019.9.10]
+
+Updated feature
+* mount.hpci - more moderate error message
+
+Bug fix
+* umount.gfarm2fs - a mount point not mounted by gfarm2fs may be
+  unmounted
+
 Release note for Gfarm2fs 1.2.12
 ================================
 
