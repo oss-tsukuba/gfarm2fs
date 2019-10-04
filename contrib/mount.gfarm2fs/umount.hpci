@@ -1,7 +1,18 @@
 #!/bin/sh
+#
+# umount.hpci - unmount HPCI shared storage
+#
+# usage: umount.hpci [ -m mount_point ]
+#
+# this command assumes to be executed by a normal user not root
 
 ABORT() {
 	[ $# -gt 0 ] && echo 1>&2 $*
+	exit 1
+}
+
+USAGE() {
+	echo >&2 "usage: $PROG [ -m mount_point ]"
 	exit 1
 }
 
@@ -14,6 +25,22 @@ path_exist() {
 	return 1
 }
 
+# option
+mount_root=/gfarm
+while [ $# -gt 0 ]
+do
+	case $1 in
+	-m)
+		shift
+		mount_root=$1
+		;;
+	*)
+		USAGE
+		;;
+	esac
+	shift
+done
+
 GFUSER=`gfwhoami`
 [ X"$GFUSER" = X ] && ABORT 'Who?'
 : ${USER:=`whoami`}
@@ -25,7 +52,7 @@ for g in $groups
 do
     for u in $USERLIST
     do
-	d=/gfarm/$g/$u
+	d=$mount_root/$g/$u
 	if path_exist $d; then
 	    umount.gfarm2fs $d
 	fi

@@ -2,7 +2,7 @@
 #
 # mount.hpci - mount HPCI shared storage
 #
-# usage: mount.hpci [ --root | --home | --group | --user ]
+# usage: mount.hpci [ --root | --home | --group | --user ] [ -m mount_point ]
 #
 # this command assumes to be executed by a normal user not root
 
@@ -18,7 +18,7 @@ NOTE() {
 }
 
 USAGE() {
-	echo >&2 "usage: $PROG [ --root | --home | --group | --user ]"
+	echo >&2 "usage: $PROG [ --root | --home | --group | --user ] [ -m mount_point ]"
 	exit 1
 }
 
@@ -40,11 +40,18 @@ create_link()
 
 # option
 mount_dir=--user
+mount_root=/gfarm
+create_mount_point=false
 while [ $# -gt 0 ]
 do
 	case $1 in
 	--root|--home|--group|--user)
 		mount_dir=$1
+		;;
+	-m)
+		shift
+		mount_root=$1
+		create_mount_point=true
 		;;
 	*)
 		USAGE
@@ -88,16 +95,19 @@ do
     not_mountable_dir=XXX
     for u in $USERLIST
     do
-	mount_point=/gfarm/$g/$u
+	mount_point=$mount_root/$g/$u
 
 	if awk '{ print $2 }' /etc/mtab | grep "^$mount_point$" >/dev/null
 	then
 	    echo $mount_point: already mounted
 	    cannot_mount=false
 	    return_code=0
-	    continue
+	    break
 	fi
-
+	remove_mount_point=false
+	if $create_mount_point; then
+	    mkdir -p $mount_point > /dev/null 2>&1 && remove_mount_point=true
+	fi
 	if [ -d $mount_point ]; then
 	    dir_not_exist=false
 	    if [ ! -w $mount_point ]; then
@@ -116,15 +126,19 @@ do
 		    return_code=0
 		    # create symlinks
 		    create_link $g $GFUSER
+		    break
 		else
 		    not_mountable_dir=$mount_point
 		fi
 	    fi
 	fi
+	if $remove_mount_point; then
+	    rmdir $mount_point
+	fi
     done
     if $cannot_mount; then
 	if $dir_not_exist; then
-	    NOTE /gfarm/$g "not exist"
+	    NOTE $mount_root/$g "not exist"
 	elif $dir_not_writable; then
 	    NOTE $not_writable_dir "not writable"
 	else
