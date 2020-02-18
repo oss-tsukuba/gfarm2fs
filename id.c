@@ -8,6 +8,9 @@
 #include <pwd.h>
 #include <grp.h>
 #include <string.h>
+#include <pthread.h>
+#include <assert.h>
+#include <errno.h>
 
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
@@ -34,6 +37,28 @@ static gid_t auto_gid_min;
 static gid_t auto_gid_max;
 
 static int enable_cached_id = 0; /* for debug */
+
+static pthread_mutex_t mutex_group = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mutex_user = PTHREAD_MUTEX_INITIALIZER;
+
+static size_t bufsiz_grp = 1024;
+static size_t bufsiz_pwd = 1024;
+
+static void
+id_mutex_lock(pthread_mutex_t *mutex)
+{
+	int rv;
+	rv = pthread_mutex_lock(mutex);
+	assert(rv == 0);
+}
+
+static void
+id_mutex_unlock(pthread_mutex_t *mutex)
+{
+	int rv;
+	rv = pthread_mutex_unlock(mutex);
+	assert(rv == 0);
+}
 
 static int
 id_hash_index(const void *k, int l)
@@ -121,6 +146,9 @@ gfarm2fs_id_init(struct gfarm2fs_param *params)
 
 	next_auto_uid = (sig_atomic_t) auto_uid_min;
 	next_auto_gid = (sig_atomic_t) auto_gid_min;
+
+	bufsiz_grp = sysconf(_SC_GETGR_R_SIZE_MAX);
+	bufsiz_pwd = sysconf(_SC_GETPW_R_SIZE_MAX);
 }
 
 static gfarm_error_t
@@ -128,8 +156,9 @@ global_user_to_local_uid(
 	const char *url, const char *user, gfarm_uint32_t *uidp)
 {
 	gfarm_error_t e;
-	struct passwd *pwd;
-	char *luser, *guser;
+	struct passwd pwd, *result;
+	char *luser, *guser, *buf;
+	int rv;
 
 	if ((e = gfarm_get_global_username_by_url(url, &guser))
 	    != GFARM_ERR_NO_ERROR) {
@@ -146,12 +175,30 @@ global_user_to_local_uid(
 	free(guser);
 	if (gfarm_global_to_local_username_by_url(url, user, &luser)
 	    == GFARM_ERR_NO_ERROR) {
-		pwd = getpwnam(luser);
-		free(luser);
-		if (pwd != NULL) {
-			*uidp = (gfarm_uint32_t) pwd->pw_uid;
-			return (GFARM_ERR_NO_ERROR);
+		for (;;) {
+			if ((buf = malloc(bufsiz_pwd)) == NULL) {
+				gflog_error(GFARM_MSG_2000106, /*XXX*/
+					"no memory for user %s(size=%zu)",
+					luser, bufsiz_pwd);
+				free(luser);
+				return (GFARM_ERR_NO_MEMORY);
+			}
+			rv = getpwnam_r(luser, &pwd, buf, bufsiz_pwd, &result);
+			if (rv == ERANGE) {
+				free(buf);
+				bufsiz_pwd *= 2;
+				continue;
+			}
+			break;
 		}
+		free(luser);
+		if (result != NULL) {
+			*uidp = (gfarm_uint32_t) result->pw_uid;
+			e = GFARM_ERR_NO_ERROR;
+		} else
+			e = GFARM_ERR_NO_SUCH_OBJECT;
+		free(buf);
+		return (e);
 	}
 	return (GFARM_ERR_NO_SUCH_OBJECT); /* unknown local user */
 }
@@ -160,17 +207,36 @@ static gfarm_error_t
 global_group_to_local_gid(
 	const char *url, const char *group, gfarm_uint32_t *gidp)
 {
-	struct group *grp;
-	char *lgroup;
+	struct group grp, *result;
+	char *lgroup, *buf;
+	int rv;
+	gfarm_error_t e = GFARM_ERR_NO_ERROR;
 
 	if (gfarm_global_to_local_groupname_by_url(url, group, &lgroup)
 	    == GFARM_ERR_NO_ERROR) {
-		grp = getgrnam(lgroup);
-		free(lgroup);
-		if (grp != NULL) {
-			*gidp = (gfarm_uint32_t) grp->gr_gid;
-			return (GFARM_ERR_NO_ERROR);
+		for (;;) {
+			if ((buf = malloc(bufsiz_grp)) == NULL) {
+				gflog_error(GFARM_MSG_2000106, /*XXX*/
+					"no memory for group %s(size=%zu)",
+					lgroup, bufsiz_grp);
+				free(lgroup);
+				return (GFARM_ERR_NO_MEMORY);
+			}
+			rv = getgrnam_r(lgroup, &grp, buf, bufsiz_grp, &result);
+			if (rv == ERANGE) {
+				free(buf);
+				bufsiz_grp *= 2;
+				continue;
+			}
+			break;
 		}
+		free(lgroup);
+		if (result != NULL)
+			*gidp = (gfarm_uint32_t) result->gr_gid;
+		else
+			e = GFARM_ERR_NO_SUCH_OBJECT;
+		free(buf);
+		return (e);
 	}
 	return (GFARM_ERR_NO_SUCH_OBJECT); /* unknown local group */
 }
@@ -180,7 +246,9 @@ static gfarm_error_t
 local_uid_to_global_user(const char *url, gfarm_uint32_t uid, char **userp)
 {
 	gfarm_error_t e;
-	struct passwd *pwd;
+	struct passwd pwd, *result;
+	char *buf;
+	int rv;
 
 	*userp = NULL;
 	if (uid == (gfarm_uint32_t)getuid()) {
@@ -192,26 +260,67 @@ local_uid_to_global_user(const char *url, gfarm_uint32_t uid, char **userp)
 		return (e);
 	}
 	/* use the user map file to identify the global user */
-	if ((pwd = getpwuid((uid_t)uid)) == NULL)
+	for (;;) {
+		if ((buf = malloc(bufsiz_pwd)) == NULL) {
+			gflog_error(GFARM_MSG_2000106, /*XXX*/
+				"no memory for uid %d(size=%zu)",
+				uid, bufsiz_pwd);
+			return (GFARM_ERR_NO_MEMORY);
+		}
+		rv = getpwuid_r(uid, &pwd, buf, bufsiz_pwd, &result);
+		if (rv == ERANGE) {
+			free(buf);
+			bufsiz_pwd *= 2;
+			continue;
+		}
+		break;
+	}
+	if (result == NULL) {
+		free(buf);
 		return (GFARM_ERR_NO_SUCH_OBJECT);
+	}
 
-	return (gfarm_local_to_global_username_by_url(
-			url, pwd->pw_name, userp));
+	e = gfarm_local_to_global_username_by_url(
+			url, result->pw_name, userp);
+	free(buf);
+	return (e);
 }
 
 /* returned string should be free'ed if it is not NULL */
 static gfarm_error_t
 local_gid_to_global_group(const char *url, gfarm_uint32_t gid, char **groupp)
 {
-	struct group *grp;
+	struct group grp, *result;
+	char *buf;
+	int rv;
+	gfarm_error_t e;
 
 	*groupp = NULL;
 	/* use the group map file to identify the global group */
-	if ((grp = getgrgid((gid_t)gid)) == NULL)
+	for (;;) {
+		if ((buf = malloc(bufsiz_grp)) == NULL) {
+			gflog_error(GFARM_MSG_2000106, /*XXX*/
+				"no memory for gid %d(size=%zu)",
+				gid, bufsiz_grp);
+			return (GFARM_ERR_NO_MEMORY);
+		}
+		rv = getgrgid_r(gid, &grp, buf, bufsiz_grp, &result);
+		if (rv == ERANGE) {
+			free(buf);
+			bufsiz_grp *= 2;
+			continue;
+		}
+		break;
+	}
+	if (result == NULL) {
+		free(buf);
 		return (GFARM_ERR_NO_SUCH_OBJECT);
+	}
 
-	return (gfarm_local_to_global_groupname_by_url(
-			url, grp->gr_name, groupp));
+	e = gfarm_local_to_global_groupname_by_url(
+			url, result->gr_name, groupp);
+	free(buf);
+	return (e);
 }
 
 static gfarm_error_t
@@ -407,6 +516,7 @@ gfarm2fs_get_uid(const char *url, const char *user, uid_t *uidp)
 	gfarm_uint32_t id;
 	gfarm_error_t e;
 
+	id_mutex_lock(&mutex_user);
 	e = global_name_to_local_id(url, user,
 				    hash_uid_to_user, hash_user_to_uid,
 				    global_user_to_local_uid,
@@ -414,6 +524,8 @@ gfarm2fs_get_uid(const char *url, const char *user, uid_t *uidp)
 				    &next_auto_uid, &auto_uid_max, &id);
 	if (e == GFARM_ERR_NO_ERROR)
 		*uidp = (uid_t) id;
+	id_mutex_unlock(&mutex_user);
+
 	return (e);
 }
 
@@ -423,6 +535,7 @@ gfarm2fs_get_gid(const char *url, const char *group, gid_t *gidp)
 	gfarm_uint32_t id;
 	gfarm_error_t e;
 
+	id_mutex_lock(&mutex_group);
 	e = global_name_to_local_id(url, group,
 				    hash_gid_to_group, hash_group_to_gid,
 				    global_group_to_local_gid,
@@ -430,6 +543,7 @@ gfarm2fs_get_gid(const char *url, const char *group, gid_t *gidp)
 				    &next_auto_gid, &auto_gid_max, &id);
 	if (e == GFARM_ERR_NO_ERROR)
 		*gidp = (gid_t) id;
+	id_mutex_unlock(&mutex_group);
 
 	return (e);
 }
@@ -448,7 +562,9 @@ gfarm2fs_get_user(const char *url, uid_t uid, char **userp)
 	if (e != GFARM_ERR_NO_SUCH_OBJECT)
 		return (e);  /* success or error */
 
+	id_mutex_lock(&mutex_user);
 	e = auto_id_to_name(hash_uid_to_user, (gfarm_uint32_t)uid, userp);
+	id_mutex_unlock(&mutex_user);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		gflog_debug(GFARM_MSG_2000111,
 			    "cannot convert uid(%d) to gfarm username", uid);
@@ -463,6 +579,7 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 {
 	gfarm_error_t e;
 
+	id_mutex_lock(&mutex_group);
 	/*
 	 * Assuming a new local user/group is added, getgrgid() is
 	 * checked every time.
@@ -472,6 +589,7 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 		return (e);  /* success or error */
 
 	e = auto_id_to_name(hash_gid_to_group, (gfarm_uint32_t)gid, groupp);
+	id_mutex_unlock(&mutex_group);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
 		gflog_debug(GFARM_MSG_2000112,
 			    "cannot convert gid(%d) to gfarm groupname", gid);
@@ -483,19 +601,69 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 uid_t
 gfarm2fs_get_nobody_uid()
 {
-	struct passwd *pwd = getpwnam("nobody");
+	uid_t uid;
+	struct passwd pwd, *result;
+	char *buf;
+	int rv;
 
-	if (pwd != NULL)
-		return (pwd->pw_uid);
-	return (auto_uid_max);
+	id_mutex_lock(&mutex_user);
+	for (;;) {
+		if ((buf = malloc(bufsiz_pwd)) == NULL) {
+			gflog_error(GFARM_MSG_2000106, /*XXX*/
+				"no memory for user %s(size=%zu)",
+				"nobody", bufsiz_pwd);
+			id_mutex_unlock(&mutex_user);
+			return (auto_uid_max);
+		}
+		rv = getpwnam_r("nobody", &pwd, buf, bufsiz_pwd, &result);
+		if (rv == ERANGE) {
+			free(buf);
+			bufsiz_pwd *= 2;
+			continue;
+		}
+		break;
+	}
+	id_mutex_unlock(&mutex_user);
+	if (result != NULL)
+		uid = result->pw_uid;
+	else
+		uid = auto_uid_max;
+	free(buf);
+
+	return (uid);
 }
 
 gid_t
 gfarm2fs_get_nogroup_gid()
 {
-	struct group *grp = getgrnam("nogroup");
+	gid_t gid;
+	struct group grp, *result;
+	char *buf;
+	int rv;
 
-	if (grp != NULL)
-		return (grp->gr_gid);
-	return (auto_gid_max);
+	id_mutex_lock(&mutex_group);
+	for (;;) {
+		if ((buf = malloc(bufsiz_grp)) == NULL) {
+			gflog_error(GFARM_MSG_2000106, /*XXX*/
+				"no memory for group %s(size=%zu)",
+				"nogroup", bufsiz_grp);
+			id_mutex_unlock(&mutex_group);
+			return (auto_gid_max);
+		}
+		rv = getgrnam_r("nogroup", &grp, buf, bufsiz_grp, &result);
+		if (rv == ERANGE) {
+			free(buf);
+			bufsiz_grp *= 2;
+			continue;
+		}
+		break;
+	}
+	id_mutex_unlock(&mutex_group);
+	if (result != NULL)
+		gid = result->gr_gid;
+	else
+		gid = auto_gid_max;
+	free(buf);
+
+	return (gid);
 }
