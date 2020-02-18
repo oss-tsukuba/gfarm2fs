@@ -507,6 +507,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
+	gfarm2fs_open_file_table_lock();
 	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
 		struct gfs_stat st2;
 
@@ -516,11 +517,13 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 			gfarm2fs_check_error(GFARM_MSG_2000046, OP_GETATTR,
 				"gfs_pio_stat", gfarmized.path, e);
 			free_gfarmized_path(&gfarmized);
+			gfarm2fs_open_file_table_unlock();
 			return (-gfarm_error_to_errno(e));
 		}
 		gfs_stat_free(&st);
 		st = st2;
 	}
+	gfarm2fs_open_file_table_unlock();
 	copy_gfs_stat(gfarmized.path, stbuf, &st);
 	gfs_stat_free(&st);
 	free_gfarmized_path(&gfarmized);
@@ -1134,6 +1137,7 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
+	gfarm2fs_open_file_table_lock();
 	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
 		fp->gt[0].tv_sec = ts[0].tv_sec;
 		fp->gt[0].tv_nsec = ts[0].tv_nsec;
@@ -1141,6 +1145,7 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 		fp->gt[1].tv_nsec = ts[1].tv_nsec;
 		fp->time_updated = 1;
 	}
+	gfarm2fs_open_file_table_unlock();
 	gfs_stat_free(&st);
 	gt[0].tv_sec = ts[0].tv_sec;
 	gt[0].tv_nsec = ts[0].tv_nsec;

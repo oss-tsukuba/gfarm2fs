@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <gfarm/gfarm.h>
+#include <pthread.h>
+#include <assert.h>
 
 #include "gfarm2fs_msg_enums.h"
 #include "gfarm2fs.h"
@@ -42,6 +44,37 @@ static int open_file_hash_equal(
 	return (h1 == h2);
 }
 
+static pthread_mutex_t open_file_table_mutex;
+
+static void
+open_file_table_lock_init(void)
+{
+	int rv;
+	pthread_mutexattr_t attr;
+	rv = pthread_mutexattr_init(&attr);
+	assert(rv == 0);
+	rv = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	assert(rv == 0);
+	rv = pthread_mutex_init(&open_file_table_mutex, &attr);
+	assert(rv == 0);
+}
+
+void
+gfarm2fs_open_file_table_lock(void)
+{
+	int rv;
+	rv = pthread_mutex_lock(&open_file_table_mutex);
+	assert(rv == 0);
+}
+
+void
+gfarm2fs_open_file_table_unlock(void)
+{
+	int rv;
+	rv = pthread_mutex_unlock(&open_file_table_mutex);
+	assert(rv == 0);
+}
+
 void
 gfarm2fs_open_file_init()
 {
@@ -49,6 +82,7 @@ gfarm2fs_open_file_init()
 		OPEN_FILE_TABLE_SIZE, open_file_hash, open_file_hash_equal);
 	if (open_file_table == NULL)
 		gflog_fatal(GFARM_MSG_2000051, "no memory");
+	open_file_table_lock_init();
 }
 
 struct gfarm2fs_file *
@@ -57,21 +91,30 @@ gfarm2fs_open_file_lookup(gfarm_ino_t ino)
 	struct gfarm_hash_entry *entry;
 	struct inode_openings *ios;
 	struct opening *o;
+	struct gfarm2fs_file *rv = NULL;
+
+	gfarm2fs_open_file_table_lock();
 
 	entry = gfarm_hash_lookup(open_file_table, &ino, sizeof(ino));
 	if (entry == NULL)
-		return (NULL);
+		goto finish;
 	ios = gfarm_hash_entry_data(entry);
-	if (ios->fp_cached != NULL)
-		return (ios->fp_cached);
+	if (ios->fp_cached != NULL) {
+		rv = ios->fp_cached;
+		goto finish;
+	}
 	for (o = ios->openings; o != NULL; o = o->next) {
 		if (o->writing) {
 			ios->fp_cached = o->fp;
-			return (ios->fp_cached);
+			rv = ios->fp_cached;
+			goto finish;
 		}
 	}
 	ios->fp_cached = ios->openings->fp;
-	return (ios->fp_cached);
+	rv = ios->fp_cached;
+ finish:
+	gfarm2fs_open_file_table_unlock();
+	return (rv);
 }
 
 void
@@ -90,12 +133,15 @@ gfarm2fs_open_file_enter(struct gfarm2fs_file *fp, int flags)
 		    (unsigned long long)ino);
 		return;
 	}
+
+	gfarm2fs_open_file_table_lock();
 	entry = gfarm_hash_enter(open_file_table, &ino, sizeof(ino),
 	    sizeof(*ios), &created);
 	if (entry == NULL) {
 		gflog_error(GFARM_MSG_2000054,
 		    "no memory to insert inode %lld to open file table",
 		    (unsigned long long)ino);
+		gfarm2fs_open_file_table_unlock();
 		return;
 	}
 	o->fp = fp;
@@ -112,6 +158,7 @@ gfarm2fs_open_file_enter(struct gfarm2fs_file *fp, int flags)
 	ios->openings = o;
 	if (o->writing)
 		ios->fp_cached = fp;
+	gfarm2fs_open_file_table_unlock();
 }
 
 static int
@@ -138,11 +185,13 @@ gfarm2fs_open_file_remove(struct gfarm2fs_file *fp)
 	struct gfarm_hash_entry *entry;
 	struct inode_openings *ios = NULL;
 
+	gfarm2fs_open_file_table_lock();
 	entry = gfarm_hash_lookup(open_file_table, &ino, sizeof(ino));
 	if (entry == NULL) {
 		gflog_warning(GFARM_MSG_2000056,
 		    "inode %lld is not found in open file table",
 		    (unsigned long long)ino);
+		gfarm2fs_open_file_table_unlock();
 		return;
 	}
 	ios = gfarm_hash_entry_data(entry);
@@ -154,4 +203,5 @@ gfarm2fs_open_file_remove(struct gfarm2fs_file *fp)
 		ios->fp_cached = NULL;
 	if (ios->openings == NULL)
 		(void)gfarm_hash_purge(open_file_table, &ino, sizeof(ino));
+	gfarm2fs_open_file_table_unlock();
 }
