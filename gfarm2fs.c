@@ -1307,20 +1307,13 @@ gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
-	gfarm_off_t off;
 	int rv;
 	struct gfarm2fs_file *fp = get_filep(fi);
 
 	(void) path;
-	e = gfs_pio_seek(fp->gf, offset, GFARM_SEEK_SET, &off);
-	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_2000028, OP_READ,
-					"gfs_pio_seek", path, e);
-	} else {
-		e = gfs_pio_read(fp->gf, buf, size, &rv);
-		gfarm2fs_check_error(GFARM_MSG_2000029, OP_READ,
-					"gfs_pio_read", path, e);
-	}
+	e = gfs_pio_pread(fp->gf, buf, size, offset, &rv);
+	gfarm2fs_check_error(GFARM_MSG_2000029, OP_READ,
+				"gfs_pio_read", path, e);
 	if (e != GFARM_ERR_NO_ERROR)
 		rv = -gfarm_error_to_errno(e);
 	else
@@ -1333,20 +1326,13 @@ gfarm2fs_write(const char *path, const char *buf, size_t size,
 	off_t offset, struct fuse_file_info *fi)
 {
 	gfarm_error_t e;
-	gfarm_off_t off;
 	int rv;
 	struct gfarm2fs_file *fp = get_filep(fi);
 
 	(void) path;
-	e = gfs_pio_seek(fp->gf, offset, GFARM_SEEK_SET, &off);
-	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_2000030, OP_WRITE,
-					"gfs_pio_seek", path, e);
-	} else {
-		e = gfs_pio_write(fp->gf, buf, size, &rv);
-		gfarm2fs_check_error(GFARM_MSG_2000031, OP_WRITE,
-					"gfs_pio_write", path, e);
-	}
+	e = gfs_pio_pwrite(fp->gf, buf, size, offset, &rv);
+	gfarm2fs_check_error(GFARM_MSG_2000031, OP_WRITE,
+				"gfs_pio_write", path, e);
 	if (e != GFARM_ERR_NO_ERROR)
 		rv = -gfarm_error_to_errno(e);
 	else
