@@ -19,6 +19,8 @@
 #include <errno.h>
 #include <stddef.h>
 #include <limits.h>
+#include <pthread.h>
+#include <assert.h>
 #ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
@@ -157,6 +159,46 @@ static size_t gfarm2fs_path_prefix_len, gfarm2fs_realpath_prefix_len;
 const static char *gfarm2fs_subdir;
 static size_t gfarm2fs_subdir_len;
 #define IS_SUBDIR(p)	(memcmp(p, gfarm2fs_subdir, gfarm2fs_subdir_len) == 0)
+
+static void
+open_file_lock_init(struct gfarm2fs_file *fp)
+{
+	int rv;
+	rv = pthread_rwlock_init(&fp->lock, NULL);
+	assert(rv == 0);
+}
+
+static void
+open_file_lock_destroy(struct gfarm2fs_file *fp)
+{
+	int rv;
+	rv = pthread_rwlock_destroy(&fp->lock);
+	assert(rv == 0);
+}
+
+static void
+open_file_rdlock(struct gfarm2fs_file *fp)
+{
+	int rv;
+	rv = pthread_rwlock_rdlock(&fp->lock);
+	assert(rv == 0);
+}
+
+static void
+open_file_wrlock(struct gfarm2fs_file *fp)
+{
+	int rv;
+	rv = pthread_rwlock_wrlock(&fp->lock);
+	assert(rv == 0);
+}
+
+static void
+open_file_unlock(struct gfarm2fs_file *fp)
+{
+	int rv;
+	rv = pthread_rwlock_unlock(&fp->lock);
+	assert(rv == 0);
+}
 
 static void
 gfarm2fs_record_mount_point(const char *mpoint, const char *subdir)
@@ -441,10 +483,14 @@ gfarm2fs_fstat(
 
 	/* assert(st_outp); */
 
+	open_file_rdlock(fp);
+
 	/* get atime, mtime and size from gfsd */
 	e = gfs_pio_stat(fp->gf, st_outp); /* include gfs_fstat() */
-	if (e != GFARM_ERR_NO_ERROR)
+	if (e != GFARM_ERR_NO_ERROR) {
+		open_file_unlock(fp);
 		return (e);
+	}
 
 	if (fp->time_updated) { /* use atime and mtime from gfmd */
 		if (st_inp == NULL) {
@@ -454,6 +500,7 @@ gfarm2fs_fstat(
 			e = gfs_fstat(fp->gf, &st_gfmd); /* from gfmd */
 			if (e != GFARM_ERR_NO_ERROR) {
 				gfs_stat_free(st_outp);
+				open_file_unlock(fp);
 				return (e);
 			}
 			st_outp->st_atimespec = st_gfmd.st_atimespec;
@@ -464,6 +511,7 @@ gfarm2fs_fstat(
 			st_outp->st_mtimespec = st_inp->st_mtimespec;
 		}
 	}
+	open_file_unlock(fp);
 	return (GFARM_ERR_NO_ERROR);
 }
 
@@ -1106,12 +1154,14 @@ gfarm2fs_ftruncate(const char *path, off_t size,
 	struct gfarm2fs_file *fp = get_filep(fi);
 
 	(void) path;
+	open_file_wrlock(fp);
 	e = gfs_pio_truncate(fp->gf, size);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000024, OP_FTRUNCATE,
 		    "gfs_pio_ftruncate", path, e);
 	} else
 		fp->time_updated = 0;
+	open_file_unlock(fp);
 	return (-gfarm_error_to_errno(e));
 }
 
@@ -1139,11 +1189,13 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 	}
 	gfarm2fs_open_file_table_lock();
 	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
+		open_file_wrlock(fp);
 		fp->gt[0].tv_sec = ts[0].tv_sec;
 		fp->gt[0].tv_nsec = ts[0].tv_nsec;
 		fp->gt[1].tv_sec = ts[1].tv_sec;
 		fp->gt[1].tv_nsec = ts[1].tv_nsec;
 		fp->time_updated = 1;
+		open_file_unlock(fp);
 	}
 	gfarm2fs_open_file_table_unlock();
 	gfs_stat_free(&st);
@@ -1222,6 +1274,7 @@ gfarm2fs_file_init(
 		fp->gf = gf;
 		fp->time_updated = 0;
 		fp->inum = st.st_ino;
+		open_file_lock_init(fp);
 		*fpp = fp;
 		gfs_stat_free(&st);
 		return (GFARM_ERR_NO_ERROR);
@@ -1316,6 +1369,7 @@ gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
 	struct gfarm2fs_file *fp = get_filep(fi);
 
 	(void) path;
+	open_file_wrlock(fp);
 	e = gfs_pio_pread(fp->gf, buf, size, offset, &rv);
 	gfarm2fs_check_error(GFARM_MSG_2000029, OP_READ,
 				"gfs_pio_read", path, e);
@@ -1323,6 +1377,7 @@ gfarm2fs_read(const char *path, char *buf, size_t size, off_t offset,
 		rv = -gfarm_error_to_errno(e);
 	else
 		fp->time_updated = 0;
+	open_file_unlock(fp);
 	return (rv);
 }
 
@@ -1335,6 +1390,7 @@ gfarm2fs_write(const char *path, const char *buf, size_t size,
 	struct gfarm2fs_file *fp = get_filep(fi);
 
 	(void) path;
+	open_file_wrlock(fp);
 	e = gfs_pio_pwrite(fp->gf, buf, size, offset, &rv);
 	gfarm2fs_check_error(GFARM_MSG_2000031, OP_WRITE,
 				"gfs_pio_write", path, e);
@@ -1342,6 +1398,7 @@ gfarm2fs_write(const char *path, const char *buf, size_t size,
 		rv = -gfarm_error_to_errno(e);
 	else
 		fp->time_updated = 0;
+	open_file_unlock(fp);
 	return (rv);
 }
 
@@ -1380,6 +1437,7 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 
 	(void) path;
 	gfarm2fs_open_file_remove(fp);
+	open_file_wrlock(fp);
 	e = gfs_pio_close(fp->gf);
 	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
 				"gfs_pio_close", path, e);
@@ -1401,6 +1459,8 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 			free_gfarmized_path(&gfarmized);
 		}
 	}
+	open_file_unlock(fp);
+	open_file_lock_destroy(fp);
 	free(fp);
 	return (-gfarm_error_to_errno(e));
 }
@@ -1426,16 +1486,19 @@ gfarm2fs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 static int
 gfarm2fs_flush(const char *path, struct fuse_file_info *fi)
 {
+	int rv = 0;
 	gfarm_error_t e;
 	struct gfarm2fs_file *fp = get_filep(fi);
 
+	open_file_rdlock(fp);
 	if (IS_WRITABLE(fp->flags)) {
 		e = gfs_pio_flush(fp->gf);
 		gfarm2fs_check_error(GFARM_MSG_2000123, OP_FLUSH,
 		    "gfs_pio_flush", path, e);
-		return (-gfarm_error_to_errno(e));
-	} else
-		return (0);
+		rv = -gfarm_error_to_errno(e);
+	}
+	open_file_unlock(fp);
+	return (rv);
 }
 
 #if defined(HAVE_SYS_XATTR_H) && defined(ENABLE_XATTR)
