@@ -1,0 +1,30 @@
+README.MT-safe
+
+- locks and locking order
+
+  Locks below are implemented.
+
+  - id.c: mutex_group (static variable)
+  - id.c: mutex_user (static variable)
+  - open_file.c: open_file_table_mutex (static variable)
+  - gfarm2fs.h: struct gfarm2fs_file { lock; }
+
+  open_file_table_mutex should be locked before (unlocked after)
+  gfarm2fs_file.lock, if need to lock both. gfarm2fs_file.lock can be locked
+  without locking open_file_table_mutex on the case file handler is given.
+
+  mutex_group and mutex_user are not related with others.
+
+- note
+
+  - locking directory
+    The callback function of readdir is required to control offset, but
+    libgfarm does not have APIs which execute seekdir and readdir atomically.
+    gfarm2fs may need to lock depend on specified GFS_Dir while executing
+    atomic operations.
+    However, passthrough_fh.c (the example implementation of FUSE) does not
+    call seekdir and readdir atomically in the callback function of readdir.
+    Nevertheless, neither Helgrind nor ThreadSanitizer warned about offset.
+    We guess that libfuse may execute the callback function of readdir
+    atomically.
+
