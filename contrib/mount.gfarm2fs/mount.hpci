@@ -18,7 +18,7 @@ NOTE() {
 }
 
 USAGE() {
-	echo >&2 "usage: $PROG [ --root | --home | --group | --user ] [ -m mount_point ]"
+	echo >&2 "usage: $PROG [ --root | --home | --group | --user ]"
 	exit 1
 }
 
@@ -41,17 +41,11 @@ create_link()
 # option
 mount_dir=--user
 mount_root=/gfarm
-create_mount_point=false
 while [ $# -gt 0 ]
 do
 	case $1 in
 	--root|--home|--group|--user)
 		mount_dir=$1
-		;;
-	-m)
-		shift
-		mount_root=$1
-		create_mount_point=true
 		;;
 	*)
 		USAGE
@@ -83,16 +77,22 @@ if [ -z "$groups" ]; then
     ABORT "The Gfarm user '$GFUSER' doesn't belong to any Gfarm group."
 fi
 
+MOUNT() {
+    case $mount_dir in
+	--root) GFARMFS_ROOT=/ ;;
+	--home) GFARMFS_ROOT=/home ;;
+	--group) GFARMFS_ROOT=/home/$g ;;
+	--user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
+    esac
+    env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" $mount_point
+}
+
 return_code=1
 for g in $groups
 do
-    [ $g = "gfarmadm" -o $g = "gfarmroot" ] && continue
+    [ $g = "gfarmadm" -o $g = "gfarmroot" -o $g = "gfarmtmp" ] && continue
 
-    dir_not_exist=true
-    dir_not_writable=true
     cannot_mount=true
-    not_writable_dir=XXX
-    not_mountable_dir=XXX
     for u in $USERLIST
     do
 	mount_point=$mount_root/$g/$u
@@ -101,49 +101,34 @@ do
 	then
 	    echo $mount_point: already mounted
 	    cannot_mount=false
-	    return_code=0
 	    break
 	fi
-	remove_mount_point=false
-	if $create_mount_point; then
-	    mkdir -p $mount_point > /dev/null 2>&1 && remove_mount_point=true
-	fi
 	if [ -d $mount_point ]; then
-	    dir_not_exist=false
-	    if [ ! -w $mount_point ]; then
-		not_writable_dir=$mount_point
-	    else
-		dir_not_writable=false
-		case $mount_dir in
-		--root) GFARMFS_ROOT=/ ;;
-		--home) GFARMFS_ROOT=/home ;;
-		--group) GFARMFS_ROOT=/home/$g ;;
-		--user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
-		esac
-		if env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" $mount_point
-		then
-		    cannot_mount=false
-		    return_code=0
-		    # create symlinks
-		    create_link $g $GFUSER
-		    break
-		else
-		    not_mountable_dir=$mount_point
-		fi
+	    if MOUNT; then
+		cannot_mount=false
+		break
 	    fi
 	fi
-	if $remove_mount_point; then
-	    rmdir $mount_point
-	fi
     done
+    # last resort
     if $cannot_mount; then
-	if $dir_not_exist; then
-	    NOTE $mount_root/$g "not exist"
-	elif $dir_not_writable; then
-	    NOTE $not_writable_dir "not writable"
-	else
-	    NOTE $not_mountable_dir "failed to mount"
+	mount_point=/tmp/$g/$GFUSER
+	if mkdir -p $mount_point; then
+	    chmod 1777 /tmp/$g > /dev/null 2>&1 || :
+	    if MOUNT; then
+		cannot_mount=false
+	    else
+		rmdir $mount_point
+		rmdir /tmp/$g > /dev/null 2>&1 || :
+	    fi
 	fi
+    fi
+    if $cannot_mount; then
+	NOTE $mount_point "failed to mount"
+    else
+	return_code=0
+	# create symlinks
+	create_link $g $GFUSER
     fi
 done
 exit $return_code

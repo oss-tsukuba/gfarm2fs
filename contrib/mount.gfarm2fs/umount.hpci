@@ -2,7 +2,7 @@
 #
 # umount.hpci - unmount HPCI shared storage
 #
-# usage: umount.hpci [ -m mount_point ]
+# usage: umount.hpci
 #
 # this command assumes to be executed by a normal user not root
 
@@ -12,7 +12,7 @@ ABORT() {
 }
 
 USAGE() {
-	echo >&2 "usage: $PROG [ -m mount_point ]"
+	echo >&2 "usage: $PROG"
 	exit 1
 }
 
@@ -30,10 +30,6 @@ mount_root=/gfarm
 while [ $# -gt 0 ]
 do
 	case $1 in
-	-m)
-		shift
-		mount_root=$1
-		;;
 	*)
 		USAGE
 		;;
@@ -57,4 +53,10 @@ do
 	    umount.gfarm2fs $d
 	fi
     done
+    d=/tmp/$g/$GFUSER
+    if path_exist $d; then
+	umount.gfarm2fs $d
+	rmdir $d
+	rmdir /tmp/$g > /dev/null 2>&1 || :
+    fi
 done
