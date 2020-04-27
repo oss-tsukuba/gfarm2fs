@@ -2,7 +2,7 @@
 #
 # mount.hpci - mount HPCI shared storage
 #
-# usage: mount.hpci [ --root | --home | --group | --user ] [ -m mount_point ]
+# usage: mount.hpci [ --root | --home | --group | --user ]
 #
 # this command assumes to be executed by a normal user not root
 
