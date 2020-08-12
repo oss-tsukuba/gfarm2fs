@@ -2,6 +2,8 @@
 #define	gfs_getxattr_cached	gfs_getxattr
 #endif
 
+#include <pthread.h>
+
 struct gfarm2fs_param {
 	const char *mount_point;
 	char *subdir;
@@ -38,6 +40,7 @@ struct gfarm2fs_file {
 	gfarm_ino_t inum;
 	int time_updated;
 	struct gfarm_timespec gt[2];
+	pthread_rwlock_t lock;
 };
 
 /* support nanosecond */
