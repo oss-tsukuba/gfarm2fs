@@ -2188,6 +2188,11 @@ main(int argc, char *argv[])
 		fprintf(stderr, "failed to parse option\n");
 		exit(1);
 	}
+	/*
+	 * specify '-s' option to disable multithreaded operations
+	 * libgfarm is not thread-safe for now
+	 */
+	fuse_opt_add_arg(&args, "-s");
 #if FUSE_VERSION >= 28
 	/* -o atomic_o_trunc required to overwrite a "lost all replica" file */
 	fuse_opt_add_arg(&args, "-oatomic_o_trunc");
