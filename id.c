@@ -631,7 +631,6 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 {
 	gfarm_error_t e;
 
-	id_mutex_lock(&mutex_group);
 	/*
 	 * Assuming a new local user/group is added, getgrgid() is
 	 * checked every time.
@@ -640,6 +639,7 @@ gfarm2fs_get_group(const char *url, gid_t gid, char **groupp)
 	if (e != GFARM_ERR_NO_SUCH_OBJECT)
 		return (e);  /* success or error */
 
+	id_mutex_lock(&mutex_group);
 	e = auto_id_to_name(hash_gid_to_group, (gfarm_uint32_t)gid, groupp);
 	id_mutex_unlock(&mutex_group);
 	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
