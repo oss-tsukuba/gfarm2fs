@@ -1249,7 +1249,7 @@ gfs_hook_open_flags_gfarmize(int open_flags)
 	if ((open_flags & O_EXCL) != 0)
 		gfs_flags |= GFARM_FILE_EXCLUSIVE;
 #endif
-#if 0 /* not yet on Gfarm v2 */
+#ifdef GFARM_FILE_UNBUFFERED
 	/* open(2) and creat(2) should be unbuffered */
 	gfs_flags |= GFARM_FILE_UNBUFFERED;
 #endif
@@ -1708,69 +1708,53 @@ uncache_path(const char *path)
 static int
 gfarm2fs_mknod_cached(const char *path, mode_t mode, dev_t rdev)
 {
-	int rv = gfarm2fs_mknod(path, mode, rdev);
-
-	if (rv == 0)
-		uncache_parent(path);
-	return (rv);
+	/* uncache always to avoid race condition */
+	uncache_parent(path);
+	return (gfarm2fs_mknod(path, mode, rdev));
 }
 
 static int
 gfarm2fs_mkdir_cached(const char *path, mode_t mode)
 {
-	int rv = gfarm2fs_mkdir(path, mode);
-
-	if (rv == 0)
-		uncache_parent(path);
-	return (rv);
+	uncache_parent(path);
+	return (gfarm2fs_mkdir(path, mode));
 }
 
 static int
 gfarm2fs_unlink_cached(const char *path)
 {
-	int rv = gfarm2fs_unlink(path);
-
-	if (rv == 0) {
-		uncache_path(path);
-		uncache_parent(path);
-	}
-	return (rv);
+	uncache_path(path);
+	uncache_parent(path);
+	return (gfarm2fs_unlink(path));
 }
 
 static int
 gfarm2fs_rmdir_cached(const char *path)
 {
-	int rv = gfarm2fs_rmdir(path);
-
-	if (rv == 0) {
-		uncache_path(path);
-		uncache_parent(path);
-	}
-	return (rv);
+	uncache_path(path);
+	uncache_parent(path);
+	return (gfarm2fs_rmdir(path));
 }
 
 static int
 gfarm2fs_symlink_cached(const char *old, const char *to)
 {
-	int rv = gfarm2fs_symlink(old, to);
-
-	if (rv == 0)
-		uncache_parent(to);
-	return (rv);
+	uncache_parent(to);
+	return (gfarm2fs_symlink(old, to));
 }
 
 static int
 gfarm2fs_rename_cached(const char *from, const char *to)
 {
-	int rv = gfarm2fs_rename(from, to);
+	int rv;
 	struct gfs_stat st;
 
+	uncache_path(from);
+	uncache_parent(from);
+	uncache_path(to);
+	uncache_parent(to);
+	rv = gfarm2fs_rename(from, to);
 	if (rv == 0) {
-		uncache_path(from);
-		uncache_parent(from);
-		uncache_path(to);
-		uncache_parent(to);
-
 		/* try to replicate the destination file just in case */
 		if (gfs_lstat_cached(to, &st) == GFARM_ERR_NO_ERROR) {
 			if (GFARM_S_ISREG(st.st_mode))
@@ -1784,40 +1768,31 @@ gfarm2fs_rename_cached(const char *from, const char *to)
 static int
 gfarm2fs_link_cached(const char *from, const char *to)
 {
-	int rv = gfarm2fs_link(from, to);
-
-	if (rv == 0)
-		uncache_parent(to);
-	return (rv);
+	uncache_parent(to);
+	return (gfarm2fs_link(from, to));
 }
 
 static int
 gfarm2fs_chmod_cached(const char *path, mode_t mode)
 {
-	int rv = gfarm2fs_chmod(path, mode);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_chmod(path, mode));
 }
 
 static int
 gfarm2fs_chown_cached(const char *path, uid_t uid, gid_t gid)
 {
-	int rv = gfarm2fs_chown(path, uid, gid);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_chown(path, uid, gid));
 }
 
 static int
 gfarm2fs_truncate_cached(const char *path, off_t size)
 {
-	int rv = gfarm2fs_truncate(path, size);
+	int rv;
 
-	if (rv == 0)
-		uncache_path(path);
+	uncache_path(path);
+	rv = gfarm2fs_truncate(path, size);
 	gfarm2fs_replicate(path, NULL);
 	return (rv);
 }
@@ -1826,63 +1801,49 @@ static int
 gfarm2fs_ftruncate_cached(const char *path, off_t size,
 			struct fuse_file_info *fi)
 {
-	int rv = gfarm2fs_ftruncate(path, size, fi);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_ftruncate(path, size, fi));
 }
 
 static int
 gfarm2fs_utimens_cached(const char *path, const struct timespec ts[2])
 {
-	int rv = gfarm2fs_utimens(path, ts);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_utimens(path, ts));
 }
 
 static int
 gfarm2fs_create_cached(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
-	int rv = gfarm2fs_create(path, mode, fi);
-
-	if (rv == 0)
-		uncache_parent(path);
-	return (rv);
+	uncache_parent(path);
+	return (gfarm2fs_create(path, mode, fi));
 }
 
 static int
 gfarm2fs_open_cached(const char *path, struct fuse_file_info *fi)
 {
-	int rv = gfarm2fs_open(path, fi);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_open(path, fi));
 }
 
 static int
 gfarm2fs_write_cached(const char *path, const char *buf, size_t size,
 	off_t offset, struct fuse_file_info *fi)
 {
-	int rv = gfarm2fs_write(path, buf, size, offset, fi);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_write(path, buf, size, offset, fi));
 }
 
 static int
 gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
 {
-	int rv = gfarm2fs_release(path, fi);
+	int rv;
 
-	if (rv == 0 && ((fi->flags & O_ACCMODE) == O_WRONLY ||
-			(fi->flags & O_ACCMODE) == O_RDWR ||
-			(fi->flags & O_TRUNC) != 0))
+	if ((fi->flags & O_ACCMODE) == O_WRONLY ||
+	    (fi->flags & O_ACCMODE) == O_RDWR ||
+	    (fi->flags & O_TRUNC) != 0)
 		uncache_path(path);
+	rv = gfarm2fs_release(path, fi);
 	gfarm2fs_replicate(path, fi);
 	return (rv);
 }
@@ -1892,21 +1853,15 @@ static int
 gfarm2fs_setxattr_cached(const char *path, const char *name, const char *value,
 	size_t size, int flags)
 {
-	int rv = gfarm2fs_setxattr(path, name, value, size, flags);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_setxattr(path, name, value, size, flags));
 }
 
 static int
 gfarm2fs_removexattr_cached(const char *path, const char *name)
 {
-	int rv = gfarm2fs_removexattr(path, name);
-
-	if (rv == 0)
-		uncache_path(path);
-	return (rv);
+	uncache_path(path);
+	return (gfarm2fs_removexattr(path, name));
 }
 
 #endif /* HAVE_SETXATTR && ENABLE_XATTR */
@@ -2188,11 +2143,10 @@ main(int argc, char *argv[])
 		fprintf(stderr, "failed to parse option\n");
 		exit(1);
 	}
-	/*
-	 * specify '-s' option to disable multithreaded operations
-	 * libgfarm is not thread-safe for now
-	 */
+#ifndef HAVE_GFS_PROFILE_LOCK
+	/* specify '-s' option to disable multithreaded operations */
 	fuse_opt_add_arg(&args, "-s");
+#endif
 #if FUSE_VERSION >= 28
 	/* -o atomic_o_trunc required to overwrite a "lost all replica" file */
 	fuse_opt_add_arg(&args, "-oatomic_o_trunc");
