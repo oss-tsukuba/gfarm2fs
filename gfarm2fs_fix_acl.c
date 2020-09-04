@@ -95,7 +95,11 @@ check_acl_access(const char *path, struct stat *stbufp,
 
 	size = lgetxattr(path, FIX_ACL_ACCESS, NULL, 0);
 	if (size == -1) {
-		if (errno == ENODATA)
+		if (errno == ENODATA
+#ifdef ENOATTR
+		    || errno == ENOATTR
+#endif
+		    )
 			return (0); /* ignore */
 		fprintf(stderr, "%s: lgetxattr(): %s\n",
 			path, strerror(errno));
@@ -164,7 +168,11 @@ check_acl_default(const char *path, struct stat *stbufp, int do_remove)
 
 	size = lgetxattr(path, FIX_ACL_DEFAULT, NULL, 0);
 	if (size == -1) {
-		if (errno == ENODATA)
+		if (errno == ENODATA
+#ifdef ENOATTR
+		    || errno == ENOATTR
+#endif
+		    )
 			return (0); /* ignore */
 		fprintf(stderr, "%s: lgetxattr(): %s\n",
 			path, strerror(errno));
