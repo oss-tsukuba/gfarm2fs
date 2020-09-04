@@ -1571,7 +1571,11 @@ gfarm2fs_getxattr(const char *path, const char *name, char *value, size_t size)
 		 *   ...
 		 */
 		free_gfarmized_path(&gfarmized);
+#ifdef ENOATTR /* for macOS, etc */
+		return (-ENOATTR);
+#else
 		return (-ENODATA);
+#endif
 	}
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000037, OP_GETXATTR,
@@ -1624,10 +1628,15 @@ gfarm2fs_removexattr(const char *path, const char *name)
 	gfarm2fs_check_error(GFARM_MSG_2000039, OP_REMOVEXATTR,
 			     "gfs_lremovexattr", gfarmized.path, e);
 	free_gfarmized_path(&gfarmized);
-	if (e == GFARM_ERR_NO_SUCH_OBJECT)
+	if (e == GFARM_ERR_NO_SUCH_OBJECT) {
+#ifdef ENOATTR /* for macOS, etc */
+		return (-ENOATTR);
+#else
 		return (-ENODATA);
-	else
+#endif
+	} else {
 		return (-gfarm_error_to_errno(e));
+	}
 }
 #endif /* HAVE_SYS_XATTR_H && ENABLE_XATTR */
 
