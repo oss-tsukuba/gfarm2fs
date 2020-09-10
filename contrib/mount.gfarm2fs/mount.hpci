@@ -54,14 +54,23 @@ do
 	shift
 done
 
-# check proxy cert
-grid-proxy-info > /dev/null || ABORT "Invalid proxy certificate"
-
 # check privilege to use FUSE
 [ -w /dev/fuse ] || ABORT "Cannot access /dev/fuse."
 
+# check access to Gfarm
+gfstatus > /dev/null || ABORT "Unable to access Gfarm"
+
+# check proxy cert
+auth=gsi
+grid-proxy-info > /dev/null 2>&1 || auth=sharedsecret
+
 # display timeleft of proxy cert
-(grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft
+case $auth in
+    gsi)
+    (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft ;;
+    *)
+    gfkey -e ;;
+esac
 
 GFUSER=`gfwhoami`
 [ X"$GFUSER" = X ] && ABORT 'Who?'
