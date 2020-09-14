@@ -53,5 +53,5 @@ install-private: $(bin_PROGRAMS)
 		done ; \
 	fi
 
-gfarm2fs.c: private-src-link
+#gfarm2fs.c: private-src-link
 distclean-local: private-src-unlink
