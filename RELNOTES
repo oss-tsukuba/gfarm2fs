@@ -1,3 +1,15 @@
+Release note for Gfarm2fs 1.2.14
+================================
+
+[2020.9.15]
+
+Updated feature
+* gfarm2fs - multithread safe.  For backward compatibility use -s
+  option
+* mount.hpci - accept sharedsecret authentication
+* mount.hpci - mount in /tmp when /gfarm mount directory is not
+  available
+
 Release note for Gfarm2fs 1.2.13
 ================================
 
