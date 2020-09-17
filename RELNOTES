@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.14
 ================================
 
-[2020.9.15]
+[2020.9.17]
 
 Updated feature
 * gfarm2fs - multithread safe.  For backward compatibility use -s
