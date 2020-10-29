@@ -20,7 +20,9 @@
 #include <gfarm/gfarm.h>
 
 #ifdef ENABLE_ACL
-#include <attr/xattr.h>
+#ifdef HAVE_SYS_XATTR_H
+#include <sys/xattr.h>
+#endif
 #include <sys/acl.h>
 
 #include "gfarm2fs.h"
