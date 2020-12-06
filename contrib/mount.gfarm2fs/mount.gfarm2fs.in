@@ -4,7 +4,7 @@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-export PATH=@bindir@:$PATH
+export PATH=@bindir@:"$PATH"
 
 USAGE() {
 cat <<EOF
@@ -48,7 +48,7 @@ ABORT() {
 [ x"$1" = x"-h" -o x"$1" = x"--help" ] && USAGE
 
 if [ $# -gt 0 ]; then
-	GFARM_ENV="env GFARM_CONFIG_FILE=$1 PATH=$PATH"
+	GFARM_ENV="env GFARM_CONFIG_FILE=$1 PATH=\"$PATH\""
 	shift
 fi
 if [ $# -gt 0 ]; then
@@ -106,6 +106,8 @@ do
 			FUSE_OPTIONS="$FUSE_OPTIONS,"
 		FUSE_OPTIONS="$FUSE_OPTIONS$o"
 		;;
+	*)
+		USAGE ;;
 	esac
 done
 IFS=$SAVE_IFS

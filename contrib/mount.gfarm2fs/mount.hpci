@@ -18,7 +18,7 @@ NOTE() {
 }
 
 USAGE() {
-	echo >&2 "usage: $PROG [ --root | --home | --group | --user ]"
+	echo >&2 "usage: $PROG [ --root | --home | --group | --user ] [options]"
 	exit 1
 }
 
@@ -47,12 +47,20 @@ do
 	--root|--home|--group|--user)
 		mount_dir=$1
 		;;
-	*)
+	-h)
 		USAGE
+		;;
+	*)
+		break
 		;;
 	esac
 	shift
 done
+if [ $# -eq 1 ]; then
+	options="$1"
+elif [ $# -gt 1 ]; then
+	USAGE
+fi
 
 # check privilege to use FUSE
 [ -w /dev/fuse ] || ABORT "Cannot access /dev/fuse."
@@ -93,7 +101,7 @@ MOUNT() {
 	--group) GFARMFS_ROOT=/home/$g ;;
 	--user) GFARMFS_ROOT=/home/$g/$GFUSER ;;
     esac
-    env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" $mount_point
+    env GFARMFS_ROOT=$GFARMFS_ROOT mount.gfarm2fs "$GFARM_CONFIG_FILE" $mount_point $options
 }
 
 return_code=1
