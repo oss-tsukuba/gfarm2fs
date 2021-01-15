@@ -14,6 +14,7 @@ AC_SYS_LARGEFILE
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_LIBTOOL
+AX_PTHREAD
 
 ### --with-gfarm=GFARM_ROOT
 AC_MSG_CHECKING([for Gfarm file system])
@@ -84,7 +85,6 @@ if test "x$enable_acl" != xno; then
 fi)
 
 # Checks for libraries.
-AC_CHECK_LIB([gfarm], [gfarm_initialize],, [AC_MSG_ERROR([libgfarm not found])])
 AC_CHECK_LIB([gfarm], [gfarm_get_global_username_by_url],, [AC_MSG_ERROR([Gfarm-2.4.2 or later is required])])
 AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse],, [AC_MSG_ERROR([libfuse not found])])
 
