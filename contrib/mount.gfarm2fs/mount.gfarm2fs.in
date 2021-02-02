@@ -151,7 +151,7 @@ update_proxy() {
 : ${USERID:=`$RUN"$GFARM_ENV id -u"`}
 X509_PROXY=/tmp/x509up_u$USERID
 if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
-	TMP_PROXY=$(LANG=C ls -lt /tmp/x509up_*|grep $GFARMFS_USERNAME|head -1|awk '{ print $9 }')
+	TMP_PROXY=$(LANG=C ls -lt /tmp/x509up_* 2>/dev/null|grep $GFARMFS_USERNAME|head -1|awk '{ print $9 }')
 	[ X"$TMP_PROXY" != X ] && update_proxy "$TMP_PROXY" "$X509_PROXY"
 elif [ X"$X509_USER_PROXY" != X ]; then
 	update_proxy "$X509_USER_PROXY" "$X509_PROXY"
