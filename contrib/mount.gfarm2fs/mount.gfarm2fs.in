@@ -135,15 +135,26 @@ fi
 : ${GFARMFS_OPTIONS:=}
 : ${FUSE_OPTIONS:=}
 
+update_proxy() {
+	s="$1"
+	d="$2"
+	if [ -f "$s" -a "$s" != "$d" ]; then
+		cmp "$s" "$d" > /dev/null 2>&1 || {
+			cp -p "$s" "$d".tmp &&
+			mv "$d".tmp "$d" &&
+			( [ -w / ] || echo Update proxy certificate for gfarm2fs )
+		}
+	fi
+}
+
 # copy proxy cert to default location and unset X509_USER_PROXY
-: ${UID:=`id -u`}
-X509_PROXY=/tmp/x509up_u$UID
-if [ X"$X509_USER_PROXY" != X -a -f "$X509_USER_PROXY" -a "$X509_USER_PROXY" != "$X509_PROXY" ]; then
-	cmp "$X509_USER_PROXY" "$X509_PROXY" > /dev/null 2>&1 || {
-		cp -p "$X509_USER_PROXY" "$X509_PROXY".tmp &&
-		mv "$X509_PROXY".tmp "$X509_PROXY" &&
-		echo Update proxy certificate for gfarm2fs
-	}
+: ${USERID:=`$RUN"$GFARM_ENV id -u"`}
+X509_PROXY=/tmp/x509up_u$USERID
+if [ -w / -a X"$GFARMFS_USERNAME" != X ]; then
+	TMP_PROXY=$(LANG=C ls -lt /tmp/x509up_*|grep $GFARMFS_USERNAME|head -1|awk '{ print $9 }')
+	[ X"$TMP_PROXY" != X ] && update_proxy "$TMP_PROXY" "$X509_PROXY"
+elif [ X"$X509_USER_PROXY" != X ]; then
+	update_proxy "$X509_USER_PROXY" "$X509_PROXY"
 	unset X509_USER_PROXY
 fi
 
