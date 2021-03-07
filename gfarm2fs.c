@@ -95,7 +95,7 @@ static const char empty_str[] = "";
 				gfarm_funcname, mount_point, \
 				path_prefix, gfarm_path + path_offset, \
 				gfarm_error_string(gfarm_e)); \
-		} else if (ret_errno != ENOENT) { \
+		} else if (ret_errno != ENOENT && ret_errno != ENOTSUP) { \
 			gflog_info(msgNo, syslog_fmt, fuse_opname, \
 				gfarm_funcname, mount_point, \
 				path_prefix, gfarm_path + path_offset, \
