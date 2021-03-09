@@ -529,8 +529,16 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
+
+	/*
+	 * gfarm2fs_getattr and gfarm2fs_release may be called simultaneously
+	 * after write-close.
+	 * If there is no this lock, the filesize will be wrong.
+	 */
+	gfarm2fs_open_file_table_rdlock();
 	e = gfs_lstat_cached(gfarmized.path, &st);
 	if (e != GFARM_ERR_NO_ERROR) {
+		gfarm2fs_open_file_table_unlock();
 		if (IS_SUBDIR(gfarmized.path) &&
 		    strcmp(gfarmized.path + gfarm2fs_subdir_len, "/" GFARM_DIR)
 		    == 0) {
@@ -555,17 +563,16 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
-	gfarm2fs_open_file_table_lock();
 	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
 		struct gfs_stat st2;
 
 		e = gfarm2fs_fstat(fp, &st, &st2);
 		if (e != GFARM_ERR_NO_ERROR) {
+			gfarm2fs_open_file_table_unlock();
 			gfs_stat_free(&st);
 			gfarm2fs_check_error(GFARM_MSG_2000046, OP_GETATTR,
 				"gfs_pio_stat", gfarmized.path, e);
 			free_gfarmized_path(&gfarmized);
-			gfarm2fs_open_file_table_unlock();
 			return (-gfarm_error_to_errno(e));
 		}
 		gfs_stat_free(&st);
@@ -1187,7 +1194,7 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
-	gfarm2fs_open_file_table_lock();
+	gfarm2fs_open_file_table_rdlock();
 	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
 		open_file_wrlock(fp);
 		fp->gt[0].tv_sec = ts[0].tv_sec;
@@ -1436,7 +1443,11 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	struct gfarm2fs_file *fp = get_filep(fi);
 
 	(void) path;
-	gfarm2fs_open_file_remove(fp);
+	/*
+	 * gfarm2fs_getattr and gfarm2fs_release may be called simultaneously
+	 * after write-close.
+	 */
+	gfarm2fs_open_file_table_wrlock();
 	open_file_wrlock(fp);
 	e = gfs_pio_close(fp->gf);
 	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
@@ -1461,6 +1472,9 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	}
 	open_file_unlock(fp);
 	open_file_lock_destroy(fp);
+
+	gfarm2fs_open_file_remove(fp);
+	gfarm2fs_open_file_table_unlock();
 	free(fp);
 	return (-gfarm_error_to_errno(e));
 }
