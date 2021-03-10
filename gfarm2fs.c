@@ -563,7 +563,7 @@ gfarm2fs_getattr(const char *path, struct stat *stbuf)
 		free_gfarmized_path(&gfarmized);
 		return (-gfarm_error_to_errno(e));
 	}
-	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
+	if ((fp = gfarm2fs_open_file_lookup_unlocked(st.st_ino)) != NULL) {
 		struct gfs_stat st2;
 
 		e = gfarm2fs_fstat(fp, &st, &st2);
@@ -1195,7 +1195,7 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 		return (-gfarm_error_to_errno(e));
 	}
 	gfarm2fs_open_file_table_rdlock();
-	if ((fp = gfarm2fs_open_file_lookup(st.st_ino)) != NULL) {
+	if ((fp = gfarm2fs_open_file_lookup_unlocked(st.st_ino)) != NULL) {
 		open_file_wrlock(fp);
 		fp->gt[0].tv_sec = ts[0].tv_sec;
 		fp->gt[0].tv_nsec = ts[0].tv_nsec;
@@ -1448,6 +1448,8 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 	 * after write-close.
 	 */
 	gfarm2fs_open_file_table_wrlock();
+	gfarm2fs_open_file_remove_unlocked(fp);
+
 	open_file_wrlock(fp);
 	e = gfs_pio_close(fp->gf);
 	gfarm2fs_check_error(GFARM_MSG_2000033, OP_RELEASE,
@@ -1471,10 +1473,8 @@ gfarm2fs_release(const char *path, struct fuse_file_info *fi)
 		}
 	}
 	open_file_unlock(fp);
-	open_file_lock_destroy(fp);
-
-	gfarm2fs_open_file_remove(fp);
 	gfarm2fs_open_file_table_unlock();
+	open_file_lock_destroy(fp);
 	free(fp);
 	return (-gfarm_error_to_errno(e));
 }
@@ -1862,11 +1862,11 @@ gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
 {
 	int rv;
 
+	rv = gfarm2fs_release(path, fi);
 	if ((fi->flags & O_ACCMODE) == O_WRONLY ||
 	    (fi->flags & O_ACCMODE) == O_RDWR ||
 	    (fi->flags & O_TRUNC) != 0)
 		uncache_path(path);
-	rv = gfarm2fs_release(path, fi);
 	gfarm2fs_replicate(path, fi);
 	return (rv);
 }

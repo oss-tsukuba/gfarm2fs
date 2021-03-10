@@ -93,7 +93,7 @@ gfarm2fs_open_file_init()
 }
 
 struct gfarm2fs_file *
-gfarm2fs_open_file_lookup(gfarm_ino_t ino)
+gfarm2fs_open_file_lookup_unlocked(gfarm_ino_t ino)
 {
 	struct gfarm_hash_entry *entry;
 	struct inode_openings *ios;
@@ -183,7 +183,7 @@ open_file_remove_opening(struct inode_openings *ios, struct gfarm2fs_file *fp)
 }
 
 void
-gfarm2fs_open_file_remove(struct gfarm2fs_file *fp)
+gfarm2fs_open_file_remove_unlocked(struct gfarm2fs_file *fp)
 {
 	gfarm_ino_t ino = fp->inum;
 	struct gfarm_hash_entry *entry;
