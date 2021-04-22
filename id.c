@@ -166,7 +166,7 @@ user_name_to_uid(const char *name, gfarm_uint32_t *uidp)
 
 	for (;;) {
 		if ((buf = malloc(bufsiz_pwd)) == NULL) {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000127,
 			    "no memory for user %s(size=%zu)",
 			    name, bufsiz_pwd);
 			return (GFARM_ERR_NO_MEMORY);
@@ -198,7 +198,7 @@ group_name_to_gid(const char *name, gfarm_uint32_t *gidp)
 
 	for (;;) {
 		if ((buf = malloc(bufsiz_grp)) == NULL) {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000128,
 			    "no memory for group %s(size=%zu)",
 			    name, bufsiz_grp);
 			return (GFARM_ERR_NO_MEMORY);
@@ -231,7 +231,7 @@ user_uid_to_name(gfarm_uint32_t uid, char **namep, char **bufp)
 	*bufp = NULL;
 	for (;;) {
 		if ((buf = malloc(bufsiz_pwd)) == NULL) {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000129,
 			    "no memory for uid %d(size=%zu)",
 			    uid, bufsiz_pwd);
 			return (GFARM_ERR_NO_MEMORY);
@@ -265,7 +265,7 @@ group_gid_to_name(gfarm_uint32_t gid, char **namep, char **bufp)
 	*bufp = NULL;
 	for (;;) {
 		if ((buf = malloc(bufsiz_grp)) == NULL) {
-			gflog_error(GFARM_MSG_UNFIXED,
+			gflog_error(GFARM_MSG_2000130,
 			    "no memory for gid %d(size=%zu)",
 			    gid, bufsiz_grp);
 			return (GFARM_ERR_NO_MEMORY);
