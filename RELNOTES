@@ -1,3 +1,17 @@
+Release note for Gfarm2fs 1.2.15
+================================
+
+[2021.4.23]
+
+Updated feature
+* suppress too much logs of gfs_lremovexattr
+* mount.hpci - accept mount options
+
+Bug fix
+* unexpected file size after write close when mounting in multithread
+  mode [#9]
+* mount.gfarm2fs - fix proxy update in automount case
+
 Release note for Gfarm2fs 1.2.14
 ================================
 
