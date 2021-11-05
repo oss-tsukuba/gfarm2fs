@@ -1224,6 +1224,8 @@ gfarm2fs_utimens(const char *path, const struct timespec ts[2])
 #define IS_WRITABLE(x) (((x) & GFARM_FILE_WRONLY) != 0 || \
 			((x) & GFARM_FILE_RDWR) != 0)
 
+static int option_unbuffered;
+
 static int
 gfs_hook_open_flags_gfarmize(int open_flags)
 {
@@ -1257,8 +1259,9 @@ gfs_hook_open_flags_gfarmize(int open_flags)
 		gfs_flags |= GFARM_FILE_EXCLUSIVE;
 #endif
 #ifdef GFARM_FILE_UNBUFFERED
-	/* open(2) and creat(2) should be unbuffered */
-	gfs_flags |= GFARM_FILE_UNBUFFERED;
+	if (option_unbuffered)
+		/* open(2) and creat(2) should be unbuffered */
+		gfs_flags |= GFARM_FILE_UNBUFFERED;
 #endif
 	return (gfs_flags);
 }
@@ -1969,6 +1972,7 @@ enum {
 	KEY_GENUINE_NLINK,
 	KEY_DISABLE_GENUINE_NLINK,
 	KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV,
+	KEY_UNBUFFERED,
 };
 
 #define GFARM2FS_OPT(t, p, v) \
@@ -1996,6 +2000,7 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_KEY("disable_genuine_nlink", KEY_DISABLE_GENUINE_NLINK),
 	FUSE_OPT_KEY("directory_quota_rename_error_exdev",
 	    KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV),
+	FUSE_OPT_KEY("unbuffered", KEY_UNBUFFERED),
 	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_uid_max=%d", auto_uid_max, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_gid_min=%d", auto_gid_min, KEY_GFARM2FS_OPT),
@@ -2026,6 +2031,7 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "                            (default: %d)\n"
 "    -o disable_genuine_nlink use faked st_nlink\n"
 "    -o directory_quota_rename_error_exdev enable client-side directory move\n"
+"    -o unbuffered           do not use buffering in libgfarm\n"
 "    -o auto_uid_min=N       minimum UID automatically assigned (default: %d)\n"
 "    -o auto_uid_max=N       maximum UID automatically assigned (default: %d)\n"
 "    -o auto_gid_min=N       minimum GID automatically assigned (default: %d)\n"
@@ -2096,6 +2102,9 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 	case KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV:
 		paramsp->directory_quota_rename_error_exdev = 1;
 		return (0);
+	case KEY_UNBUFFERED:
+		paramsp->unbuffered = 1;
+		return (0);
 	case KEY_VERSION:
 		fprintf(stderr, "Gfarm2fs version " VERSION "\n");
 #ifdef HAVE_GFARM_VERSION
@@ -2140,6 +2149,7 @@ main(int argc, char *argv[])
 		.enable_cached_id = 0, /* for debug */
 		.genuine_nlink = 1,
 		.fix_acl = 0,
+		.unbuffered = 0,
 		.auto_uid_min = 70000,
 		.auto_uid_max = 79999,
 		.auto_gid_min = 70000,
@@ -2234,6 +2244,8 @@ main(int argc, char *argv[])
 
 	option_directory_quota_rename_error_exdev =
 	    params.directory_quota_rename_error_exdev;
+
+	option_unbuffered = params.unbuffered;
 
 	/* end of setting params */
 

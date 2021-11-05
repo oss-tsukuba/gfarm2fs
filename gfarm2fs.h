@@ -24,6 +24,7 @@ struct gfarm2fs_param {
 	int auto_gid_max;
 	int genuine_nlink;
 	int directory_quota_rename_error_exdev;
+	int unbuffered;
 };
 
 struct gfarmized_path {
