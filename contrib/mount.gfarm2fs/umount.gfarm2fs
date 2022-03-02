@@ -48,11 +48,7 @@ fi
 : ${GFS_USERNAME:=$USER}
 : ${GFS_USERNAME:=$LOGNAME}
 : ${GFS_USERNAME:=`logname 2> /dev/null`}
-: ${GFS_MOUNTDIR:=`grep user=$LOGNAME /etc/mtab | grep gfarm | head -1 | awk '{ print $2 }'`}
-: ${GFS_MOUNTDIR:=`grep user_id=$(id -u) /etc/mtab | grep gfarm | head -1 | awk '{ print $2 }'`}
-
-[ X"$GFS_MOUNTDIR" = X ] &&
-	ABORT "It seems GfarmFS is not mounted.  Specify the mount directory by GFS_MOUNTDIR environment variable"
+: ${GFS_MOUNTDIR:=/tmp/$GFS_USERNAME}
 
 UMOUNT_FUSE $GFS_MOUNTDIR
 STATUS=$?
