@@ -1,3 +1,12 @@
+Release note for Gfarm2fs 1.2.16
+================================
+
+[2022.3.24]
+
+Updated feature
+* improve access performance
+* umount.hpci - default directory is changed to /tmp
+
 Release note for Gfarm2fs 1.2.15
 ================================
 
