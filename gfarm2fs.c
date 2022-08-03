@@ -158,7 +158,7 @@ static char *gfarm2fs_path_prefix, *gfarm2fs_realpath_prefix;
 static size_t gfarm2fs_path_prefix_len, gfarm2fs_realpath_prefix_len;
 const static char *gfarm2fs_subdir;
 static size_t gfarm2fs_subdir_len;
-#define IS_SUBDIR(p)	(memcmp(p, gfarm2fs_subdir, gfarm2fs_subdir_len) == 0)
+#define IS_SUBDIR(p)	(strncmp(p, gfarm2fs_subdir, gfarm2fs_subdir_len) == 0)
 
 static void
 open_file_lock_init(struct gfarm2fs_file *fp)
@@ -275,7 +275,7 @@ gfarmize_path(const char *path, struct gfarmized_path *gfarmized)
 		p += gfarm2fs_subdir_len;
 	if (p[0] == '/')
 		p++;
-	if (memcmp(p, gfarm_path_prefix, GFARM_PATH_PREFIX_LEN) == 0) {
+	if (strncmp(p, gfarm_path_prefix, GFARM_PATH_PREFIX_LEN) == 0) {
 		sz = strlen(p)
 		    - GFARM_PATH_PREFIX_LEN + 2 + GFARM_URL_PREFIX_LENGTH + 1;
 		GFARM_MALLOC_ARRAY(gfarmized->path, sz);
@@ -375,7 +375,7 @@ gfarmize_symlink_old(const char *old, struct gfarmized_path *gfarmized_old)
 	}
 
 	/* is "/MOUNT/POINT/.gfarm/host:port/PATH/NAME" ? */
-	if (memcmp(old, gfarm2fs_path_prefix, gfarm2fs_path_prefix_len) == 0) {
+	if (strncmp(old, gfarm2fs_path_prefix, gfarm2fs_path_prefix_len) == 0) {
 		/* convert to "gfarm://host:/path" */
 		gfarmized_old->path =
 		    malloc(GFARM_URL_PREFIX_LENGTH + 2 +
@@ -387,7 +387,7 @@ gfarmize_symlink_old(const char *old, struct gfarmized_path *gfarmized_old)
 		    old + gfarm2fs_path_prefix_len);
 		gfarmized_old->alloced = 1;
 	} else if (gfarm2fs_realpath_prefix != NULL &&
-	    memcmp(old, gfarm2fs_realpath_prefix,
+	    strncmp(old, gfarm2fs_realpath_prefix,
 	    gfarm2fs_realpath_prefix_len) == 0) {
 		/* convert to "gfarm://host:/path" */
 		gfarmized_old->path =
@@ -2071,7 +2071,7 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 
 	switch (key) {
 	case FUSE_OPT_KEY_OPT: /* -?, -o opt, --opt */
-		if (memcmp(arg, "subdir=", 7) == 0) {
+		if (strncmp(arg, "subdir=", 7) == 0) {
 			s = strdup(arg + 7);
 			if (s != NULL)
 				paramsp->subdir = s;
