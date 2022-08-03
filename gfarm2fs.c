@@ -2150,10 +2150,10 @@ main(int argc, char *argv[])
 		.genuine_nlink = 1,
 		.fix_acl = 0,
 		.unbuffered = 0,
-		.auto_uid_min = 70000,
-		.auto_uid_max = 79999,
-		.auto_gid_min = 70000,
-		.auto_gid_max = 79999,
+		.auto_uid_min = 60000,
+		.auto_uid_max = 64999,
+		.auto_gid_min = 60000,
+		.auto_gid_max = 64999,
 #ifdef HAVE_GFS_REPLICATE_FILE_TO
 		.copy_limit = 10
 #else /* version 2.3.X */
