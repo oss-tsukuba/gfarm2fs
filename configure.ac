@@ -1,25 +1,25 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.59)
-AC_INIT([gfarm2fs], [1.2.17])
+AC_PREREQ([2.71])
+AC_INIT([gfarm2fs],[1.2.17])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([gfarm2fs.c])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile contrib/Makefile contrib/mount.gfarm2fs/Makefile contrib/mount.gfarm2fs/mount.gfarm2fs contrib/gfarm2fs-exec/Makefile contrib/gfarm2fs-proxy-info/Makefile systest/Makefile systest/testcases/Makefile systest/scenarios/Makefile systest/common_scripts/Makefile systest/plugins/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 AC_SYS_LARGEFILE
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_LIBTOOL
+LT_INIT
 AX_PTHREAD
 
 ### --with-gfarm=GFARM_ROOT
 AC_MSG_CHECKING([for Gfarm file system])
 AC_ARG_WITH([gfarm],
-  AC_HELP_STRING([--with-gfarm=GFARM_ROOT], [Gfarm root directory [[/usr]]]))
+  AS_HELP_STRING([--with-gfarm=GFARM_ROOT],[Gfarm root directory [[/usr]]]))
 case x$with_gfarm in
   x|xyes|xno) with_gfarm=/usr ;;
 esac
@@ -33,7 +33,7 @@ AC_MSG_RESULT([$with_gfarm])
 ### This is provided to replace some functionalities with your private code.
 AC_MSG_CHECKING([for private source directory])
 AC_ARG_WITH([private_srcdir],
-  AC_HELP_STRING([--with-private-srcdir=DIR], [private source directory]))
+  AS_HELP_STRING([--with-private-srcdir=DIR],[private source directory]))
 case x$with_private_srcdir in
 x|xno)
   top_private_dir=""
@@ -94,7 +94,7 @@ AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
 # Checks for library functions.
 AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown gfs_lutimes gfarm_version gfs_stat_cksum gfarm_config_profile_value gfs_profile_lock)
 
-AC_TRY_RUN([
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #  include <fuse.h>
 
   void *data_save;
@@ -114,8 +114,8 @@ AC_TRY_RUN([
 		  return 1;
 	  return 0; /* have a bug on NetBSD */
   }
-  ], [AC_DEFINE(HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD)], []
-)
+  ]])],[AC_DEFINE(HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD)],[
+],[])
 
 AH_BOTTOM([
 /* fuse_opt_parse() doesn't correctly pass 2nd arg on NetBSD-5.1 and before */
