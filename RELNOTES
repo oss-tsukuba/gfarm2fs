@@ -1,3 +1,14 @@
+Release note for Gfarm2fs 1.2.17
+================================
+
+[2023.3.20]
+
+Updated feature
+* support subuid/subgid in default setting
+
+Bug fix
+* fix segafault in case of long subdir name
+
 Release note for Gfarm2fs 1.2.16
 ================================
 
