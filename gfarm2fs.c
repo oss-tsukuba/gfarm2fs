@@ -1734,52 +1734,61 @@ uncache_path(const char *path)
 static int
 gfarm2fs_mknod_cached(const char *path, mode_t mode, dev_t rdev)
 {
+	int rv = gfarm2fs_mknod(path, mode, rdev);
+
 	/* uncache always to avoid race condition */
 	uncache_parent(path);
-	return (gfarm2fs_mknod(path, mode, rdev));
+	return (rv);
 }
 
 static int
 gfarm2fs_mkdir_cached(const char *path, mode_t mode)
 {
+	int rv = gfarm2fs_mkdir(path, mode);
+
 	uncache_parent(path);
-	return (gfarm2fs_mkdir(path, mode));
+	return (rv);
 }
 
 static int
 gfarm2fs_unlink_cached(const char *path)
 {
+	int rv = gfarm2fs_unlink(path);
+
 	uncache_path(path);
 	uncache_parent(path);
-	return (gfarm2fs_unlink(path));
+	return (rv);
 }
 
 static int
 gfarm2fs_rmdir_cached(const char *path)
 {
+	int rv = gfarm2fs_rmdir(path);
+
 	uncache_path(path);
 	uncache_parent(path);
-	return (gfarm2fs_rmdir(path));
+	return (rv);
 }
 
 static int
 gfarm2fs_symlink_cached(const char *old, const char *to)
 {
+	int rv = gfarm2fs_symlink(old, to);
+
 	uncache_parent(to);
-	return (gfarm2fs_symlink(old, to));
+	return (rv);
 }
 
 static int
 gfarm2fs_rename_cached(const char *from, const char *to)
 {
-	int rv;
+	int rv = gfarm2fs_rename(from, to);
 	struct gfs_stat st;
 
 	uncache_path(from);
 	uncache_parent(from);
 	uncache_path(to);
 	uncache_parent(to);
-	rv = gfarm2fs_rename(from, to);
 	if (rv == 0) {
 		/* try to replicate the destination file just in case */
 		if (gfs_lstat_cached(to, &st) == GFARM_ERR_NO_ERROR) {
@@ -1794,31 +1803,36 @@ gfarm2fs_rename_cached(const char *from, const char *to)
 static int
 gfarm2fs_link_cached(const char *from, const char *to)
 {
+	int rv = gfarm2fs_link(from, to);
+
 	uncache_parent(to);
-	return (gfarm2fs_link(from, to));
+	return (rv);
 }
 
 static int
 gfarm2fs_chmod_cached(const char *path, mode_t mode)
 {
+	int rv = gfarm2fs_chmod(path, mode);
+
 	uncache_path(path);
-	return (gfarm2fs_chmod(path, mode));
+	return (rv);
 }
 
 static int
 gfarm2fs_chown_cached(const char *path, uid_t uid, gid_t gid)
 {
+	int rv = gfarm2fs_chown(path, uid, gid);
+
 	uncache_path(path);
-	return (gfarm2fs_chown(path, uid, gid));
+	return (rv);
 }
 
 static int
 gfarm2fs_truncate_cached(const char *path, off_t size)
 {
-	int rv;
+	int rv = gfarm2fs_truncate(path, size);
 
 	uncache_path(path);
-	rv = gfarm2fs_truncate(path, size);
 	gfarm2fs_replicate(path, NULL);
 	return (rv);
 }
@@ -1827,45 +1841,54 @@ static int
 gfarm2fs_ftruncate_cached(const char *path, off_t size,
 			struct fuse_file_info *fi)
 {
+	int rv = gfarm2fs_ftruncate(path, size, fi);
+
 	uncache_path(path);
-	return (gfarm2fs_ftruncate(path, size, fi));
+	return (rv);
 }
 
 static int
 gfarm2fs_utimens_cached(const char *path, const struct timespec ts[2])
 {
+	int rv = gfarm2fs_utimens(path, ts);
+
 	uncache_path(path);
-	return (gfarm2fs_utimens(path, ts));
+	return (rv);
 }
 
 static int
 gfarm2fs_create_cached(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
+	int rv = gfarm2fs_create(path, mode, fi);
+
 	uncache_parent(path);
-	return (gfarm2fs_create(path, mode, fi));
+	return (rv);
 }
 
 static int
 gfarm2fs_open_cached(const char *path, struct fuse_file_info *fi)
 {
+	int rv = gfarm2fs_open(path, fi);
+
 	uncache_path(path);
-	return (gfarm2fs_open(path, fi));
+	return (rv);
 }
 
 static int
 gfarm2fs_write_cached(const char *path, const char *buf, size_t size,
 	off_t offset, struct fuse_file_info *fi)
 {
+	int rv = gfarm2fs_write(path, buf, size, offset, fi);
+
 	uncache_path(path);
-	return (gfarm2fs_write(path, buf, size, offset, fi));
+	return (rv);
 }
 
 static int
 gfarm2fs_release_cached(const char *path, struct fuse_file_info *fi)
 {
-	int rv;
+	int rv = gfarm2fs_release(path, fi);
 
-	rv = gfarm2fs_release(path, fi);
 	if ((fi->flags & O_ACCMODE) == O_WRONLY ||
 	    (fi->flags & O_ACCMODE) == O_RDWR ||
 	    (fi->flags & O_TRUNC) != 0)
@@ -1879,15 +1902,19 @@ static int
 gfarm2fs_setxattr_cached(const char *path, const char *name, const char *value,
 	size_t size, int flags)
 {
+	int rv = gfarm2fs_setxattr(path, name, value, size, flags);
+
 	uncache_path(path);
-	return (gfarm2fs_setxattr(path, name, value, size, flags));
+	return (rv);
 }
 
 static int
 gfarm2fs_removexattr_cached(const char *path, const char *name)
 {
+	int rv = gfarm2fs_removexattr(path, name);
+
 	uncache_path(path);
-	return (gfarm2fs_removexattr(path, name));
+	return (rv);
 }
 
 #endif /* HAVE_SETXATTR && ENABLE_XATTR */
