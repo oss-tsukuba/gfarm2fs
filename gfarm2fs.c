@@ -1081,6 +1081,15 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	char *user = NULL, *group = NULL;
 	struct gfarmized_path gfarmized;
 
+	/*
+	 * workaround to move files from local storage
+	 * return with nothing when changing to myself
+	 */
+	if ((uid == -1 || uid == getuid()) && (gid == -1 || gid == getgid())) {
+		gflog_debug(GFARM_MSG_UNFIXED, "chown: same user and group");
+		return (0);
+	}
+
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
 		gfarm2fs_check_error(GFARM_MSG_2000077, OP_CHOWN,
