@@ -1086,7 +1086,7 @@ gfarm2fs_chown(const char *path, uid_t uid, gid_t gid)
 	 * return with nothing when changing to myself
 	 */
 	if ((uid == -1 || uid == getuid()) && (gid == -1 || gid == getgid())) {
-		gflog_debug(GFARM_MSG_UNFIXED, "chown: same user and group");
+		gflog_debug(GFARM_MSG_2000131, "chown: same user and group");
 		return (0);
 	}
 
