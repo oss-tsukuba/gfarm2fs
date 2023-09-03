@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 1.2.18
 ================================
 
-[2023.9.1]
+[2023.9.3]
 
 Updated feature
 * keep mtime when untar files
