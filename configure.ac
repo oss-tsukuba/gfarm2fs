@@ -16,7 +16,14 @@ AC_PROG_CC
 LT_INIT
 AX_PTHREAD
 
-### Gfarm
+### --with-gfarm=GFARM_ROOT
+AC_ARG_WITH([gfarm],
+  AS_HELP_STRING([--with-gfarm=GFARM_ROOT],[Gfarm root directory [[/usr]]]))
+case x$with_gfarm in
+  x|xyes|xno) ;;
+  *) PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$with_gfarm/lib/pkgconfig"
+     export PKG_CONFIG_PATH ;;
+esac
 PKG_CHECK_MODULES([gfarm], [gfarm])
 
 ### --with-private-srcdir
