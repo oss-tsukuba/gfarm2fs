@@ -11,8 +11,8 @@ man_MANS = gfarm2fs.1
 EXTRA_DIST = RELNOTES LICENSE gfarm2fs.spec $(man_MANS) $(private_srcs)
 SUBDIRS = contrib systest
 CC = @PTHREAD_CC@
-AM_CPPFLAGS = -Wall @PTHREAD_CFLAGS@
-AM_LDFLAGS = @PTHREAD_LIBS@
+AM_CPPFLAGS = -Wall @PTHREAD_CFLAGS@ @gfarm_CFLAGS@
+AM_LDFLAGS = @PTHREAD_LIBS@ @gfarm_LIBS@
 ACLOCAL_AMFLAGS = -I m4
 
 #

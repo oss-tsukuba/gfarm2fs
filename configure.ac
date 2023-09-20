@@ -16,18 +16,8 @@ AC_PROG_CC
 LT_INIT
 AX_PTHREAD
 
-### --with-gfarm=GFARM_ROOT
-AC_MSG_CHECKING([for Gfarm file system])
-AC_ARG_WITH([gfarm],
-  AS_HELP_STRING([--with-gfarm=GFARM_ROOT],[Gfarm root directory [[/usr]]]))
-case x$with_gfarm in
-  x|xyes|xno) with_gfarm=/usr ;;
-esac
-if test x"$with_gfarm" != x/usr; then
-  CPPFLAGS="$CPPFLAGS -I$with_gfarm/include"
-  LDFLAGS="$LDFLAGS -L$with_gfarm/lib"
-fi
-AC_MSG_RESULT([$with_gfarm])
+### Gfarm
+PKG_CHECK_MODULES([gfarm], [gfarm])
 
 ### --with-private-srcdir
 ### This is provided to replace some functionalities with your private code.
@@ -85,16 +75,19 @@ if test "x$enable_acl" != xno; then
 fi)
 
 # Checks for libraries.
-AC_CHECK_LIB([gfarm], [gfarm_get_global_username_by_url],, [AC_MSG_ERROR([Gfarm-2.4.2 or later is required])])
 AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse],, [AC_MSG_ERROR([libfuse not found])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
 
 # Checks for library functions.
+save_libs=$LIBS
+LIBS=$gfarm_LIBS
 AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown gfs_lutimes gfarm_version gfs_stat_cksum gfarm_config_profile_value gfs_profile_lock)
+LIBS=$save_libs
 
 AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#  define _FILE_OFFSET_BITS 64
 #  include <fuse.h>
 
   void *data_save;
