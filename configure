@@ -804,6 +804,7 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+with_gfarm
 with_private_srcdir
 enable_xattr
 enable_acl
@@ -1475,6 +1476,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+  --with-gfarm=GFARM_ROOT Gfarm root directory [[/usr]]
   --with-private-srcdir=DIR
                           private source directory
 
@@ -14079,7 +14081,19 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-### Gfarm
+### --with-gfarm=GFARM_ROOT
+
+# Check whether --with-gfarm was given.
+if test ${with_gfarm+y}
+then :
+  withval=$with_gfarm;
+fi
+
+case x$with_gfarm in
+  x|xyes|xno) ;;
+  *) PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$with_gfarm/lib/pkgconfig"
+     export PKG_CONFIG_PATH ;;
+esac
 
 
 
