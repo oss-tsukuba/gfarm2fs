@@ -48,9 +48,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `gfarm' library (-lgfarm). */
-#undef HAVE_LIBGFARM
-
 /* Define to 1 if you have private sources */
 #undef HAVE_PRIVATE_SRCS
 

@@ -662,6 +662,11 @@ LTLIBOBJS
 LIBOBJS
 private_srcs
 top_private_dir
+gfarm_LIBS
+gfarm_CFLAGS
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+PKG_CONFIG
 PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC
@@ -799,7 +804,6 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-with_gfarm
 with_private_srcdir
 enable_xattr
 enable_acl
@@ -812,7 +816,12 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
-CPP'
+CPP
+PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
+gfarm_CFLAGS
+gfarm_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1466,7 +1475,6 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-gfarm=GFARM_ROOT Gfarm root directory [[/usr]]
   --with-private-srcdir=DIR
                           private source directory
 
@@ -1479,6 +1487,14 @@ Some influential environment variables:
   CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
               you have headers in a nonstandard directory <include dir>
   CPP         C preprocessor
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  gfarm_CFLAGS
+              C compiler flags for gfarm, overriding pkg-config
+  gfarm_LIBS  linker flags for gfarm, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -14063,25 +14079,228 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-### --with-gfarm=GFARM_ROOT
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Gfarm file system" >&5
-printf %s "checking for Gfarm file system... " >&6; }
+### Gfarm
 
-# Check whether --with-gfarm was given.
-if test ${with_gfarm+y}
+
+
+
+
+
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_PKG_CONFIG+y}
 then :
-  withval=$with_gfarm;
+  printf %s "(cached) " >&6
+else $as_nop
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+printf "%s\n" "$PKG_CONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
 fi
 
-case x$with_gfarm in
-  x|xyes|xno) with_gfarm=/usr ;;
-esac
-if test x"$with_gfarm" != x/usr; then
-  CPPFLAGS="$CPPFLAGS -I$with_gfarm/include"
-  LDFLAGS="$LDFLAGS -L$with_gfarm/lib"
+
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $with_gfarm" >&5
-printf "%s\n" "$with_gfarm" >&6; }
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_ac_pt_PKG_CONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+printf "%s\n" "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+printf %s "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+	else
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+		PKG_CONFIG=""
+	fi
+fi
+
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gfarm" >&5
+printf %s "checking for gfarm... " >&6; }
+
+if test -n "$gfarm_CFLAGS"; then
+    pkg_cv_gfarm_CFLAGS="$gfarm_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gfarm\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gfarm") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_gfarm_CFLAGS=`$PKG_CONFIG --cflags "gfarm" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$gfarm_LIBS"; then
+    pkg_cv_gfarm_LIBS="$gfarm_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gfarm\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gfarm") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_gfarm_LIBS=`$PKG_CONFIG --libs "gfarm" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        gfarm_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gfarm" 2>&1`
+        else
+	        gfarm_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gfarm" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$gfarm_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (gfarm) were not met:
+
+$gfarm_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables gfarm_CFLAGS
+and gfarm_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+	{ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables gfarm_CFLAGS
+and gfarm_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	gfarm_CFLAGS=$pkg_cv_gfarm_CFLAGS
+	gfarm_LIBS=$pkg_cv_gfarm_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+fi
 
 ### --with-private-srcdir
 ### This is provided to replace some functionalities with your private code.
@@ -14196,51 +14415,6 @@ fi
 done
 
 # Checks for libraries.
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gfarm_get_global_username_by_url in -lgfarm" >&5
-printf %s "checking for gfarm_get_global_username_by_url in -lgfarm... " >&6; }
-if test ${ac_cv_lib_gfarm_gfarm_get_global_username_by_url+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgfarm  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char gfarm_get_global_username_by_url ();
-int
-main (void)
-{
-return gfarm_get_global_username_by_url ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_lib_gfarm_gfarm_get_global_username_by_url=yes
-else $as_nop
-  ac_cv_lib_gfarm_gfarm_get_global_username_by_url=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gfarm_gfarm_get_global_username_by_url" >&5
-printf "%s\n" "$ac_cv_lib_gfarm_gfarm_get_global_username_by_url" >&6; }
-if test "x$ac_cv_lib_gfarm_gfarm_get_global_username_by_url" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBGFARM 1" >>confdefs.h
-
-  LIBS="-lgfarm $LIBS"
-
-else $as_nop
-  as_fn_error $? "Gfarm-2.4.2 or later is required" "$LINENO" 5
-fi
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for library containing fuse_opt_parse" >&5
 printf %s "checking for library containing fuse_opt_parse... " >&6; }
 if test ${ac_cv_search_fuse_opt_parse+y}
@@ -14315,6 +14489,8 @@ fi
 
 
 # Checks for library functions.
+save_libs=$LIBS
+LIBS=$gfarm_LIBS
 ac_fn_c_check_func "$LINENO" "gfs_replicate_file_to" "ac_cv_func_gfs_replicate_file_to"
 if test "x$ac_cv_func_gfs_replicate_file_to" = xyes
 then :
@@ -14382,6 +14558,7 @@ then :
 
 fi
 
+LIBS=$save_libs
 
 if test "$cross_compiling" = yes
 then :
@@ -14393,6 +14570,7 @@ else $as_nop
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+#  define _FILE_OFFSET_BITS 64
 #  include <fuse.h>
 
   void *data_save;
