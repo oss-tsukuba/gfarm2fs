@@ -66,7 +66,7 @@ fi
 [ -w /dev/fuse ] || ABORT "Cannot access /dev/fuse."
 
 # check access to Gfarm
-gfstatus > /dev/null || ABORT "Unable to access Gfarm"
+gfstatus > /dev/null 2>&1 || ABORT "Unable to access Gfarm"
 
 # check proxy cert
 auth=gsi
@@ -86,7 +86,7 @@ GFUSER=`gfwhoami`
 USERLIST="$GFUSER"
 [ X"$GFUSER" != X"$USER" ] && USERLIST="$USERLIST $USER"
 
-: ${GFARM_CONFIG_FILE:=`gfstatus 2>/dev/null | grep "user config file" | sed 's/user config file  : //'`}
+: ${GFARM_CONFIG_FILE:=`gfstatus 2>/dev/null | grep "user config file" | awk '{ print $5 }'`}
 : ${GFARM_CONFIG_FILE:="$HOME/.gfarm2rc"}
 
 groups=`gfgroup -l | grep $GFUSER | awk -F: '{print $1}'`
