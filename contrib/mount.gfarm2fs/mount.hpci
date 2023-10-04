@@ -130,6 +130,7 @@ do
     # last resort
     if $cannot_mount; then
 	mount_point=/tmp/$g/$GFUSER
+
 	if awk '{ print $2 }' /etc/mtab | grep "^$mount_point$" >/dev/null
 	then
 	    echo $mount_point: already mounted
