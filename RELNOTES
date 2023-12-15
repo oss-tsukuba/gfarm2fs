@@ -1,3 +1,11 @@
+Release note for Gfarm2fs 1.2.20
+================================
+
+[2023.12.15]
+
+Bug fix
+* fix configure error when Gfarm is installed in an unusual location
+
 Release note for Gfarm2fs 1.2.19
 ================================
 
