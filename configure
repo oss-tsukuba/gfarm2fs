@@ -14383,18 +14383,7 @@ printf "%s\n" "#define ENABLE_ACL 1" >>confdefs.h
 fi
 
 # Checks for header files.
-       for ac_header in gfarm/gfarm.h
-do :
-  ac_fn_c_check_header_compile "$LINENO" "gfarm/gfarm.h" "ac_cv_header_gfarm_gfarm_h" "$ac_includes_default"
-if test "x$ac_cv_header_gfarm_gfarm_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_GFARM_GFARM_H 1" >>confdefs.h
-
-else $as_nop
-  as_fn_error $? "gfarm/gfarm.h not found" "$LINENO" 5
-fi
-
-done
+#AC_CHECK_HEADERS([gfarm/gfarm.h],, [AC_MSG_ERROR([gfarm/gfarm.h not found])])
 # fuse.h requres _FILE_OFFSET_BITS is defined in any case, but
 # AC_SYS_LARGEFILE does not define it on a 64bit platform like x86_64
 # since it is not necessary.  To avoid this problem we just skip the check.
