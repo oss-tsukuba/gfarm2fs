@@ -68,12 +68,21 @@ fi
 # check access to Gfarm
 gfstatus > /dev/null 2>&1 || ABORT "Unable to access Gfarm"
 
-# check proxy cert
-auth=gsi
-grid-proxy-info > /dev/null 2>&1 || auth=sharedsecret
+# check proxy cert or token
+if jwt-parse > /dev/null 2>&1; then
+    auth=oauth2
+elif grid-proxy-info > /dev/null 2>&1; then
+    auth=gsi
+else
+    auth=sharedsecret
+fi
 
 # display timeleft of proxy cert
 case $auth in
+    oauth2)
+    jwt-agent --status > /dev/null ||
+	jwt-parse | awk '/"exp"/ { print "expiration:", $2, $3, $4, $5, $6, $7 }'
+    ;;
     gsi)
     (grid-proxy-info || ABORT "Invalid proxy certificate") | grep timeleft ;;
     *)
