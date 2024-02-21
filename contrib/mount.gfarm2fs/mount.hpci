@@ -6,6 +6,7 @@
 #
 # this command assumes to be executed by a normal user not root
 
+${DEBUG:=false} && set -x
 PROG=`basename $0`
 
 ABORT() {

@@ -2,6 +2,8 @@
 #
 # $Id$
 
+${DEBUG:=false} && set -x
+
 USAGE() {
 cat <<EOF
 umount.gfarm2fs [ mount_point ]

@@ -6,6 +6,8 @@
 #
 # this command assumes to be executed by a normal user not root
 
+${DEBUG:=false} && set -x
+
 ABORT() {
 	[ $# -gt 0 ] && echo 1>&2 $*
 	exit 1
