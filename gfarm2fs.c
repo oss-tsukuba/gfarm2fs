@@ -90,7 +90,7 @@ static const char empty_str[] = "";
 			path_offset = path_len - PATH_LEN_LIMIT; \
 			path_prefix = trunc_str; \
 		} \
-		if (ret_errno == EINVAL || fuse_opname == OP_RELEASE) { \
+		if (ret_errno == EINVAL || &fuse_opname[0] == &OP_RELEASE[0]) { \
 			gflog_error(msgNo, syslog_fmt, fuse_opname, \
 				gfarm_funcname, mount_point, \
 				path_prefix, gfarm_path + path_offset, \
