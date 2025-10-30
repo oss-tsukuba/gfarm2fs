@@ -2255,7 +2255,6 @@ main(int argc, char *argv[])
 		gflog_set_priority_level(syslog_priority);
 	}
 	gflog_set_identifier(program_name);
-	gflog_auth_set_verbose(1);
 
 	if (params.use_syslog) {
 		syslog_facility = gflog_syslog_name_to_facility(
