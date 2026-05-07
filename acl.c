@@ -58,7 +58,7 @@ gfarm2fs_gfarm_acl_to_posix_acl_xattr(
 	gfarm_acl_entry_t ent;
 	gfarm_acl_permset_t pset;
 	char *s;
-	int bool;
+	int has_perm;
 
 	if (acl == NULL || posix_xattr_value_p == NULL || sizep == NULL) {
 		gflog_debug(GFARM_MSG_2000096,
@@ -87,14 +87,14 @@ gfarm2fs_gfarm_acl_to_posix_acl_xattr(
 		/* gfarm_acl_perm to posix_acl_perm */
 		perm = 0;
 		gfs_acl_get_permset(ent, &pset);
-		gfs_acl_get_perm(pset, GFARM_ACL_READ, &bool);
-		if (bool)
+		gfs_acl_get_perm(pset, GFARM_ACL_READ, &has_perm);
+		if (has_perm)
 			perm |= ACL_READ;
-		gfs_acl_get_perm(pset, GFARM_ACL_WRITE, &bool);
-		if (bool)
+		gfs_acl_get_perm(pset, GFARM_ACL_WRITE, &has_perm);
+		if (has_perm)
 			perm |= ACL_WRITE;
-		gfs_acl_get_perm(pset, GFARM_ACL_EXECUTE, &bool);
-		if (bool)
+		gfs_acl_get_perm(pset, GFARM_ACL_EXECUTE, &has_perm);
+		if (has_perm)
 			perm |= ACL_EXECUTE;
 
 		i16 = gfarm_htol_16((gfarm_uint16_t)perm);
