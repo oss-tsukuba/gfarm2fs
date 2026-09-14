@@ -1,0 +1,6 @@
+/build
+/__pycache__
+
+# Downloaded by test-fuse-passthrough_fh.sh when absent.
+passthrough_fh.c
+passthrough_helpers.h

@@ -1,0 +1,2 @@
+# libfuse2 leaks its fuse_kern_chan_new during --version handling.
+leak:fuse_kern_chan_new

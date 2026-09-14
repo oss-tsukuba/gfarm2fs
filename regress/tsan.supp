@@ -1,0 +1,3 @@
+# libfuse v2 changes the cancellation state from multiple worker threads.
+# This race is inside libfuse and is outside gfarm2fs.
+race:pthread_setcancelstate

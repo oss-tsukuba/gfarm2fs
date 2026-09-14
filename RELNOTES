@@ -1,3 +1,30 @@
+Release note for Gfarm2fs 3.0.0
+===============================
+
+[NOT-RELEASED-YET]
+
+New feature
+* support libfuse3 (FUSE version 3.x) [#10]
+* support READDIR_PLUS with libfuse3 to improve directory listing
+  performance
+* support gfarm2fs.{version,gfarm_version,fuse_version,exe,pid} xattr names
+* support listxattr() for gfarm2fs.* xattr names
+
+Updated feature
+* support unlink() and rename() during open(), as well as subsequent
+  operations such as fstat()
+* support utimensat(UTIME_OMIT / UTIME_NOW) during open()
+* support atime updates becoming visible immediately after close()
+* support independent tracking of atime and mtime updates for utime operations
+  during open()
+* support simultaneous access to multiple gfmd servers via /.gfarm/,
+  without using incorrect stat information for files with the same inode number
+* automatically enable single-threaded FUSE mode when -o ncopy=N
+  is specified with N >= 2
+
+Bug fix
+* fix readlink cache race causing leaks under concurrency
+
 Release note for Gfarm2fs 1.2.22
 ================================
 

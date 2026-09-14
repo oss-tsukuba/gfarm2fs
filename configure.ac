@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.71])
-AC_INIT([gfarm2fs],[1.2.22])
+AC_INIT([gfarm2fs],[3.0.0])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([gfarm2fs.c])
@@ -82,7 +82,55 @@ if test "x$enable_acl" != xno; then
 fi)
 
 # Checks for libraries.
-AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse],, [AC_MSG_ERROR([libfuse not found])])
+AC_ARG_WITH([fuse2],
+  [AS_HELP_STRING([--with-fuse2], [use FUSE 2.x @<:@default=check@:>@])],
+  [with_fuse2=$withval],
+  [with_fuse2=check])
+
+AC_ARG_WITH([fuse3],
+  [AS_HELP_STRING([--with-fuse3], [use FUSE 3.x @<:@default=check@:>@])],
+  [with_fuse3=$withval],
+  [with_fuse3=check])
+
+if test "x$with_fuse2" = "xyes" && test "x$with_fuse3" = "xyes"; then
+  AC_MSG_ERROR([cannot specify both --with-fuse2 and --with-fuse3])
+fi
+if test "x$with_fuse2" = "xno" && test "x$with_fuse3" = "xno"; then
+  AC_MSG_ERROR([cannot disable both FUSE2 and FUSE3])
+fi
+
+use_fuse3=no
+use_fuse2=no
+
+if test "x$with_fuse3" != "xno" && test "x$with_fuse2" != "xyes"; then
+  PKG_CHECK_MODULES([FUSE3], [fuse3], [
+    use_fuse3=yes
+  ], [
+    if test "x$with_fuse3" = "xyes"; then
+      AC_MSG_ERROR([FUSE3 not found])
+    fi
+  ])
+fi
+
+if test "x$use_fuse3" = "xyes"; then
+  AC_DEFINE([HAVE_FUSE3], [1], [Define to 1 if you have FUSE3])
+  CFLAGS="$CFLAGS $FUSE3_CFLAGS"
+  LIBS="$LIBS $FUSE3_LIBS"
+else
+  if test "x$with_fuse2" = "xno"; then
+    AC_MSG_ERROR([FUSE3 not found and FUSE2 is disabled])
+  fi
+  AC_MSG_NOTICE([checking for library containing fuse_opt_parse (FUSE2)])
+  AC_SEARCH_LIBS([fuse_opt_parse], [fuse refuse], [
+    use_fuse2=yes
+  ], [
+    if test "x$with_fuse2" = "xyes" || test "x$with_fuse3" = "xno"; then
+      AC_MSG_ERROR([FUSE2 not found])
+    else
+      AC_MSG_ERROR([neither FUSE3 nor FUSE2 found; FUSE3 is preferred. Install FUSE3 development files, or specify --with-fuse2 to use FUSE2])
+    fi
+  ])
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])

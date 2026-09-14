@@ -1,24 +1,24 @@
 Summary: GfarmFS-FUSE for Gfarm File System 2
 Name: gfarm2fs
-Version: 1.2.22
+Version: 3.0.0
 Release: 1%{?dist}
 License: BSD
 Group: Applications/Internet
 URL: http://sourceforge.net/projects/gfarm/
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: fuse-devel, gfarm-devel >= 2.4.1
-Requires: fuse, gfarm-libs >= 2.4.1
+BuildRequires: fuse3-devel gfarm-devel >= 2.4.1
+Requires: fuse3 gfarm-libs >= 2.4.1
 
 %description
-GfarmFS-FUSE (gfarm2fs) enables to mount a Gfarm file system by using
-FUSE (http://fuse.sourceforge.net/).
+GfarmFS-FUSE for Gfarm v2 (gfarm2fs) enables to mount a Gfarm file
+system by using FUSE (https://github.com/libfuse/libfuse).
 
 %prep
 %setup -q
 
 %build
-%configure ${GFARM2FS_CONFIGURE_OPTION}
+%configure --with-fuse3 ${GFARM2FS_CONFIGURE_OPTION}
 
 : ${GFARM_ENABLE_RPATH:=false}
 if ! ${GFARM_ENABLE_RPATH}; then

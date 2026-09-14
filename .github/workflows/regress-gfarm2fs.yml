@@ -1,0 +1,227 @@
+name: regress-gfarm2fs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  regress:
+    name: ${{ matrix.docker-dist }}, ${{ matrix.arch }}, ${{ matrix.fuse }}, all.sh_args=${{ matrix.all-args }}, CC=${{ matrix.cc }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - docker-dist: ubuntu
+            runner: ubuntu-26.04
+            arch: x86_64
+            package-manager: apt-get
+            fuse: fuse3
+            packages: fuse3 libfuse3-dev
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: gcc
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: ubuntu
+            runner: ubuntu-26.04-arm
+            arch: arm64
+            package-manager: apt-get
+            fuse: fuse2
+            packages: fuse libfuse-dev
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: gcc
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: ubuntu2404
+            runner: ubuntu-24.04
+            arch: x86_64
+            package-manager: apt-get
+            fuse: fuse2
+            packages: fuse libfuse-dev
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: gcc
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: debian13
+            runner: ubuntu-24.04
+            arch: x86_64
+            package-manager: apt-get
+            fuse: fuse3
+            packages: fuse3 libfuse3-dev
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: gcc
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: almalinux8
+            runner: ubuntu-26.04
+            arch: x86_64
+            package-manager: dnf
+            fuse: fuse3
+            packages: fuse3 fuse3-devel clang
+            all-args: pkg
+            # Skip TSan and ASan tests for package build testing
+            gfarm2fs-cmd: /usr/bin/gfarm2fs
+            cc: gcc
+            regress-modes: default --memcheck --helgrind
+          - docker-dist: rockylinux9
+            runner: ubuntu-24.04
+            arch: x86_64
+            package-manager: dnf
+            fuse: fuse3
+            packages: fuse3 fuse3-devel
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: gcc
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: rockylinux10
+            runner: ubuntu-26.04
+            arch: x86_64
+            package-manager: dnf
+            fuse: fuse3
+            packages: fuse3 fuse3-devel clang
+            all-args: pkg
+            # Skip TSan and ASan tests for package build testing
+            gfarm2fs-cmd: /usr/bin/gfarm2fs
+            cc: gcc
+            regress-modes: default --memcheck --helgrind
+          - docker-dist: rockylinux10
+            runner: ubuntu-24.04-arm
+            arch: arm64
+            package-manager: dnf
+            fuse: fuse2
+            packages: fuse fuse-devel
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: gcc
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: fedora44
+            runner: ubuntu-24.04
+            arch: x86_64
+            package-manager: dnf
+            fuse: fuse3
+            packages: fuse3 fuse3-devel clang
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: clang
+            regress-modes: default --memcheck --helgrind --asan --tsan
+          - docker-dist: opensuse16
+            runner: ubuntu-24.04
+            arch: x86_64
+            package-manager: zypper
+            fuse: fuse3
+            packages: fuse3 fuse3-devel clang
+            all-args: ''
+            gfarm2fs-cmd: ''
+            cc: clang
+            regress-modes: default --memcheck --helgrind --asan --tsan
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: checkout gfarm
+        uses: actions/checkout@v7
+        with:
+          repository: oss-tsukuba/gfarm
+          path: gfarm
+
+      - name: checkout gfarm2fs
+        uses: actions/checkout@v7
+        with:
+          path: gfarm/gfarm2fs
+
+      - name: set up docker buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: get uid
+        id: uid
+        run: |
+          echo "uid=$(id -u)" >> "$GITHUB_OUTPUT"
+          echo "user=$USER" >> "$GITHUB_OUTPUT"
+
+      - name: build and load image
+        uses: docker/build-push-action@v7
+        with:
+          context: gfarm
+          file: gfarm/docker/dist/${{ matrix.docker-dist }}/Dockerfile
+          load: true
+          tags: gfarm-${{ matrix.docker-dist }}:latest
+          build-args: |
+            USERNAME=${{ steps.uid.outputs.user }}
+            UID=${{ steps.uid.outputs.uid }}
+            DIST=${{ matrix.docker-dist }}
+          cache-from: type=gha,scope=gfarm-${{ matrix.docker-dist }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=gfarm-${{ matrix.docker-dist }}-${{ matrix.arch }}
+
+      - name: docker compose up
+        id: up
+        run: |
+          cd gfarm/docker/dist
+          DIST=${{ matrix.docker-dist }} docker compose up -d
+
+      - name: build_all
+        id: build_all
+        run: |
+          cd gfarm/docker/dist
+          docker exec -u ${USER} -w /home/${USER}/gfarm/docker/dist gfarm-c1 \
+             sh ./all.sh ${{ matrix.all-args }}
+
+      - name: regress_gfarm2fs
+        id: regress_gfarm2fs
+        run: |
+          set -euxo pipefail
+          mkdir -p regress-log
+          if [ "${{ matrix.package-manager }}" = apt-get ]; then
+            docker exec gfarm-c1 apt-get update
+            docker exec gfarm-c1 apt-get install -y ${{ matrix.packages }}
+          elif [ "${{ matrix.package-manager }}" = dnf ]; then
+            docker exec gfarm-c1 dnf install -y ${{ matrix.packages }}
+          elif [ "${{ matrix.package-manager }}" = zypper ]; then
+            docker exec gfarm-c1 zypper --non-interactive install -y ${{ matrix.packages }}
+          fi
+          docker exec -u ${USER} gfarm-c1 gfmkdir -p -m 1777 /tmp
+          AUTH=$(docker exec -u ${USER} gfarm-c1 gfhost -lv | head -1 | awk '{ print $2 }')
+          DIST=$(docker exec -u ${USER} gfarm-c1 gfarm.arch.guess)
+          DATE=$(date +%F.%H_%M_%S)
+          LOG=regress-log/log.regress-gfarm2fs.${{ matrix.fuse }}.$AUTH.$DIST.$DATE
+          echo "writing log to $LOG"
+          docker exec \
+             -e GFARM2FS_CMD="${{ matrix.gfarm2fs-cmd }}" \
+             -e REGRESS_MODES="${{ matrix.regress-modes }}" \
+             -e CONFIGURE_ARGS="--with-gfarm=/usr/local --with-${{ matrix.fuse }}" \
+             -e CC="${{ matrix.cc }}" \
+             -u ${USER} -w /home/${USER}/gfarm/gfarm2fs/regress gfarm-c1 \
+             bash -x ./regress-matrix.sh 2>&1 | tee "$LOG"
+
+      # - name: regress_gfarm
+      #   id: regress_gfarm
+      #   run: |
+      #     cd gfarm/docker/dist
+      #     docker exec -u ${USER} -w /home/${USER}/gfarm/docker/dist gfarm-c1 \
+      #        sh ./regress.sh
+
+      # NOTE: docker/dist/regress-xattr.sh uses gfarm2fs
+      - name: regress_xattr
+        id: regress_xattr
+        run: |
+          set -o pipefail
+          mkdir -p regress-log
+          AUTH=$(docker exec -u ${USER} gfarm-c1 gfhost -lv | head -1 | awk '{ print $2 }')
+          DIST=$(docker exec -u ${USER} gfarm-c1 gfarm.arch.guess)
+          DATE=$(date +%F.%H_%M_%S)
+          docker exec -u ${USER} -w /home/${USER}/gfarm/docker/dist gfarm-c1 \
+             sh ./regress-xattr.sh 2>&1 | tee regress-log/log.regress-xattr.$AUTH.$DIST.$DATE
+
+      # - name: extract log files from the container
+      #   if: always()
+      #   run: |
+      #     mkdir -p regress-log
+      #     DIST=$(docker exec gfarm-c1 gfarm.arch.guess)
+      #     docker exec -u ${USER} -w /home/${USER}/gfarm/build-${DIST}/regress \
+      #         gfarm-c1 sh -c 'tar cf - log.*' | ( cd regress-log && tar pxf - ) || true
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: regress-log
+          path: regress-log/*

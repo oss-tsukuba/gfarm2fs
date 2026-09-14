@@ -1,0 +1,293 @@
+###
+### Helgrind
+###
+
+{
+   mythread_wrapper
+   Helgrind:Race
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   fun:mythread_wrapper
+   fun:start_thread
+   fun:clone
+}
+
+{
+   mythread_wrapper-2
+   Helgrind:Race
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   fun:mythread_wrapper
+   fun:start_thread
+   fun:thread_start
+}
+
+{
+   mythread_wrapper-3
+   Helgrind:Race
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   fun:mythread_wrapper
+   fun:start_thread
+   fun:thread_start
+}
+
+{
+   mythread_wrapper-4
+   Helgrind:Race
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   fun:mythread_wrapper
+   fun:start_thread
+   fun:clone
+}
+
+{
+   session-mutex-destroy-1
+   Helgrind:Misc
+   fun:mutex_destroy_WRK
+   fun:fuse_session_destroy
+   fun:fuse_destroy
+   fun:fuse_main_real_versioned
+   fun:fuse_main_fn
+   fun:gfarm2fs_fuse_main
+   fun:main
+}
+
+{
+   session-mutex-destroy-2
+   Helgrind:Misc
+   fun:mutex_destroy_WRK
+   fun:pthread_mutex_destroy
+   obj:*libp11-kit.so*
+   fun:_dl_fini
+   fun:__run_exit_handlers
+   fun:exit
+   fun:(below main)
+}
+
+{
+   session-mutex-destroy-3
+   Helgrind:Misc
+   fun:mutex_destroy_WRK
+   fun:pthread_mutex_destroy
+   fun:fuse_session_destroy
+   fun:fuse_destroy
+   fun:fuse_main_real_versioned
+   fun:fuse_main_fn
+   fun:gfarm2fs_fuse_main
+   fun:main
+}
+
+{
+   libp11-kit-mutex-destroy-at-exit
+   Helgrind:Misc
+   fun:mutex_destroy_WRK
+   obj:*libp11-kit.so*
+}
+
+{
+   fuse_session_exit-1
+   Helgrind:Race
+   fun:fuse_session_exit
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   fun:mythread_wrapper
+   fun:start_thread
+   fun:clone
+}
+
+{
+   fuse_session_exit-2
+   Helgrind:Race
+   fun:fuse_session_exited
+   obj:*libfuse*.so*
+   obj:*libfuse*.so*
+   fun:mythread_wrapper
+   fun:start_thread
+   fun:clone
+}
+
+{
+   fuse_session_exit-3
+   Helgrind:Race
+   fun:fuse_session_exited
+   fun:fuse_session_loop_mt
+   fun:fuse_loop_mt
+   fun:fuse_main_real*
+   fun:gfarm2fs_fuse_main
+   fun:main
+}
+
+{
+   fuse_session_exited-4
+   Helgrind:Race
+   fun:fuse_session_exited
+   fun:fuse_session_loop_mt
+   fun:fuse_loop_mt
+   fun:fuse_main_real_versioned
+   fun:fuse_main_fn
+   fun:gfarm2fs_fuse_main
+   fun:main
+}
+
+{
+   fuse_session_exited-5
+   Helgrind:Race
+   fun:fuse_session_exited
+   fun:fuse_session_loop_mt
+   fun:fuse_loop_mt
+   obj:*libfuse*.so*
+   fun:gfarm2fs_fuse_main
+   fun:main
+}
+
+{
+   fuse_session_exited-6
+   Helgrind:Race
+   fun:fuse_session_exited
+   fun:fuse_session_loop_mt*
+   fun:fuse_loop_mt*
+   fun:fuse_main_real_versioned
+   fun:fuse_main_fn
+   fun:gfarm2fs_fuse_main
+   fun:main
+}
+
+{
+   fuse2.9_ubuntu24.04_1
+   Helgrind:Race
+   obj:*libfuse.so.2*
+   ...
+   obj:*libfuse.so.2*
+   obj:*vgpreload_helgrind-*-linux.so
+   fun:start_thread
+   ...
+}
+
+{
+   fuse2.9_ubuntu24.04_2
+   Helgrind:Race
+   fun:fuse_session_exit
+   obj:*libfuse.so.2*
+   ...
+   obj:*libfuse.so.2*
+   obj:*vgpreload_helgrind-*-linux.so
+   fun:start_thread
+   ...
+}
+
+{
+   fuse2.9_ubuntu24.04_3
+   Helgrind:Race
+   fun:fuse_session_exited
+   obj:*libfuse.so.2*
+   ...
+   obj:*libfuse.so.2*
+   obj:*vgpreload_helgrind-*-linux.so
+   fun:start_thread
+   ...
+}
+
+{
+   fuse2.9_ubuntu24.04_4
+   Helgrind:Misc
+   obj:*vgpreload_helgrind-*-linux.so
+   obj:*libp11-kit.so*
+   fun:_dl_call_fini
+   fun:_dl_fini
+   fun:__run_exit_handlers
+   fun:exit
+   fun:(below main)
+}
+
+{
+   opensuse16_1
+   Helgrind:Race
+   fun:fuse_session_exit
+   ...
+   obj:*libfuse*.so*
+   obj:*vgpreload_helgrind-*-linux.so
+   fun:start_thread
+   ...
+}
+
+{
+   opensuse16_2
+   Helgrind:Race
+   fun:fuse_session_exited
+   ...
+   obj:*libfuse*.so*
+   obj:*vgpreload_helgrind-*-linux.so
+   fun:start_thread
+   ...
+}
+
+{
+   opensuse16_3
+   Helgrind:Race
+   obj:*libfuse*.so*
+   ...
+   obj:*libfuse*.so*
+   obj:*vgpreload_helgrind-*-linux.so
+   fun:start_thread
+   ...
+}
+
+###
+### Memcheck
+###
+
+{
+   thread-exit-definitely-lost
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   obj:*libfuse*.so*
+   ...
+   fun:start_thread
+   fun:thread_start
+}
+
+# {
+#    sasl_static_init-leak
+#    Memcheck:Leak
+#    match-leak-kinds: definite
+#    fun:malloc
+#    fun:malloc
+#    fun:_dl_map_object_deps
+#    fun:dl_open_worker_begin
+#    fun:_dl_catch_exception
+#    fun:dl_open_worker
+#    fun:_dl_catch_exception
+#    fun:_dl_open
+#    fun:dlopen_doit
+#    fun:_dl_catch_exception
+#    fun:_dl_catch_error
+#    fun:_dlerror_run
+#    fun:dlopen@@GLIBC_2.34
+#    fun:_sasl_get_plugin
+#    fun:_sasl_load_plugins
+#    fun:sasl_client_init
+#    fun:gfarm_auth_client_sasl_static_init
+#    fun:gfarm_context_init
+#    fun:gfarm_initialize
+#    fun:main
+# }
+{
+   sasl_static_init-leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible,reachable
+   ...
+   fun:sasl_client_init
+   fun:gfarm_auth_client_sasl_static_init
+   fun:gfarm_context_init
+   fun:gfarm_initialize
+   fun:main
+}

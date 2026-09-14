@@ -1,0 +1,33 @@
+name: flake8
+
+on:
+  push:
+    paths:
+      - regress/regress_gfarm2fs.py
+  pull_request:
+    paths:
+      - regress/regress_gfarm2fs.py
+
+jobs:
+  flake8:
+    name: Run flake8 on regress_gfarm2fs
+    runs-on: ubuntu-slim
+
+    steps:
+      - name: checkout gfarm2fs
+        uses: actions/checkout@v7
+        with:
+          path: gfarm2fs
+
+      - name: set up python
+        uses: actions/setup-python@v6
+
+      - name: install flake8
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8
+
+      - name: flake8 regress_gfarm2fs.py
+        run: |
+          cd gfarm2fs
+          python -m flake8 regress/regress_gfarm2fs.py

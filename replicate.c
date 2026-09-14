@@ -28,8 +28,6 @@
 #ifndef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
 #endif
-#define FUSE_USE_VERSION 25
-#include <fuse.h>
 
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
@@ -163,6 +161,12 @@ get_required_ncopy(const char *path)
 	return (ncopy);
 }
 
+int
+gfarm2fs_replicate_enabled(void)
+{
+	return (replicate_enabled);
+}
+
 static int
 stat_ncopy(const char *path)
 {
@@ -255,7 +259,7 @@ replicate_file(const char *path, int ncopy, int ndsts, char **dsts, int *ports)
 }
 
 void
-gfarm2fs_replicate(const char *path, struct fuse_file_info *fi)
+gfarm2fs_replicate(const char *path)
 {
 	struct gfarmized_path gfarmized;
 	int ncopy, cur_ncopy, pid;

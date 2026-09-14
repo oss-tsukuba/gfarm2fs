@@ -1,0 +1,33 @@
+name: checkpatch
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  checkpatch:
+    name: Run checkpatch test
+    runs-on: ubuntu-slim
+
+    steps:
+      - name: checkout gfarm
+        uses: actions/checkout@v7
+        with:
+          repository: oss-tsukuba/gfarm
+          path: gfarm
+          fetch-depth: 1
+
+      - name: checkout gfarm2fs
+        uses: actions/checkout@v7
+        with:
+          path: gfarm/gfarm2fs
+          fetch-depth: 0
+
+      - name: invoke checkpatch
+        id: checkpatch
+        run: |
+          set -x
+          cd gfarm/gfarm2fs
+          git diff ${{ github.event.before }} ${{ github.sha }} -- '*.c' '*.h' | \
+            ../util/checkpatch/checkpatch.pl -

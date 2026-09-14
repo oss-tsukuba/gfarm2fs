@@ -30,3 +30,5 @@ struct gfarm_hash_entry *gfarm_hash_iterator_access(
 
 int gfarm_hash_strptr(const void *, int);
 int gfarm_hash_key_equal_strptr(const void *, int, const void *, int);
+int gfarm_hash_default(const void *, int);
+int gfarm_hash_add(int, const void *, size_t);

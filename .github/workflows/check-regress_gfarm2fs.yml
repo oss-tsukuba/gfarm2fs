@@ -1,0 +1,39 @@
+name: check-regress_gfarm2fs
+
+# Verify the behavior of regress_gfarm2fs.py itself
+# (Run regress_gfarm2fs.py independently of gfarm2fs)
+
+on:
+  push:
+    paths:
+      - 'regress/regress_gfarm2fs.py'
+      - 'regress/test-localfs.sh'
+      - 'regress/test-fuse-passthrough_fh.sh'
+      - '.github/workflows/check-regress_gfarm2fs.yml'
+  pull_request:
+    paths:
+      - 'regress/regress_gfarm2fs.py'
+      - 'regress/test-localfs.sh'
+      - 'regress/test-fuse-passthrough_fh.sh'
+      - '.github/workflows/check-regress_gfarm2fs.yml'
+
+jobs:
+  regress:
+    name: regress_gfarm2fs.py
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: checkout gfarm2fs
+        uses: actions/checkout@v7
+
+      - name: install FUSE build and runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            fuse3 libfuse3-dev pkg-config curl
+
+      - name: run regress_gfarm2fs.py through local filesystem
+        run: ./regress/test-localfs.sh
+
+      - name: run regress_gfarm2fs.py through FUSE passthrough_fh
+        run: ./regress/test-fuse-passthrough_fh.sh

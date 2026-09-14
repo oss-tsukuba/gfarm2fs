@@ -25,11 +25,13 @@ struct gfarm2fs_param {
 	int genuine_nlink;
 	int directory_quota_rename_error_exdev;
 	int unbuffered;
+	int disable_readdir_plus;
 };
 
 struct gfarmized_path {
 	int alloced;
 	char *path;
+	char *metadb; /* NULL or "host:port" */
 };
 
 gfarm_error_t gfarmize_path(const char *, struct gfarmized_path *);
@@ -39,7 +41,10 @@ struct gfarm2fs_file {
 	int flags;
 	GFS_File gf;
 	gfarm_ino_t inum;
-	int time_updated;
+	int mtime_updated;
+	int atime_updated;
+	int write_occurred;
+	int read_occurred;
 	struct gfarm_timespec gt[2];
 	pthread_rwlock_t lock;
 };
