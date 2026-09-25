@@ -889,6 +889,7 @@ enum fuse_readdir_flags {
 #endif /* HAVE_FUSE3 */
 
 static int option_disable_readdir_plus;
+static int option_direct_io;
 
 static int
 gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
@@ -2197,6 +2198,7 @@ gfarm2fs_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
 {
 	conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
 	cfg->use_ino = 1;
+	cfg->direct_io = option_direct_io;
 #if 0  /*
 	* *** From libfuse(v3)/include/fuse.h ***
 	* It is recommended that you not use the hard_remove
@@ -2405,6 +2407,7 @@ enum {
 	KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV,
 	KEY_UNBUFFERED,
 	KEY_DISABLE_READDIR_PLUS,
+	KEY_DIRECT_IO,
 };
 
 #define GFARM2FS_OPT(t, p, v) \
@@ -2434,6 +2437,9 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	    KEY_DIRECTORY_QUOTA_RENAME_ERROR_EXDEV),
 	FUSE_OPT_KEY("unbuffered", KEY_UNBUFFERED),
 	FUSE_OPT_KEY("disable_readdir_plus", KEY_DISABLE_READDIR_PLUS),
+#ifdef HAVE_FUSE3
+	FUSE_OPT_KEY("direct_io", KEY_DIRECT_IO),
+#endif
 	GFARM2FS_OPT("auto_uid_min=%d", auto_uid_min, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_uid_max=%d", auto_uid_max, KEY_GFARM2FS_OPT),
 	GFARM2FS_OPT("auto_gid_min=%d", auto_gid_min, KEY_GFARM2FS_OPT),
@@ -2479,6 +2485,10 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 		paramsp->auto_uid_max,
 		paramsp->auto_gid_min,
 		paramsp->auto_gid_max);
+#ifdef HAVE_FUSE3
+	fprintf(stderr,
+"    -o direct_io            enable direct I/O\n");
+#endif
 }
 
 static int
@@ -2544,6 +2554,9 @@ gfarm2fs_opt_proc(void *data, const char *arg, int key,
 	case KEY_DISABLE_READDIR_PLUS:
 		paramsp->disable_readdir_plus = 1;
 		return (0);
+	case KEY_DIRECT_IO:
+		paramsp->direct_io = 1;
+		return (0);
 	case KEY_VERSION:
 		fprintf(stderr, "Gfarm2fs version " VERSION "\n");
 #ifdef HAVE_GFARM_VERSION
@@ -2595,6 +2608,7 @@ main(int argc, char *argv[])
 		.fix_acl = 0,
 		.unbuffered = 0,
 		.disable_readdir_plus = 0,
+		.direct_io = 0,
 		.auto_uid_min = 60000,
 		.auto_uid_max = 64999,
 		.auto_gid_min = 60000,
@@ -2712,6 +2726,7 @@ main(int argc, char *argv[])
 
 	option_unbuffered = params.unbuffered;
 	option_disable_readdir_plus = params.disable_readdir_plus;
+	option_direct_io = params.direct_io;
 
 	/* end of setting params */
 
