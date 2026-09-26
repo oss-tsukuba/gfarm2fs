@@ -26,6 +26,7 @@ struct gfarm2fs_param {
 	int directory_quota_rename_error_exdev;
 	int unbuffered;
 	int disable_readdir_plus;
+	int direct_io;  /* for FUSE3 */
 };
 
 struct gfarmized_path {

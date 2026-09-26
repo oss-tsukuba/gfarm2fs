@@ -7,7 +7,7 @@ on:
 jobs:
 
   regress:
-    name: ${{ matrix.docker-dist }}, ${{ matrix.arch }}, ${{ matrix.fuse }}, all.sh_args=${{ matrix.all-args }}, CC=${{ matrix.cc }}
+    name: ${{ matrix.docker-dist }}, ${{ matrix.arch }}, ${{ matrix.fuse }}, gfarm2fs-options=${{ matrix.gfarm2fs-options }}, all.sh_args=${{ matrix.all-args }}, CC=${{ matrix.cc }}
     strategy:
       fail-fast: false
       matrix:
@@ -20,6 +20,7 @@ jobs:
             packages: fuse3 libfuse3-dev
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: '-o direct_io'
             cc: gcc
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: ubuntu
@@ -30,6 +31,7 @@ jobs:
             packages: fuse libfuse-dev
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: ubuntu2404
@@ -40,6 +42,7 @@ jobs:
             packages: fuse libfuse-dev
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: debian13
@@ -50,6 +53,7 @@ jobs:
             packages: fuse3 libfuse3-dev
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: almalinux8
@@ -61,6 +65,7 @@ jobs:
             all-args: pkg
             # Skip TSan and ASan tests for package build testing
             gfarm2fs-cmd: /usr/bin/gfarm2fs
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind
           - docker-dist: rockylinux9
@@ -71,6 +76,7 @@ jobs:
             packages: fuse3 fuse3-devel
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: rockylinux10
@@ -82,6 +88,7 @@ jobs:
             all-args: pkg
             # Skip TSan and ASan tests for package build testing
             gfarm2fs-cmd: /usr/bin/gfarm2fs
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind
           - docker-dist: rockylinux10
@@ -92,6 +99,7 @@ jobs:
             packages: fuse fuse-devel
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: gcc
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: fedora44
@@ -102,6 +110,7 @@ jobs:
             packages: fuse3 fuse3-devel clang
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: clang
             regress-modes: default --memcheck --helgrind --asan --tsan
           - docker-dist: opensuse16
@@ -112,6 +121,7 @@ jobs:
             packages: fuse3 fuse3-devel clang
             all-args: ''
             gfarm2fs-cmd: ''
+            gfarm2fs-options: ''
             cc: clang
             regress-modes: default --memcheck --helgrind --asan --tsan
     runs-on: ${{ matrix.runner }}
@@ -186,6 +196,7 @@ jobs:
           echo "writing log to $LOG"
           docker exec \
              -e GFARM2FS_CMD="${{ matrix.gfarm2fs-cmd }}" \
+             -e GFARM2FS_OPTIONS="${{ matrix.gfarm2fs-options }}" \
              -e REGRESS_MODES="${{ matrix.regress-modes }}" \
              -e CONFIGURE_ARGS="--with-gfarm=/usr/local --with-${{ matrix.fuse }}" \
              -e CC="${{ matrix.cc }}" \
