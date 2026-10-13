@@ -46,7 +46,7 @@ open_file_key_alloc(const struct gfarmized_path *gp,
 	struct open_file_key *key = malloc(keylen);
 
 	if (key == NULL) {
-		gflog_error(GFARM_MSG_UNFIXED,
+		gflog_error(GFARM_MSG_2000138,
 		    "no memory to allocate key for inode %lld",
 		    (unsigned long long)inum);
 		return (NULL);

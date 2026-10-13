@@ -614,7 +614,7 @@ gfarm2fs_fgetattr(const char *path, struct stat *stbuf,
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FGETATTR,
+		gfarm2fs_check_error(GFARM_MSG_2000132, OP_FGETATTR,
 				     "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -940,7 +940,7 @@ gfarm2fs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 				snprintf(child_path, len, "%s%s%s", path, slash,
 					de->d_name);
 				if (gfarm2fs_getattr(child_path, &st) == 0) {
-					gflog_debug(GFARM_MSG_UNFIXED,
+					gflog_debug(GFARM_MSG_2000133,
 						    "readdir_plus: %s",
 						    child_path);
 					have_stat = 1;
@@ -1625,7 +1625,7 @@ gfarm2fs_setxattr_gfarmized(const struct gfarmized_path *gfarmized,
 	/* include gfs_lsetxattr() */
 	e = gfarm2fs_xattr_set(gfarmized->path, name, value, size, gflags);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gflog_debug(GFARM_MSG_UNFIXED,
+		gflog_debug(GFARM_MSG_2000134,
 			    "SETXATTR(%s, %s): %s", gfarmized->path, name,
 			    gfarm_error_string(e));
 		if (e == GFARM_ERR_NO_SUCH_OBJECT && flags == XATTR_REPLACE) {
@@ -2018,7 +2018,7 @@ gfarm2fs_ftruncate_uncache(const char *path, off_t size,
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_FTRUNCATE,
+		gfarm2fs_check_error(GFARM_MSG_2000135, OP_FTRUNCATE,
 		    "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -2096,7 +2096,7 @@ gfarm2fs_read_uncache(const char *path, char *buf, size_t size,
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_READ,
+		gfarm2fs_check_error(GFARM_MSG_2000136, OP_READ,
 		    "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
@@ -2116,7 +2116,7 @@ gfarm2fs_write_uncache(const char *path, const char *buf, size_t size,
 
 	e = gfarmize_path(path, &gfarmized);
 	if (e != GFARM_ERR_NO_ERROR) {
-		gfarm2fs_check_error(GFARM_MSG_UNFIXED, OP_WRITE,
+		gfarm2fs_check_error(GFARM_MSG_2000137, OP_WRITE,
 		    "gfarmize_path", path, e);
 		return (-gfarm_error_to_errno(e));
 	}
