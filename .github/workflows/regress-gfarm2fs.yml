@@ -166,6 +166,7 @@ jobs:
         id: up
         run: |
           cd gfarm/docker/dist
+          sh ./minica.sh
           DIST=${{ matrix.docker-dist }} docker compose up -d
 
       - name: build_all
