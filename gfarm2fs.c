@@ -2447,6 +2447,13 @@ static struct fuse_opt gfarm2fs_opts[] = {
 	FUSE_OPT_END
 };
 
+#ifdef HAVE_FUSE3
+#define USAGE_DIRECT_IO \
+"    -o direct_io            enable direct I/O\n"
+#else
+#define USAGE_DIRECT_IO ""
+#endif
+
 static void
 usage(const char *progname, struct gfarm2fs_param *paramsp)
 {
@@ -2477,19 +2484,15 @@ usage(const char *progname, struct gfarm2fs_param *paramsp)
 "    -o auto_uid_min=N       minimum UID automatically assigned (default: %d)\n"
 "    -o auto_uid_max=N       maximum UID automatically assigned (default: %d)\n"
 "    -o auto_gid_min=N       minimum GID automatically assigned (default: %d)\n"
-"    -o auto_gid_max=N       maximum GID automatically assigned (default: %d)\n",
-		progname,
+"    -o auto_gid_max=N       maximum GID automatically assigned (default: %d)\n"
+USAGE_DIRECT_IO
+		"\n", progname,
 		GFARM2FS_SYSLOG_FACILITY_DEFAULT,
 		paramsp->copy_limit,
 		paramsp->auto_uid_min,
 		paramsp->auto_uid_max,
 		paramsp->auto_gid_min,
 		paramsp->auto_gid_max);
-#ifdef HAVE_FUSE3
-	fprintf(stderr,
-"    -o direct_io            enable direct I/O\n");
-#endif
-	fprintf(stderr, "\n");
 }
 
 static int
