@@ -58,6 +58,15 @@ this operation is essentially same with copy and remove,
 file owner settings may not be preserved, and it's possible that
 some directories cannot be correctly moved due to permission problems.
 .TP
+\fB-o disable_readdir_plus\fR
+disables FUSE READDIR_PLUS, which returns file attributes together with
+directory entries to improve directory listing performance.
+this is effective only with libfuse3.
+.TP
+\fB-o direct_io\fR
+enables direct I/O, which bypasses the kernel page cache.
+this option is available only with libfuse3.
+.TP
 \fB-o auto_uid_min=\fIN\fB\fR
 specify the minimum UID automatically assigned.
 .TP

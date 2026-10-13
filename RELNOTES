@@ -1,29 +1,43 @@
 Release note for Gfarm2fs 3.0.0
 ===============================
 
-[NOT-RELEASED-YET]
+[2026.10.13]
 
 New feature
 * support libfuse3 (FUSE version 3.x) [#10]
 * support READDIR_PLUS with libfuse3 to improve directory listing
-  performance
-* support gfarm2fs.{version,gfarm_version,fuse_version,exe,pid} xattr names
-* support listxattr() for gfarm2fs.* xattr names
+  performance; it can be disabled by -o disable_readdir_plus
+* support the -o direct_io option with libfuse3 [#12]
+* support the gfarm2fs.{version,gfarm_version,fuse_version,exe,pid} xattrs
+* support listxattr() for gfarm2fs.* xattrs
 
 Updated feature
-* support unlink() and rename() during open(), as well as subsequent
-  operations such as fstat()
-* support utimensat(UTIME_OMIT / UTIME_NOW) during open()
-* support atime updates becoming visible immediately after close()
-* support independent tracking of atime and mtime updates for utime operations
-  during open()
-* support simultaneous access to multiple gfmd servers via /.gfarm/,
-  without using incorrect stat information for files with the same inode number
-* automatically enable single-threaded FUSE mode when -o ncopy=N
+* support unlink() and rename() of open files, as well as subsequent
+  operations on them such as fstat()
+* support utimensat() with UTIME_OMIT and UTIME_NOW on open files
+* make atime updates visible immediately after close()
+* track atime and mtime updates independently for utime operations
+  on open files
+* support simultaneous access to multiple gfmd servers via /.gfarm/
+  without returning incorrect stat information for files that have
+  the same inode number
+* automatically enable single-threaded FUSE mode (-s) when -o ncopy=N
   is specified with N >= 2
+* list gfarm2fs.profile.* xattrs only at the mount root directory
+* return ENOATTR for the gfarm2fs.cksum xattr on non-regular files
 
 Bug fix
-* fix readlink cache race causing leaks under concurrency
+* fix a race condition in the readlink cache that caused memory leaks
+  under concurrent access
+* fix a stale readlink cache entry when a symlink is recreated at
+  the same path
+* fix a race between utimensat(UTIME_OMIT) and implicit timestamp
+  updates on open files
+* do not lose a close() error when restoring timestamps on release
+* suppress an unnecessary error log when setxattr() with XATTR_REPLACE
+  finds no existing attribute
+* fix RPM packaging for newer distributions
+* fix build errors and warnings on Ubuntu 26.04
 
 Release note for Gfarm2fs 1.2.22
 ================================
