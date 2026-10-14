@@ -1,7 +1,7 @@
 Release note for Gfarm2fs 3.0.0
 ===============================
 
-[2026.10.13]
+[2026.10.14]
 
 New feature
 * support libfuse3 (FUSE version 3.x) [#10]
@@ -25,6 +25,9 @@ Updated feature
   is specified with N >= 2
 * list gfarm2fs.profile.* xattrs only at the mount root directory
 * return ENOATTR for the gfarm2fs.cksum xattr on non-regular files
+* the RPM package now requires libfuse3
+* add --with-fuse2 and --with-fuse3 configure options; libfuse3 is
+  preferred by default, and libfuse2 is still supported
 
 Bug fix
 * fix a race condition in the readlink cache that caused memory leaks
