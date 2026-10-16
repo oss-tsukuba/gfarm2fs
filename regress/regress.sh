@@ -165,10 +165,10 @@ if [[ -n "${TOOL}" ]]; then
         --asan)
             # Keep ASAN, LSAN, and UBSAN output separate while retaining the
             # per-run prefix.
-            #export ASAN_OPTIONS="halt_on_error=false,log_exe_name=true,log_path=${RUN_LOGFILE}"
-            export ASAN_OPTIONS="halt_on_error=false,detect_leaks=1,fast_unwind_on_malloc=0,log_exe_name=true,log_path=${RUN_LOGFILE}"
-            export LSAN_OPTIONS="halt_on_error=false,log_exe_name=true,log_path=${RUN_LOGFILE}.lsan,suppressions=${script_dir}/lsan.supp"
-            export UBSAN_OPTIONS="halt_on_error=false,log_exe_name=true,log_path=${RUN_LOGFILE}.ubsan"
+            #export ASAN_OPTIONS="halt_on_error=false:log_exe_name=true:log_path=${RUN_LOGFILE}"
+            export ASAN_OPTIONS="halt_on_error=false:detect_leaks=1:fast_unwind_on_malloc=0:log_exe_name=true:log_path=${RUN_LOGFILE}"
+            export LSAN_OPTIONS="halt_on_error=false:log_exe_name=true:log_path=${RUN_LOGFILE}.lsan:suppressions=${script_dir}/lsan.supp"
+            export UBSAN_OPTIONS="halt_on_error=false:log_exe_name=true:log_path=${RUN_LOGFILE}.ubsan"
             ;;
         --memcheck | --helgrind)
             if ! command -v valgrind >/dev/null 2>&1; then
