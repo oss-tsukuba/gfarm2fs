@@ -114,7 +114,8 @@ fi
 
 if test "x$use_fuse3" = "xyes"; then
   AC_DEFINE([HAVE_FUSE3], [1], [Define to 1 if you have FUSE3])
-  CFLAGS="$CFLAGS $FUSE3_CFLAGS"
+  # FUSE3_CFLAGS is added to AM_CPPFLAGS in Makefile.am instead of CFLAGS,
+  # so that it is kept even if CFLAGS is overridden by "make CFLAGS=...".
   LIBS="$LIBS $FUSE3_LIBS"
 else
   if test "x$with_fuse2" = "xno"; then
@@ -141,6 +142,8 @@ LIBS=$gfarm_LIBS
 AC_CHECK_FUNCS(gfs_replicate_file_to gfarm_schedule_cache_dump gfs_getxattr_cached gfarm_xattr_caching gfarm_xattr_caching_pattern_add gfs_lchown gfs_lutimes gfarm_version gfs_stat_cksum gfarm_config_profile_value gfs_profile_lock)
 LIBS=$save_libs
 
+save_cppflags=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $FUSE3_CFLAGS"
 AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #  define _FILE_OFFSET_BITS 64
 #  include <fuse.h>
@@ -164,6 +167,7 @@ AC_RUN_IFELSE([AC_LANG_SOURCE([[
   }
   ]])],[AC_DEFINE(HAVE_BUG_OF_FUSE_OPT_PARSE_ON_NETBSD)],[
 ],[])
+CPPFLAGS=$save_cppflags
 
 AH_BOTTOM([
 /* fuse_opt_parse() doesn't correctly pass 2nd arg on NetBSD-5.1 and before */

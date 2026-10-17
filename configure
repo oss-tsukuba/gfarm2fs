@@ -16527,7 +16527,8 @@ if test "x$use_fuse3" = "xyes"; then
 
 printf "%s\n" "#define HAVE_FUSE3 1" >>confdefs.h
 
-  CFLAGS="$CFLAGS $FUSE3_CFLAGS"
+  # FUSE3_CFLAGS is added to AM_CPPFLAGS in Makefile.am instead of CFLAGS,
+  # so that it is kept even if CFLAGS is overridden by "make CFLAGS=...".
   LIBS="$LIBS $FUSE3_LIBS"
 else
   if test "x$with_fuse2" = "xno"; then
@@ -16698,6 +16699,8 @@ fi
 
 LIBS=$save_libs
 
+save_cppflags=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $FUSE3_CFLAGS"
 if test "$cross_compiling" = yes
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
@@ -16740,6 +16743,7 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
 esac
 fi
 
+CPPFLAGS=$save_cppflags
 
 
 
