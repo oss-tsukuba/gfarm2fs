@@ -153,6 +153,7 @@ AC_RUN_IFELSE([AC_LANG_SOURCE([[
   int opt_proc(void *data, const char *arg, int key, struct fuse_args *outargs)
   {
 	  data_save = data;
+	  return 1; /* keep the argument */
   }
 
   int
@@ -161,6 +162,7 @@ AC_RUN_IFELSE([AC_LANG_SOURCE([[
 	  struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 	  int data;
 	  fuse_opt_parse(&args, &data, NULL, opt_proc);
+	  fuse_opt_free_args(&args);
 	  if (data_save == &data)
 		  return 1;
 	  return 0; /* have a bug on NetBSD */
