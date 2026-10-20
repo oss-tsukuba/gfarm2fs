@@ -7,8 +7,8 @@ Group: Applications/Internet
 URL: http://sourceforge.net/projects/gfarm/
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires: fuse3-devel gfarm-devel >= 2.4.1
-Requires: fuse3 gfarm-libs >= 2.4.1
+BuildRequires: fuse3-devel gfarm-devel >= 2.7.17
+Requires: fuse3 gfarm-libs >= 2.7.17
 
 %description
 GfarmFS-FUSE for Gfarm v2 (gfarm2fs) enables to mount a Gfarm file
