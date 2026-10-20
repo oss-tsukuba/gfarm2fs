@@ -6,7 +6,7 @@ as a local file system.
 ## Requirements
 
 - Gfarm File System 2.4.2 or later
-- FUSE version 3 (Filesystem in Userspace)
+- FUSE (Filesystem in Userspace) version 3, or version 2
 - libacl to enable extended ACL support
 
 ### Packages
@@ -14,15 +14,13 @@ as a local file system.
 On RPM-based systems, install:
 
 - `gfarm-devel` or `gfarm-gsi-devel`
-- `fuse3`
-- `fuse3-devel`
+- `fuse3` and `fuse3-devel` (or `fuse` and `fuse-devel` for FUSE 2)
 - `libacl-devel`    # required for extended ACL support
 
 On Debian-based systems, install:
 
 - `libgfarm-dev`
-- `fuse3`
-- `libfuse3-dev`
+- `fuse3` and `libfuse3-dev` (or `fuse` and `libfuse-dev` for FUSE 2)
 - `libacl1-dev`    # required for extended ACL support
 
 ## Build and install
@@ -44,6 +42,9 @@ To specify these directories explicitly:
 
 `--with-gfarm` specifies the installation directory of Gfarm. `--prefix`
 specifies where gfarm2fs is installed.
+
+FUSE 3 is used if available; otherwise, FUSE 2 is used.  To select the
+version explicitly, specify `--with-fuse3` or `--with-fuse2`.
 
 If a specific C compiler is required, set `CC` when running `configure`:
 
