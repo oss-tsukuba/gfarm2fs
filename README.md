@@ -7,7 +7,7 @@ as a local file system.
 
 - Gfarm File System 2.4.2 or later
 - FUSE (Filesystem in Userspace) version 3, or version 2
-- libacl to enable extended ACL support
+- libacl for extended ACL support
 
 ### Packages
 
@@ -15,13 +15,13 @@ On RPM-based systems, install:
 
 - `gfarm-devel` or `gfarm-gsi-devel`
 - `fuse3` and `fuse3-devel` (or `fuse` and `fuse-devel` for FUSE 2)
-- `libacl-devel`    # required for extended ACL support
+- `libacl-devel` (required for extended ACL support)
 
 On Debian-based systems, install:
 
 - `libgfarm-dev`
 - `fuse3` and `libfuse3-dev` (or `fuse` and `libfuse-dev` for FUSE 2)
-- `libacl1-dev`    # required for extended ACL support
+- `libacl1-dev` (required for extended ACL support)
 
 ## Build and install
 
@@ -31,10 +31,9 @@ make
 sudo make install
 ```
 
-The default Gfarm installation directory is `/usr`. The default installation
-prefix for gfarm2fs is `/usr/local`.
-
-To specify these directories explicitly:
+By default, configure assumes that Gfarm is installed in `/usr`, and
+installs gfarm2fs in `/usr/local`.  To specify these directories
+explicitly:
 
 ```sh
 ./configure --with-gfarm=/path/to/gfarm --prefix=/path/to/install
@@ -46,6 +45,9 @@ specifies where gfarm2fs is installed.
 FUSE 3 is used if available; otherwise, FUSE 2 is used.  To select the
 version explicitly, specify `--with-fuse3` or `--with-fuse2`.
 
+If libacl is not available, specify `--disable-acl` to build gfarm2fs
+without extended ACL support.
+
 If a specific C compiler is required, set `CC` when running `configure`:
 
 ```sh
@@ -56,10 +58,9 @@ Run `./configure --help` to see all available configuration options.
 
 ## Mounting a Gfarm file system
 
-Before mounting, prepare valid Gfarm authentication credentials according to
-your environment. Depending on the configured authentication method, this
-may include initializing a session with `gfkey`, `jwt-agent`, or
-`grid-proxy-init` (these commands are examples and are not all required).
+Before mounting, prepare valid Gfarm authentication credentials for the
+configured authentication method, for example, by `gfkey`, `jwt-agent`, or
+`grid-proxy-init`.
 
 For example, create a mount point and pass it to `gfarm2fs`:
 
@@ -79,17 +80,11 @@ env GFARM_CONFIG_FILE=/path/to/gfarm2.conf gfarm2fs /mnt/gfarm/user1
 Use `gfarm2fs -h` for command-line and FUSE options, and `gfarm2fs -V` to
 display the version.
 
-Unmount the file system with the FUSE unmount command provided by the host,
-for example:
+To unmount the file system, use `fusermount3` for FUSE 3, or `fusermount`
+for FUSE 2:
 
 ```sh
 fusermount3 -u /mnt/gfarm/user1
-```
-
-or
-
-```sh
-fusermount -u /mnt/gfarm/user1
 ```
 
 ## Limitations
@@ -102,10 +97,9 @@ fusermount -u /mnt/gfarm/user1
 
 ## Extended attributes and ACLs
 
-Extended ACL support is enabled when the required ACL development library is
-available at build time. Gfarm extended attributes can be accessed through
-the Gfarm tools and, when supported by the build and mounted file system,
-through standard file-system extended-attribute interfaces.
+Gfarm extended attributes can be accessed through `getfattr(1)` and
+`setfattr(1)` as well as Gfarm commands such as `gfxattr(1)`.  Extended
+ACLs can be accessed through `getfacl(1)` and `setfacl(1)`.
 
 To display all extended attributes attached to a file or mount point,
 use `getfattr` with `-m .`:
@@ -116,13 +110,13 @@ getfattr -d -m . /mnt/gfarm/user1/path/to/file_or_dir
 
 ## Security considerations
 
-When untrusted users are registered in the `gfarmroot` group or
-`gfarm_root.{user,group}` extended attributes of any files or
-directories, a Security Hole exists on the mount point of gfarm2fs with
-`-o suid,allow_other` option executed by root (even if either `-o ro`
-option or `-o default_permissions` option is also specified).
-Therefore both `-o suid,allow_other` option and `gfarm_root.{user,group}`
-extended attributes should not be used.
+When untrusted users are registered in the `gfarmroot` group or in the
+`gfarm_root.{user,group}` extended attributes of any file or directory,
+there is a security hole at the mount point of gfarm2fs executed by root
+with the `-o suid,allow_other` option, even if the `-o ro` or
+`-o default_permissions` option is also specified.  Therefore, do not use
+either the `-o suid,allow_other` option or the `gfarm_root.{user,group}`
+extended attributes.
 
 ## Related documentation
 
