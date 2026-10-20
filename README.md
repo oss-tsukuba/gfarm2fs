@@ -5,7 +5,7 @@ as a local file system.
 
 ## Requirements
 
-- Gfarm File System 2.4.2 or later
+- Gfarm File System 2.7.17 or later
 - FUSE (Filesystem in Userspace) version 3, or version 2
 - libacl for extended ACL support
 
